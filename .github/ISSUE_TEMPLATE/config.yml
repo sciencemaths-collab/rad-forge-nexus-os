@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/sciencemaths-collab/rad-forge-nexus-os/security/policy
+    about: Report suspected vulnerabilities through the private process described in SECURITY.md.

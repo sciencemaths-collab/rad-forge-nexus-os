@@ -26,6 +26,31 @@ npm test --prefix sdk/typescript
 uv build
 ```
 
+## Reporting errors
+
+Search the existing GitHub issues before filing a new defect. Use the structured bug-report
+form and provide enough information for another contributor to reproduce the failure:
+
+- affected release, package version, or commit SHA
+- operating system and architecture
+- Python, `uv`, Node.js, and npm versions when relevant
+- installation method and configuration mode
+- exact command, SDK call, API operation, or workflow stage
+- minimal input or configuration with secrets and private data removed
+- expected behavior and observed behavior
+- complete reproduction steps from a clean state
+- relevant logs, stack traces, exit codes, request IDs, trace IDs, and evidence IDs
+- whether the failure is consistent or intermittent
+- any safe workaround already attempted
+
+Format logs and commands as code blocks. Prefer text over screenshots because text can be
+searched and quoted during diagnosis. Reduce large examples to the smallest failing case and
+attach only the artifacts necessary to reproduce the problem.
+
+Never place credentials, access tokens, resolved secrets, personal information, proprietary
+datasets, or production records in a public issue. Report suspected vulnerabilities through
+the private process documented in [`SECURITY.md`](SECURITY.md).
+
 ## Engineering requirements
 
 - Keep vendor SDKs outside core packages and behind adapter contracts.

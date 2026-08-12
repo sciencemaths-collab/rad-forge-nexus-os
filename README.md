@@ -158,6 +158,23 @@ remain denied unless explicitly authorized.
 Report suspected vulnerabilities through the private process in
 [`SECURITY.md`](SECURITY.md). Avoid public issues for security-sensitive details.
 
+## Support and issue reporting
+
+Use [GitHub Issues](https://github.com/sciencemaths-collab/rad-forge-nexus-os/issues)
+for reproducible defects, documentation problems, and narrowly scoped enhancement
+proposals. Search existing issues before opening a new report and use the repository's
+structured bug-report form when an operation fails.
+
+A useful error report identifies the affected version or commit, operating system,
+Python and Node.js versions, installation method, command or API operation, expected
+behavior, actual behavior, minimal reproduction steps, and the smallest relevant log
+excerpt. Remove credentials, tokens, personal data, proprietary inputs, and resolved
+secret values before attaching configuration, logs, screenshots, or evidence artifacts.
+
+General implementation questions may also be raised through GitHub Issues when they are
+specific enough to answer and do not disclose sensitive information. Security
+vulnerabilities must follow [`SECURITY.md`](SECURITY.md), not a public issue.
+
 ## Contributing
 
 Contribution requirements, focused-change expectations, and verification commands are

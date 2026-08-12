@@ -1,0 +1,82 @@
+name: Bug report
+description: Report a reproducible error or unexpected behavior
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve RAD Forge / NEXUS OS. Search existing issues first. Do not include credentials, personal data, proprietary inputs, production records, or unresolved security details. Use the private process in SECURITY.md for vulnerabilities.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Provide the package version, release tag, or full commit SHA.
+      placeholder: 0.0.1 or full commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system, architecture, Python, uv, Node.js, npm, and installation method as applicable.
+      placeholder: |
+        OS and architecture:
+        Python and uv:
+        Node.js and npm:
+        Installation method:
+    validations:
+      required: true
+  - type: textarea
+    id: operation
+    attributes:
+      label: Affected operation
+      description: Identify the exact command, SDK call, API operation, or workflow stage.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide complete numbered steps and sanitized minimal input that reproduce the failure from a clean state.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exit code and whether the failure is consistent or intermittent.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Add only relevant logs, stack traces, request IDs, trace IDs, or evidence IDs. Remove all sensitive values.
+      render: text
+  - type: textarea
+    id: attempts
+    attributes:
+      label: Workarounds attempted
+      description: Describe safe troubleshooting steps already tried and their results.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I reduced the report to the smallest practical reproduction.
+          required: true
+        - label: I removed credentials, personal data, proprietary data, and resolved secrets.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true
