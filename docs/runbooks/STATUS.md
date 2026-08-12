@@ -30,6 +30,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
 | S. OpenAI/Codex adapter | TESTED (FAKE) | 188-test suite and fake-transport conformance pass; live provider remains unverified |
 | T. Claude/Anthropic adapter | TESTED (FAKE) | 196-test suite and fake-transport conformance pass; live provider remains unverified |
+| U. Typed tool registry | TESTED | 203-test suite, schemas, policy gates, timeouts, replay binding, and wheel execution pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -356,3 +357,20 @@ Component T is TESTED with deterministic fake transports, not live-verified or
 production-qualified. No API key or live request was used. Provider milestone P-T is
 complete at its non-live component-test boundary. Component U begins the typed tool
 registry and deterministic tool execution boundary.
+
+## Component U verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 203 tests
+- Frozen MCP tools contract loading and unique sorted registration
+- Draft 2020-12 input/output schema and format validation
+- Policy denial and approval-required blocking before handler execution
+- Bounded payloads, async timeout, safe handler errors, and output validation
+- Project/tool/key-scoped replay and changed-input idempotency rejection
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel execution smoke
+
+Component U is TESTED, not production-qualified. Its replay cache is in memory and does
+not yet prove restart-safe or distributed idempotency. MCP protocol framing, gateway
+authentication, durable replay, approval consumption, sandbox enforcement, and evidence
+integration remain later gates. Component V adds the MCP gateway boundary.
