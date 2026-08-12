@@ -59,9 +59,7 @@ class ToolDescriptor:
             or not 0 < self.timeout_seconds <= 86_400
         ):
             raise ToolError("tool timeout is invalid")
-        if not isinstance(self.idempotent, bool) or not isinstance(
-            self.approval_required, bool
-        ):
+        if not isinstance(self.idempotent, bool) or not isinstance(self.approval_required, bool):
             raise ToolError("tool flags must be boolean")
         input_schema = _schema(self.input_schema)
         output_schema = _schema(self.output_schema)
@@ -112,9 +110,7 @@ class ToolRegistry:
 
     @classmethod
     def from_contract(cls, contract: Mapping[str, Any]) -> ToolRegistry:
-        if contract.get("contract_version") != "1.0" or not isinstance(
-            contract.get("tools"), list
-        ):
+        if contract.get("contract_version") != "1.0" or not isinstance(contract.get("tools"), list):
             raise ToolError("tool contract is invalid")
         registry = cls()
         for raw in contract["tools"]:
@@ -231,9 +227,7 @@ def _payload(value: Mapping[str, Any]) -> tuple[dict[str, Any], str]:
     if not isinstance(value, Mapping):
         raise ToolError("tool payload must be an object")
     try:
-        encoded = json.dumps(
-            value, sort_keys=True, separators=(",", ":"), allow_nan=False
-        )
+        encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
         decoded = json.loads(encoded)
     except (TypeError, ValueError) as exc:
         raise ToolError("tool payload must contain canonical JSON") from exc

@@ -35,6 +35,7 @@ packages = ["src/nexus_os"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "--strict-markers --strict-config"
 markers = [
   "live: requires external credentials and explicit opt-in",

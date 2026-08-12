@@ -21,11 +21,17 @@ def _graph():  # type: ignore[no-untyped-def]
                 "schema_version": "1.0",
                 "graph_id": str(UUID("30000000-0000-4000-8000-000000000001")),
                 "project_id": "security-test",
-                "tasks": [{
-                    "task_id": "task_a", "kind": "compute", "depends_on": [],
-                    "effect": "READ_ONLY", "timeout_seconds": 30,
-                    "retry": {"max_attempts": 1, "backoff_seconds": 0}, "input": {}
-                }],
+                "tasks": [
+                    {
+                        "task_id": "task_a",
+                        "kind": "compute",
+                        "depends_on": [],
+                        "effect": "READ_ONLY",
+                        "timeout_seconds": 30,
+                        "retry": {"max_attempts": 1, "backoff_seconds": 0},
+                        "input": {},
+                    }
+                ],
             }
         )
     )

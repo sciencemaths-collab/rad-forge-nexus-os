@@ -304,7 +304,12 @@ def _analysis_input(
         )
     elif stage.task_id == "statistics":
         value["required_provenance"] = (
-            "engine", "version", "parameters", "seed", "input_digest", "output_digest"
+            "engine",
+            "version",
+            "parameters",
+            "seed",
+            "input_digest",
+            "output_digest",
         )
     elif stage.task_id == "chart_spec":
         value.update(require_computed_columns=True, validate_specification=True)
@@ -317,7 +322,9 @@ def _analysis_input(
         value["required_state"] = ("dataset_digest", "analysis_artifacts", "graph_digest")
     elif stage.task_id == "reopen_verify":
         value["deterministic_checks"] = (
-            "dataset_digest_matches", "artifacts_match", "state_is_compatible"
+            "dataset_digest_matches",
+            "artifacts_match",
+            "state_is_compatible",
         )
     elif stage.task_id == "evidence_report":
         value["acceptance"] = acceptance

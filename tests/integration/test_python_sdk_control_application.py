@@ -31,8 +31,6 @@ class ApplicationTransport:
 
 def test_sdk_create_then_get_runs_through_control_application() -> None:
     client = NexusClient(ApplicationTransport())
-    created = asyncio.run(
-        client.create_run("project-1", idempotency_key="1234567890abcdef")
-    )
+    created = asyncio.run(client.create_run("project-1", idempotency_key="1234567890abcdef"))
     fetched = asyncio.run(client.get_run(created.run_id))
     assert fetched == created

@@ -61,8 +61,7 @@ def test_high_risk_structured_attributes_always_require_approval() -> None:
     )
 
     assert all(
-        engine.evaluate(request).kind is PolicyDecisionKind.REQUIRE_APPROVAL
-        for request in requests
+        engine.evaluate(request).kind is PolicyDecisionKind.REQUIRE_APPROVAL for request in requests
     )
 
 

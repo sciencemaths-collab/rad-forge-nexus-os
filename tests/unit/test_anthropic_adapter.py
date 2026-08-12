@@ -119,4 +119,3 @@ def test_malformed_duplicate_and_unknown_operations_fail_safely() -> None:
 
 async def _collect(events):  # type: ignore[no-untyped-def]
     return [event async for event in events]
-

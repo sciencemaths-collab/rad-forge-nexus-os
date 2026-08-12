@@ -58,12 +58,14 @@ def test_unknown_environment_overlay_is_rejected(environment: dict[str, str]) ->
 
 
 def test_redacted_manifest_never_contains_secret_reference(tmp_path: Path) -> None:
-    config = EXAMPLE.read_text(encoding="utf-8").replace(
-        "secrets: {}", "secrets:\n  provider_key: env:OPENAI_API_KEY"
-    ).replace(
-        "adapter: mock\n    model:",
-        "adapter: mock\n    credential: secret:providers/mock\n    model:",
-        1,
+    config = (
+        EXAMPLE.read_text(encoding="utf-8")
+        .replace("secrets: {}", "secrets:\n  provider_key: env:OPENAI_API_KEY")
+        .replace(
+            "adapter: mock\n    model:",
+            "adapter: mock\n    credential: secret:providers/mock\n    model:",
+            1,
+        )
     )
     path = tmp_path / "project.yaml"
     path.write_text(config, encoding="utf-8")

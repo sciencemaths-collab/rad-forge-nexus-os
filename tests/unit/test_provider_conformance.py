@@ -44,4 +44,3 @@ def test_resume_capability_is_exercised_when_advertised() -> None:
     resume = next(case for case in report.cases if case.name == "resume_contract")
     assert resume.status is ConformanceStatus.PASSED
     assert resume.details == ("advertised_and_verified",)
-

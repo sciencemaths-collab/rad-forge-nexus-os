@@ -157,9 +157,7 @@ class DeterministicMockAdapter:
             raise AdapterError("unknown provider task") from exc
 
     @staticmethod
-    def _append(
-        execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]
-    ) -> None:
+    def _append(execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]) -> None:
         sequence = len(execution.events) + 1
         execution.events.append(
             ProviderEvent.create(

@@ -20,10 +20,21 @@ RUN = RunId.parse("00000000-0000-4000-8000-000000000010")
 
 def record(sequence: int = 1, previous: str = GENESIS) -> EvidenceRecord:
     return EvidenceRecord(
-        UUID(f"00000000-0000-4000-8000-{sequence:012d}"), sequence,
-        datetime(2026, 8, 12, 12, sequence, tzinfo=UTC), "project", RUN, TaskId("task_1"),
-        "pytest", "nexus-os", EvidenceKind.TEST, EvidenceOutcome.PASS, "M-UNIT-001",
-        DIGEST, DIGEST, TraceId("1" * 32), previous,
+        UUID(f"00000000-0000-4000-8000-{sequence:012d}"),
+        sequence,
+        datetime(2026, 8, 12, 12, sequence, tzinfo=UTC),
+        "project",
+        RUN,
+        TaskId("task_1"),
+        "pytest",
+        "nexus-os",
+        EvidenceKind.TEST,
+        EvidenceOutcome.PASS,
+        "M-UNIT-001",
+        DIGEST,
+        DIGEST,
+        TraceId("1" * 32),
+        previous,
     )
 
 

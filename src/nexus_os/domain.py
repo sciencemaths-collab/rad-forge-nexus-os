@@ -398,4 +398,3 @@ def _thaw_json(value: object) -> Any:
     if isinstance(value, tuple):
         return [_thaw_json(item) for item in value]
     return value
-

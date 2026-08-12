@@ -117,16 +117,20 @@ def test_concurrent_consumers_cannot_both_authorize(tmp_path: Path) -> None:
     now = datetime(2026, 8, 12, tzinfo=UTC)
     store = ApprovalStore(path)
     record = _request(store, now)
-    store.decide(record.approval_id, status=ApprovalStatus.APPROVED,
-                 decided_by="owner", decided_at=now)
+    store.decide(
+        record.approval_id, status=ApprovalStatus.APPROVED, decided_by="owner", decided_at=now
+    )
     store.close()
 
     def consume() -> bool:
         local = ApprovalStore(path)
         try:
             local.authorize_and_consume(
-                record.approval_id, project_id=record.project_id, run_id=record.run_id,
-                action_digest=record.action_digest, now=now,
+                record.approval_id,
+                project_id=record.project_id,
+                run_id=record.run_id,
+                action_digest=record.action_digest,
+                now=now,
             )
             return True
         except ApprovalError:

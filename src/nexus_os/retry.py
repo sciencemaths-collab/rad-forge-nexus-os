@@ -105,9 +105,7 @@ class RetryEngine:
             FailureClass.MISSING_DEPENDENCY,
         }
         action = (
-            RetryAction.REPAIR
-            if latest.failure.classification in repairable
-            else RetryAction.RETRY
+            RetryAction.REPAIR if latest.failure.classification in repairable else RetryAction.RETRY
         )
         delay = min(2 ** (len(history) - 1) * 2.0, self._limits.max_backoff_seconds)
         return RetryDecision(action, "bounded next attempt permitted", len(history) + 1, delay)

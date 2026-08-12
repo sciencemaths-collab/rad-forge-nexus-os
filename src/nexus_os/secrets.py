@@ -120,9 +120,7 @@ class SecretResolver:
 
 
 @contextmanager
-def secret_scope(
-    resolver: SecretResolver, reference: SecretReference
-) -> Iterator[ResolvedSecret]:
+def secret_scope(resolver: SecretResolver, reference: SecretReference) -> Iterator[ResolvedSecret]:
     """Resolve a value for one lexical scope and close it on every exit path."""
     secret = resolver.resolve(reference)
     try:

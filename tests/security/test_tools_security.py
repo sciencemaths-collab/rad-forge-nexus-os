@@ -66,8 +66,14 @@ def test_timeout_and_handler_error_are_bounded_and_safe() -> None:
 def test_invalid_schema_and_oversized_payload_fail_before_handler() -> None:
     with pytest.raises(ToolError, match="schema"):
         ToolDescriptor(
-            "nexus.bad", "bad", ActionEffect.READ_ONLY, 1, False, False,
-            {"type": "not-a-json-schema-type"}, {"type": "object"}
+            "nexus.bad",
+            "bad",
+            ActionEffect.READ_ONLY,
+            1,
+            False,
+            False,
+            {"type": "not-a-json-schema-type"},
+            {"type": "object"},
         )
 
     registry = ToolRegistry()

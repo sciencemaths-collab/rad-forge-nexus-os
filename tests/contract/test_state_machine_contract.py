@@ -126,12 +126,8 @@ def test_transition_predicates_cover_every_state_pair_without_raising() -> None:
 
     assert len(run_answers) == len(RunState) ** 2
     assert len(task_answers) == len(TaskStatus) ** 2
-    assert not any(
-        allowed for (source, _), allowed in run_answers.items() if source.is_terminal
-    )
-    assert not any(
-        allowed for (source, _), allowed in task_answers.items() if source.is_terminal
-    )
+    assert not any(allowed for (source, _), allowed in run_answers.items() if source.is_terminal)
+    assert not any(allowed for (source, _), allowed in task_answers.items() if source.is_terminal)
 
 
 def _run_values() -> dict[str, object]:

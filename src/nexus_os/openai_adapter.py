@@ -35,15 +35,11 @@ class TransportError(RuntimeError):
 class OpenAITransport(Protocol):
     async def health(self, api_key: str) -> bool: ...
 
-    async def create(
-        self, request: Mapping[str, object], api_key: str
-    ) -> Mapping[str, Any]: ...
+    async def create(self, request: Mapping[str, object], api_key: str) -> Mapping[str, Any]: ...
 
     async def retrieve(self, response_id: str, api_key: str) -> Mapping[str, Any]: ...
 
-    async def cancel_response(
-        self, response_id: str, api_key: str
-    ) -> Mapping[str, Any]: ...
+    async def cancel_response(self, response_id: str, api_key: str) -> Mapping[str, Any]: ...
 
 
 @dataclass(slots=True)
@@ -211,9 +207,7 @@ class OpenAIAdapter:
         self._append(execution, event_kind, {"status": normalized.value})
 
     @staticmethod
-    def _append(
-        execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]
-    ) -> None:
+    def _append(execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]) -> None:
         sequence = len(execution.events) + 1
         execution.events.append(
             ProviderEvent.create(
