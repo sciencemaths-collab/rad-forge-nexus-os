@@ -29,8 +29,9 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
 | R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
 | S. OpenAI/Codex adapter | TESTED (FAKE) | 188-test suite and fake-transport conformance pass; live provider remains unverified |
+| T. Claude/Anthropic adapter | TESTED (FAKE) | 196-test suite and fake-transport conformance pass; live provider remains unverified |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
-| Provider adapters | IN PROGRESS | SDK, deterministic mock, and conformance harness are tested; live adapters remain unverified |
+| Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
 ## Repository state
@@ -338,3 +339,20 @@ Component S is TESTED with deterministic fake transports, not live-verified or
 production-qualified. No API key or live request was used. Account/model access,
 vendor behavior, network reliability, cost, and real cancellation/resume require
 explicit opt-in live qualification. Component T adds the Claude/Anthropic adapter.
+
+## Component T verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 196 tests
+- Anthropic Messages request and strict message identity/type/role validation
+- Opaque secret references and per-call scoped credential resolution
+- Stop-reason, token usage, success, truncation, and refusal normalization
+- Terminal cancellation idempotency and explicit unsupported resume
+- Malformed response, duplicate/unknown task, and safe-error checks
+- Component R fake-transport conformance, vendor exclusion, typing, contracts, builds, wheel smoke
+
+Component T is TESTED with deterministic fake transports, not live-verified or
+production-qualified. No API key or live request was used. Provider milestone P-T is
+complete at its non-live component-test boundary. Component U begins the typed tool
+registry and deterministic tool execution boundary.
