@@ -26,6 +26,9 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/nexus_os"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"schemas/project.schema.json" = "nexus_os/schemas/project.schema.json"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config"
