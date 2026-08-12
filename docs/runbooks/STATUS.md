@@ -15,6 +15,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | C. State machine | TESTED | 63-test full suite, exhaustive lifecycle pair coverage, and installed-wheel smoke pass |
 | D. Task graph compiler | TESTED | 73-test full suite, bounded schema compilation, deterministic digest, and installed-wheel smoke pass |
 | E. Task graph validator | TESTED | 79-test full suite, dependency/cycle checks, deterministic scheduling levels, and installed-wheel smoke pass |
+| F. Durable checkpoint store | TESTED | 85-test full suite, atomic CAS writes, process-kill recovery, compatibility guards, and wheel smoke pass |
 | Runtime and modes | UNKNOWN | Correctly not started before F0 |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -108,3 +109,18 @@ On 2026-08-12 the following passed:
 
 Component E is TESTED, not production-qualified. It proves deterministic graph
 semantics in memory. Durable checkpointing and resume begin with Component F.
+
+## Component F verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 85 tests
+- Atomic insert/update and stale-writer rollback
+- Forced writer-process termination followed by exact recovery
+- Graph/schema resume compatibility rejection
+- Secret-reference, non-canonical, and 4 MiB payload rejection
+- Ruff, strict mypy, contract/schema validation, builds, and fresh-wheel smoke
+
+Component F is TESTED, not production-qualified. It provides the durable
+checkpoint primitive; Component G integrates it with runtime orchestration and
+atomic lifecycle progress.
