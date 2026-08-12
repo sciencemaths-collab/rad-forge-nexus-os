@@ -12,6 +12,7 @@ from nexus_os.domain import ActionEffect, TaskDefinition, TaskGraph, TaskId
 from nexus_os.graph import ValidatedTaskGraph, validate_task_graph
 
 APP_BUILD_VERSION: Final = "1.0"
+RESEARCH_VERSION: Final = "1.0"
 
 
 class ModeCompileError(ValueError):
@@ -39,6 +40,21 @@ _APP_BUILD_STAGES = (
     _Stage("security_test", "mode.app_build.security_test", "security-tests.json", 900, False),
     _Stage("failure_test", "mode.app_build.failure_test", "failure-tests.json", 900, False),
     _Stage("evidence_report", "mode.app_build.evidence", "evidence-report.json", 300, False),
+)
+
+_RESEARCH_STAGES = (
+    _Stage("protocol", "mode.research.protocol", "protocol.json", 300, True),
+    _Stage("source_acquisition", "mode.research.source_acquisition", "sources.json", 900, True),
+    _Stage("source_extraction", "mode.research.source_extraction", "extractions.json", 900, False),
+    _Stage("claim_construction", "mode.research.claim_construction", "claims.json", 600, True),
+    _Stage("deterministic_compute", "mode.research.compute", "computations.json", 900, False),
+    _Stage("synthesis", "mode.research.synthesis", "research-report-draft.md", 600, True),
+    _Stage("conflict_review", "mode.research.conflict_review", "conflicts.json", 300, False),
+    _Stage(
+        "citation_verification", "mode.research.citation_verification", "citations.json", 600, False
+    ),
+    _Stage("reproducibility", "mode.research.reproducibility", "reproducibility.json", 900, False),
+    _Stage("evidence_report", "mode.research.evidence", "evidence-report.json", 300, False),
 )
 
 
@@ -94,6 +110,115 @@ class AppBuildMode:
             previous = task_id
         graph_id = uuid5(NAMESPACE_URL, f"nexus:app_build:{APP_BUILD_VERSION}:{config.digest}")
         return validate_task_graph(TaskGraph(graph_id, project_id, tuple(tasks)))
+
+
+class ResearchMode:
+    """Compile research questions into a provenance-first, non-publishing DAG."""
+
+    def compile(self, config: LoadedConfig) -> ValidatedTaskGraph:
+        if not isinstance(config, LoadedConfig):
+            raise ModeCompileError("research requires a validated project configuration")
+        data = config.data
+        if data.get("mode") != "research":
+            raise ModeCompileError("project mode must be research")
+        workspace = _mapping(data.get("workspace"), "workspace")
+        if workspace.get("read_only") is True:
+            raise ModeCompileError("research requires a writable workspace")
+        project_id = _string(data.get("project_id"), "project_id")
+        question = _string(data.get("goal"), "goal")
+        policy = _mapping(data.get("policy"), "policy")
+        max_attempts = policy.get("max_attempts")
+        if not isinstance(max_attempts, int) or isinstance(max_attempts, bool):
+            raise ModeCompileError("project retry policy is invalid")
+        acceptance = _acceptance(data.get("acceptance"))
+        acceptance_ids = tuple(item["id"] for item in acceptance)
+        if len(set(acceptance_ids)) != len(acceptance_ids):
+            raise ModeCompileError("acceptance identifiers must be unique")
+
+        tasks: list[TaskDefinition] = []
+        previous: TaskId | None = None
+        for stage in _RESEARCH_STAGES:
+            task_id = TaskId(stage.task_id)
+            task_input = _research_input(stage, question, acceptance)
+            tasks.append(
+                TaskDefinition(
+                    task_id=task_id,
+                    kind=stage.kind,
+                    depends_on=() if previous is None else (previous,),
+                    effect=ActionEffect.WORKSPACE_WRITE,
+                    timeout_seconds=stage.timeout_seconds,
+                    max_attempts=max_attempts if stage.retryable else 1,
+                    backoff_seconds=1.0 if stage.retryable else 0.0,
+                    input=task_input,
+                    acceptance_ids=acceptance_ids if stage.task_id == "evidence_report" else (),
+                )
+            )
+            previous = task_id
+        graph_id = uuid5(NAMESPACE_URL, f"nexus:research:{RESEARCH_VERSION}:{config.digest}")
+        return validate_task_graph(TaskGraph(graph_id, project_id, tuple(tasks)))
+
+
+def _research_input(
+    stage: _Stage, question: str, acceptance: tuple[dict[str, str], ...]
+) -> dict[str, Any]:
+    value: dict[str, Any] = {
+        "mode_version": RESEARCH_VERSION,
+        "expected_artifact": stage.artifact,
+    }
+    if stage.task_id == "protocol":
+        value.update(
+            question=question,
+            required_data_controls=(
+                "classification",
+                "minimized_access",
+                "provider_routing",
+                "egress_approval",
+            ),
+        )
+    elif stage.task_id == "source_acquisition":
+        value.update(
+            network_access="policy_scoped",
+            required_source_fields=(
+                "locator",
+                "retrieved_at",
+                "content_digest",
+                "license_access",
+                "extractor_version",
+                "provenance",
+            ),
+        )
+    elif stage.task_id == "claim_construction":
+        value.update(
+            required_claim_links=("source_spans", "deterministic_artifacts"),
+            allowed_derivations=("direct", "calculated", "inferred"),
+        )
+    elif stage.task_id == "deterministic_compute":
+        value["required_provenance"] = (
+            "engine",
+            "version",
+            "parameters",
+            "environment",
+            "seed",
+            "input_digest",
+            "output_digest",
+            "reproducibility_status",
+        )
+    elif stage.task_id == "synthesis":
+        value.update(
+            numeric_claims_require_artifacts=True,
+            external_publication=False,
+        )
+    elif stage.task_id == "conflict_review":
+        value.update(retain_contradictions=True, report_unresolved_conflicts=True)
+    elif stage.task_id == "citation_verification":
+        value.update(
+            deterministic_checks=("citation_exists", "source_span_exists", "artifact_value_matches")
+        )
+    elif stage.task_id == "reproducibility":
+        value.update(require_explicit_limitations=True, require_reproducible_artifacts=True)
+    elif stage.task_id == "evidence_report":
+        value["acceptance"] = acceptance
+    return value
 
 
 def _mapping(value: object, name: str) -> Mapping[str, Any]:

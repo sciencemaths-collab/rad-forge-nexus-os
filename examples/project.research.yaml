@@ -1,0 +1,26 @@
+schema_version: "1.0"
+project_id: research_demo
+name: Provenance-First Research
+mode: research
+goal: Evaluate a research question using traceable sources and reproducible calculations.
+workspace:
+  root: ./workspace
+  read_only: false
+  network_allowlist: [example.org]
+providers:
+  researcher:
+    adapter: mock
+    model: deterministic-fixture-v1
+secrets: {}
+policy:
+  max_attempts: 3
+  max_elapsed_seconds: 7200
+  max_cost_usd: 0
+  require_approval: [SENSITIVE, DESTRUCTIVE]
+acceptance:
+  - id: RESEARCH_CLAIMS
+    description: Every factual claim links to a source span or deterministic artifact.
+    verifier: nexus.verify.claim_coverage
+  - id: RESEARCH_REPRODUCIBLE
+    description: Computations and the complete evidence chain reproduce and verify.
+    verifier: nexus.verify.reproducibility

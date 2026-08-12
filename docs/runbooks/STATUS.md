@@ -38,7 +38,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
 | AA. Deterministic compute | TESTED | 248-test suite, bounded CSV/schema/statistics/transforms/chart inputs and provenance pass |
 | AB. App-build mode | TESTED | 255-test suite, fail-fast engineering DAG, acceptance/retry binding, secret exclusion pass |
-| Modes | IN PROGRESS | AA deterministic compute and AB app-build pack pass; research/data-analysis packs remain |
+| AC. Research mode | TESTED | 262-test suite, provenance/claims/conflicts/citations/reproducibility DAG pass |
+| Modes | IN PROGRESS | AA compute and AB-AC mode packs pass; data-analysis pack remains |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
@@ -501,3 +502,20 @@ On 2026-08-12 the following passed:
 Component AB is TESTED, not production-qualified. It compiles but does not execute work,
 select providers, authorize effects, prove generated software correctness, or qualify a
 release. Component AC adds the `research` mode pack with source and claim provenance.
+
+## Component AC verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 262 tests
+- Protocol-through-evidence provenance-first research sequence
+- Required source, claim-link, derivation, computation, and reproducibility metadata
+- Contradiction retention and unresolved-conflict reporting
+- Artifact-grounded numeric synthesis and deterministic citation/value checks
+- Explicit non-publication plus provider, credential, and secret exclusion
+- Wrong-mode/read-only rejection and final acceptance evidence binding
+- Frozen graph round trip, Ruff, strict mypy, contracts, builds, and wheel smoke
+
+Component AC is TESTED, not production-qualified. It compiles but does not acquire sources,
+execute computations, classify data, assess scientific quality, authorize egress, or publish.
+Component AD adds the `data_analysis` mode pack and closes the modes milestone.
