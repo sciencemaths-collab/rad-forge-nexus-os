@@ -28,6 +28,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
 | R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
+| S. OpenAI/Codex adapter | TESTED (FAKE) | 188-test suite and fake-transport conformance pass; live provider remains unverified |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | IN PROGRESS | SDK, deterministic mock, and conformance harness are tested; live adapters remain unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -320,3 +321,20 @@ production-qualified. A passing deterministic suite derives only `mock_verified`
 Live-provider execution, workspace/policy integration, reliability qualification,
 and release approval remain later gates. Component S begins the first live adapter
 implementation without credentials or a live-verification claim.
+
+## Component S verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 188 tests
+- Responses request mapping with background execution and `store: false`
+- Opaque secret references and per-call scoped credential resolution
+- Normalized lifecycle, terminal results, token usage, cancellation, and resume
+- Malformed identity/status/usage, duplicate task, unknown task, and safe-error checks
+- Component R conformance through an injected fake transport
+- Vendor SDK/ambient environment exclusion, Ruff, strict mypy, contracts, builds, wheel smoke
+
+Component S is TESTED with deterministic fake transports, not live-verified or
+production-qualified. No API key or live request was used. Account/model access,
+vendor behavior, network reliability, cost, and real cancellation/resume require
+explicit opt-in live qualification. Component T adds the Claude/Anthropic adapter.
