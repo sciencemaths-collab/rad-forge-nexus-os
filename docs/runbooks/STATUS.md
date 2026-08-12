@@ -32,6 +32,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | T. Claude/Anthropic adapter | TESTED (FAKE) | 196-test suite and fake-transport conformance pass; live provider remains unverified |
 | U. Typed tool registry | TESTED | 203-test suite, schemas, policy gates, timeouts, replay binding, and wheel execution pass |
 | V. MCP gateway | TESTED | 211-test suite, strict JSON-RPC, trusted scopes, quota, audit, contract execution pass |
+| W. REST control application | TESTED | 218-test suite, all OpenAPI operations, auth scopes, replay binding, wheel smoke pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -392,3 +393,20 @@ Component V is TESTED, not production-qualified. Authentication token verificati
 HTTP/stdio hosting, TLS, durable/distributed quota and replay, durable audit/evidence,
 and transport backpressure remain unverified. Component W adds the REST/OpenAPI control
 application boundary.
+
+## Component W verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 218 tests
+- Dispatcher coverage for every frozen OpenAPI operation ID
+- Canonical route/method, path UUID, bounded body, and request ID validation
+- Trusted read/write/approval scopes before application-service invocation
+- Required mutation idempotency, exact request binding, replay, and conflict rejection
+- Stable Error envelopes, safe exception isolation, and trace propagation
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel discovery smoke
+
+Component W is TESTED, not production-qualified. It is an in-process application
+boundary, not an HTTP server. Bearer-token verification, TLS, proxy/CORS controls,
+durable/distributed replay, repositories, and production middleware remain unverified.
+Component X adds the CLI surface over application/client ports.
