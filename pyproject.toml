@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexus-os"
+version = "0.0.1"
+description = "Provider-neutral, evidence-driven autonomous work runtime"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "jsonschema[format]>=4.23,<5",
+  "PyYAML>=6.0.2,<7",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "ruff>=0.11,<1",
+  "mypy>=1.15,<2",
+  "types-jsonschema>=4.26",
+  "types-PyYAML>=6.0.12",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nexus_os"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+markers = [
+  "live: requires external credentials and explicit opt-in",
+  "benchmark: performance qualification, not a unit test",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["nexus_os"]

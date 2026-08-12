@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/approval.schema.json",
+  "title": "NEXUS Approval",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "approval_id", "project_id", "run_id", "action_digest", "effect", "requested_by", "requested_at", "expires_at", "status"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "approval_id": {"type": "string", "format": "uuid"},
+    "project_id": {"type": "string"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "action_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "effect": {"enum": ["SENSITIVE", "DESTRUCTIVE"]},
+    "requested_by": {"type": "string"},
+    "requested_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["PENDING", "APPROVED", "DENIED", "EXPIRED", "REVOKED", "CONSUMED"]},
+    "decided_by": {"type": ["string", "null"]},
+    "decided_at": {"type": ["string", "null"], "format": "date-time"},
+    "reason": {"type": ["string", "null"], "maxLength": 2000}
+  }
+}
+

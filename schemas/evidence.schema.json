@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/evidence.schema.json",
+  "title": "NEXUS Evidence Record",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "evidence_id", "timestamp", "project_id", "run_id", "task_id", "actor", "producer", "kind", "outcome", "test_id", "input_digest", "output_digest", "trace_id", "previous_record_hash", "record_hash"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "evidence_id": {"type": "string", "format": "uuid"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "project_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "format": "uuid"},
+    "task_id": {"type": ["string", "null"]},
+    "actor": {"type": "string", "minLength": 1},
+    "producer": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["SPECIFICATION", "TEST", "SECURITY_TEST", "BENCHMARK", "ARTIFACT", "APPROVAL", "QUALIFICATION", "RUNTIME_EVENT"]},
+    "outcome": {"enum": ["PASS", "FAIL", "ERROR", "DENIED", "CANCELLED"]},
+    "test_id": {"type": ["string", "null"]},
+    "input_digest": {"$ref": "#/$defs/digest"},
+    "output_digest": {"$ref": "#/$defs/digest"},
+    "trace_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "previous_record_hash": {"oneOf": [{"const": "GENESIS"}, {"$ref": "#/$defs/digest"}]},
+    "record_hash": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+}
+

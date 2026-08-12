@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/provider.schema.json",
+  "title": "NEXUS Provider Descriptor",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "provider_id", "adapter", "adapter_version", "capabilities", "conformance", "health"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "provider_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,63}$"},
+    "adapter": {"type": "string", "minLength": 1},
+    "adapter_version": {"type": "string", "minLength": 1},
+    "capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "conformance": {"enum": ["unverified", "mock_verified", "live_verified", "production_qualified"]},
+    "health": {"enum": ["UNKNOWN", "HEALTHY", "DEGRADED", "UNAVAILABLE"]},
+    "supports_resume": {"type": "boolean", "default": false},
+    "credential": {"type": ["string", "null"], "pattern": "^(env|vault|secret):[A-Za-z0-9_./-]+$"}
+  }
+}
+

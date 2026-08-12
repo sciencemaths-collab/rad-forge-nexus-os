@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "8d395756-7404-40a0-a978-02a180671b37",
+  "project_id": "rw_100k_demo",
+  "tasks": [
+    {
+      "task_id": "import_csv",
+      "kind": "deterministic.csv_import",
+      "depends_on": [],
+      "effect": "WORKSPACE_WRITE",
+      "timeout_seconds": 120,
+      "retry": {"max_attempts": 2, "backoff_seconds": 1},
+      "input": {"path": "fixtures/rw_100k.csv"},
+      "acceptance_ids": ["RW_100K_ROWS"]
+    },
+    {
+      "task_id": "summarize",
+      "kind": "deterministic.summary",
+      "depends_on": ["import_csv"],
+      "effect": "WORKSPACE_WRITE",
+      "timeout_seconds": 120,
+      "retry": {"max_attempts": 1, "backoff_seconds": 0},
+      "input": {},
+      "acceptance_ids": []
+    }
+  ]
+}
+

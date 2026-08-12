@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/task-graph.schema.json",
+  "title": "NEXUS Task Graph",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "graph_id", "project_id", "tasks"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "graph_id": {"type": "string", "format": "uuid"},
+    "project_id": {"type": "string"},
+    "tasks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/task"}}
+  },
+  "$defs": {
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "kind", "depends_on", "effect", "timeout_seconds", "retry", "input"],
+      "properties": {
+        "task_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,63}$"},
+        "kind": {"type": "string", "minLength": 1},
+        "depends_on": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "effect": {"enum": ["READ_ONLY", "WORKSPACE_WRITE", "SENSITIVE", "DESTRUCTIVE"]},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+        "retry": {
+          "type": "object", "additionalProperties": false, "required": ["max_attempts", "backoff_seconds"],
+          "properties": {
+            "max_attempts": {"type": "integer", "minimum": 1, "maximum": 20},
+            "backoff_seconds": {"type": "number", "minimum": 0, "maximum": 3600}
+          }
+        },
+        "input": {"type": "object"},
+        "acceptance_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "default": []}
+      }
+    }
+  }
+}
+

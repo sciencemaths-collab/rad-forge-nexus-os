@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/capability.schema.json",
+  "title": "NEXUS Capability Qualification",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "capability_id", "state", "rule_version", "evaluated_at", "evidence_ids", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+    "state": {"enum": ["UNKNOWN", "IMPLEMENTED", "TESTED", "VERIFIED", "QUALIFIED", "PRODUCTION_CANDIDATE", "PRODUCTION", "DEGRADED"]},
+    "rule_version": {"type": "string", "minLength": 1},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "evidence_ids": {"type": "array", "items": {"type": "string", "format": "uuid"}, "uniqueItems": true},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"}
+  }
+}
+

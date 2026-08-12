@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "1.0",
+  "tools": [
+    {
+      "name": "nexus.project.plan",
+      "description": "Validate a project and compile a task graph without executing it.",
+      "effect": "READ_ONLY",
+      "timeout_seconds": 60,
+      "idempotent": true,
+      "approval_required": false,
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["project_id"],
+        "properties": {"project_id": {"type": "string"}}
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["graph_id", "graph_digest"],
+        "properties": {
+          "graph_id": {"type": "string", "format": "uuid"},
+          "graph_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        }
+      }
+    },
+    {
+      "name": "nexus.run.start",
+      "description": "Start an already validated and policy-previewed graph.",
+      "effect": "WORKSPACE_WRITE",
+      "timeout_seconds": 30,
+      "idempotent": true,
+      "approval_required": false,
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["project_id", "graph_id", "idempotency_key"],
+        "properties": {
+          "project_id": {"type": "string"},
+          "graph_id": {"type": "string", "format": "uuid"},
+          "idempotency_key": {"type": "string", "minLength": 16}
+        }
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["run_id", "state"],
+        "properties": {
+          "run_id": {"type": "string", "format": "uuid"},
+          "state": {"type": "string"}
+        }
+      }
+    },
+    {
+      "name": "nexus.evidence.verify",
+      "description": "Verify a run evidence hash chain.",
+      "effect": "READ_ONLY",
+      "timeout_seconds": 60,
+      "idempotent": true,
+      "approval_required": false,
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["run_id"],
+        "properties": {"run_id": {"type": "string", "format": "uuid"}}
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["valid", "record_count", "errors"],
+        "properties": {
+          "valid": {"type": "boolean"},
+          "record_count": {"type": "integer", "minimum": 0},
+          "errors": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  ]
+}
+

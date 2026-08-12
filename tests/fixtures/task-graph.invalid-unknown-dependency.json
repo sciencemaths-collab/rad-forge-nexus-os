@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "b86284d9-837c-4582-ae15-9e3fd4f3cbfb",
+  "project_id": "invalid_graph",
+  "tasks": [{
+    "task_id": "only_task",
+    "kind": "mock",
+    "depends_on": ["missing_task"],
+    "effect": "READ_ONLY",
+    "timeout_seconds": 10,
+    "retry": {"max_attempts": 1, "backoff_seconds": 0},
+    "input": {}
+  }]
+}
+
