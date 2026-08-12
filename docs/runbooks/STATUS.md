@@ -37,7 +37,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
 | Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
 | AA. Deterministic compute | TESTED | 248-test suite, bounded CSV/schema/statistics/transforms/chart inputs and provenance pass |
-| Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
+| AB. App-build mode | TESTED | 255-test suite, fail-fast engineering DAG, acceptance/retry binding, secret exclusion pass |
+| Modes | IN PROGRESS | AA deterministic compute and AB app-build pack pass; research/data-analysis packs remain |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
@@ -483,3 +484,20 @@ Component AA is TESTED, not production-qualified. Tables remain in memory; out-o
 execution, date/decimal types, advanced transformations, econometrics, numerical solvers,
 chart rendering, large-data benchmarks, and evidence-ledger orchestration remain later
 gates. Component AB adds the `app_build` mode pack over kernel contracts.
+
+## Component AB verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 255 tests
+- Specification-through-evidence fail-fast engineering task sequence
+- Deterministic version/config-bound graph identity and canonical digest
+- Project-bounded creative retries and single-attempt verification gates
+- Final evidence-task binding to all declared acceptance identifiers
+- Wrong-mode and read-only-workspace rejection before graph execution
+- Provider, credential, secret, network, and cost configuration exclusion from tasks
+- Frozen graph contract round-trip, Ruff, strict mypy, contracts, builds, and wheel smoke
+
+Component AB is TESTED, not production-qualified. It compiles but does not execute work,
+select providers, authorize effects, prove generated software correctness, or qualify a
+release. Component AC adds the `research` mode pack with source and claim provenance.
