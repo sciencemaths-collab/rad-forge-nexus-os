@@ -26,8 +26,9 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
+| Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
-| Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
+| Provider adapters | IN PROGRESS | Deterministic mock is tested; conformance and live adapters remain unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
 ## Repository state
@@ -286,3 +287,18 @@ On 2026-08-12 the following passed:
 
 Component P is TESTED, not production-qualified. It defines contracts only and has
 not executed any provider. Component Q adds the deterministic mock adapter.
+
+## Component Q verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 173 tests
+- Fixed UTC timestamps and contiguous, repeatable provider event sequences
+- Normalized success, injected failure, pending, cancellation, and resume scenarios
+- Duplicate/unknown-task, premature-result, and unconfigured-operation rejection
+- Provider input/metadata redaction and vendor/randomness import exclusion
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component Q is TESTED at the deterministic mock boundary, not production-qualified.
+It performs no provider or network I/O and establishes no live-provider claim.
+Component R adds the reusable adapter conformance harness.
