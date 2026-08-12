@@ -12,6 +12,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | Machine-readable contracts | VERIFIED | Six schemas, OpenAPI, MCP contracts, examples, and semantic graph validation pass |
 | A. Configuration loader | TESTED | 20-test full suite, security/failure coverage, canonical digest, and installed-wheel smoke pass |
 | B. Core domain models | TESTED | 47-test full suite, immutable JSON boundary, canonical graph digest, and installed-wheel smoke pass |
+| C. State machine | TESTED | 63-test full suite, exhaustive lifecycle pair coverage, and installed-wheel smoke pass |
 | Runtime and modes | UNKNOWN | Correctly not started before F0 |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -62,3 +63,18 @@ Component B is TESTED, not production-qualified. It provides immutable shared
 values but intentionally does not implement lifecycle transitions or task-graph
 semantic validation. The next component is C, the state machine, after Component
 B's focused commit.
+
+## Component C verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 63 tests
+- Ruff and strict mypy
+- Contract/schema validation
+- Source distribution and wheel build
+- Fresh-environment installed-wheel state-machine smoke
+
+Component C is TESTED, not production-qualified. It provides deterministic,
+side-effect-free lifecycle enforcement and immutable transition records. The
+claim that illegal transitions cannot be persisted remains pending Component F's
+transactional store integration. The next component is D, task-graph compiler.
