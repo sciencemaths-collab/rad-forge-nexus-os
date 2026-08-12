@@ -21,7 +21,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | I. Policy engine | TESTED | 115-test suite, deterministic action digests, denial precedence, and approval classification pass |
 | J. Approval store | TESTED | 121-test suite, exact-scope expiry, atomic one-use consumption, restart and race tests pass |
 | K. Secrets and redaction | TESTED | 129-test suite, opaque references, scoped resolution, non-serialization, recursive redaction pass |
-| L-O. Runtime safety | UNKNOWN | Sandbox through telemetry remain gated after K |
+| L. Workspace sandbox | TESTED | 140-test suite, traversal/symlink escape, scoped writes, environment/network deny-by-default pass |
+| M-O. Runtime safety | UNKNOWN | Evidence through telemetry remain gated after L |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -204,3 +205,20 @@ Component K is TESTED, not production-qualified. Python cannot guarantee erasure
 all immutable string copies. Backend authentication, subprocess isolation, path and
 network restrictions, and provider-specific credential scoping remain later gates.
 Component L adds the deny-by-default workspace sandbox.
+
+## Component L verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 140 tests
+- Canonical-root read and explicitly scoped write authorization
+- Absolute, traversal, non-normalized, NUL, and symlink-escape rejection
+- Non-secret subprocess environment reconstruction from an explicit allowlist
+- Deny-by-default exact-host network authorization and port validation
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component L is TESTED, not production-qualified. It authorizes paths, environments,
+and hosts but does not itself open files, launch processes, enforce OS resource
+limits, or mediate sockets. Descriptor-relative race resistance and deployment
+containment remain later security integration gates. Component M adds the durable,
+tamper-evident evidence ledger.
