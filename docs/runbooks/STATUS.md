@@ -22,7 +22,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | J. Approval store | TESTED | 121-test suite, exact-scope expiry, atomic one-use consumption, restart and race tests pass |
 | K. Secrets and redaction | TESTED | 129-test suite, opaque references, scoped resolution, non-serialization, recursive redaction pass |
 | L. Workspace sandbox | TESTED | 140-test suite, traversal/symlink escape, scoped writes, environment/network deny-by-default pass |
-| M-O. Runtime safety | UNKNOWN | Evidence through telemetry remain gated after L |
+| M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
+| N-O. Runtime safety | UNKNOWN | Qualification and observability remain gated after M |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -222,3 +223,19 @@ and hosts but does not itself open files, launch processes, enforce OS resource
 limits, or mediate sockets. Descriptor-relative race resistance and deployment
 containment remain later security integration gates. Component M adds the durable,
 tamper-evident evidence ledger.
+
+## Component M verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 151 tests
+- Canonical SHA-256 record sealing and deterministic schema-aligned export
+- Atomic expected-head append, restart persistence, and fork/duplicate rejection
+- Mutation, deletion, tail deletion with trusted anchor, reordering, and link detection
+- SQLite update/delete prevention through append-only triggers
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component M is TESTED, not production-qualified. A hash chain is tamper-evident,
+not tamper-proof: a database owner can replace the database. Trusted anchors,
+signatures/WORM storage, and deployment controls remain release hardening. Component
+N adds deterministic evidence-to-capability qualification rules.
