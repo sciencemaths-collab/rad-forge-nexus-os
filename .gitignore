@@ -5,6 +5,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 dist/
+node_modules/
 build/
 *.egg-info/
 .env
@@ -14,4 +15,3 @@ tmp/
 artifacts/
 evidence/
 upload/
-

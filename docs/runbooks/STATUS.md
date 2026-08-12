@@ -30,6 +30,12 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
 | S. OpenAI/Codex adapter | TESTED (FAKE) | 188-test suite and fake-transport conformance pass; live provider remains unverified |
 | T. Claude/Anthropic adapter | TESTED (FAKE) | 196-test suite and fake-transport conformance pass; live provider remains unverified |
+| U. Typed tool registry | TESTED | 203-test suite, schemas, policy gates, timeouts, replay binding, and wheel execution pass |
+| V. MCP gateway | TESTED | 211-test suite, strict JSON-RPC, trusted scopes, quota, audit, contract execution pass |
+| W. REST control application | TESTED | 218-test suite, all OpenAPI operations, auth scopes, replay binding, wheel smoke pass |
+| X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
+| Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
+| Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -356,3 +362,106 @@ Component T is TESTED with deterministic fake transports, not live-verified or
 production-qualified. No API key or live request was used. Provider milestone P-T is
 complete at its non-live component-test boundary. Component U begins the typed tool
 registry and deterministic tool execution boundary.
+
+## Component U verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 203 tests
+- Frozen MCP tools contract loading and unique sorted registration
+- Draft 2020-12 input/output schema and format validation
+- Policy denial and approval-required blocking before handler execution
+- Bounded payloads, async timeout, safe handler errors, and output validation
+- Project/tool/key-scoped replay and changed-input idempotency rejection
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel execution smoke
+
+Component U is TESTED, not production-qualified. Its replay cache is in memory and does
+not yet prove restart-safe or distributed idempotency. MCP protocol framing, gateway
+authentication, durable replay, approval consumption, sandbox enforcement, and evidence
+integration remain later gates. Component V adds the MCP gateway boundary.
+
+## Component V verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 211 tests
+- Strict bounded JSON-RPC 2.0 envelopes, IDs, methods, and params
+- Deterministic `tools/list` and frozen-contract `tools/call` execution
+- Trusted actor/project/trace/scopes with request override rejection
+- Stable safe errors, per-actor call quota, and metadata-only audit records
+- U integration fix for keyed mutation replay versus digest-keyed idempotent reads
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel gateway smoke
+
+Component V is TESTED, not production-qualified. Authentication token verification,
+HTTP/stdio hosting, TLS, durable/distributed quota and replay, durable audit/evidence,
+and transport backpressure remain unverified. Component W adds the REST/OpenAPI control
+application boundary.
+
+## Component W verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 218 tests
+- Dispatcher coverage for every frozen OpenAPI operation ID
+- Canonical route/method, path UUID, bounded body, and request ID validation
+- Trusted read/write/approval scopes before application-service invocation
+- Required mutation idempotency, exact request binding, replay, and conflict rejection
+- Stable Error envelopes, safe exception isolation, and trace propagation
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel discovery smoke
+
+Component W is TESTED, not production-qualified. It is an in-process application
+boundary, not an HTTP server. Bearer-token verification, TLS, proxy/CORS controls,
+durable/distributed replay, repositories, and production middleware remain unverified.
+Component X adds the CLI surface over application/client ports.
+
+## Component X verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 225 tests
+- Run create/get/cancel/resume, provider/capability list, and evidence verify commands
+- UUID, project, idempotency-key, and argument validation before client calls
+- Canonical JSON stdout, safe JSON stderr, and stable exit-code classes
+- Evidence invalidity, authorization, API, validation, and internal error mapping
+- Configured-client integration through Component W and exception sanitization
+- Ruff, strict mypy, contracts, builds, and offline installed console entry-point smoke
+
+Component X is TESTED, not production-qualified. The reusable CLI requires an injected
+control client; the bare installed entry point safely reports `client_not_configured`
+until Component Y supplies client/SDK wiring. HTTP transport, authentication discovery,
+shell completion, and production distribution remain later gates. Component Y adds the
+Python SDK.
+
+## Component Y verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 232 tests
+- Typed run model and structured safe API errors
+- Versioned paths, request IDs, trace validation, and idempotency headers
+- Run create/get/cancel/resume and provider/capability/evidence collections
+- Malformed status/body/trace and hostile transport rejection
+- Component W create/get integration and Component X client-port compatibility
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel SDK smoke
+
+Component Y is TESTED, not production-qualified. HTTP transport, endpoint and bearer
+configuration, TLS, retry/pooling behavior, and published package compatibility remain
+unverified. Component Z adds the TypeScript SDK surface.
+
+## Component Z verification
+
+On 2026-08-12 the following passed:
+
+- Full Python suite: 235 tests; TypeScript/Node suite: 6 tests
+- Strict TypeScript compilation with generated declarations and no runtime dependencies
+- Run create/get/cancel/resume and provider/capability/evidence collections
+- Required mutation idempotency, bounded request IDs, UUID paths, and trace validation
+- Immutable response parsing and sanitized API/transport failures
+- Ambient credential/endpoint exclusion and npm package-content dry run
+- Ruff, strict mypy, contracts, Python builds, and offline installed-wheel smoke
+
+Component Z is TESTED, not production-qualified. Concrete HTTP transport, authentication,
+TLS, retry/pooling behavior, browser compatibility, live control-service integration,
+registry publication, and downstream consumer compatibility remain unverified. The U-Z
+surface milestone is complete at its component-test boundary. Component AA begins the
+deterministic compute and mode-pack milestone.
