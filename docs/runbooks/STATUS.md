@@ -34,6 +34,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | V. MCP gateway | TESTED | 211-test suite, strict JSON-RPC, trusted scopes, quota, audit, contract execution pass |
 | W. REST control application | TESTED | 218-test suite, all OpenAPI operations, auth scopes, replay binding, wheel smoke pass |
 | X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
+| Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -429,3 +430,19 @@ control client; the bare installed entry point safely reports `client_not_config
 until Component Y supplies client/SDK wiring. HTTP transport, authentication discovery,
 shell completion, and production distribution remain later gates. Component Y adds the
 Python SDK.
+
+## Component Y verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 232 tests
+- Typed run model and structured safe API errors
+- Versioned paths, request IDs, trace validation, and idempotency headers
+- Run create/get/cancel/resume and provider/capability/evidence collections
+- Malformed status/body/trace and hostile transport rejection
+- Component W create/get integration and Component X client-port compatibility
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel SDK smoke
+
+Component Y is TESTED, not production-qualified. HTTP transport, endpoint and bearer
+configuration, TLS, retry/pooling behavior, and published package compatibility remain
+unverified. Component Z adds the TypeScript SDK surface.
