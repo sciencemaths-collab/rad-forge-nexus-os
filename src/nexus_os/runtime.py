@@ -76,9 +76,7 @@ class RuntimeOrchestrator:
         )
         first_level = set(graph.levels[0])
         task_states = {
-            task.task_id: (
-                TaskStatus.READY if task.task_id in first_level else TaskStatus.PENDING
-            )
+            task.task_id: (TaskStatus.READY if task.task_id in first_level else TaskStatus.PENDING)
             for task in graph.graph.tasks
         }
         snapshot = RuntimeSnapshot(

@@ -61,9 +61,7 @@ class ActionRequest:
     def __post_init__(self) -> None:
         _nonempty(self.actor_id, "actor_id")
         _nonempty(self.project_id, "project_id")
-        if not isinstance(self.operation, str) or not _OPERATION_PATTERN.fullmatch(
-            self.operation
-        ):
+        if not isinstance(self.operation, str) or not _OPERATION_PATTERN.fullmatch(self.operation):
             raise PolicyValidationError("operation must be a lowercase canonical token")
         if not isinstance(self.effect, ActionEffect):
             raise PolicyValidationError("effect must be an ActionEffect")
@@ -172,18 +170,14 @@ class PolicyEngine:
             approval.add("data.restricted")
 
         if deny:
-            return PolicyDecision(
-                PolicyDecisionKind.DENY, request.digest, tuple(sorted(deny))
-            )
+            return PolicyDecision(PolicyDecisionKind.DENY, request.digest, tuple(sorted(deny)))
         if approval:
             return PolicyDecision(
                 PolicyDecisionKind.REQUIRE_APPROVAL,
                 request.digest,
                 tuple(sorted(approval)),
             )
-        return PolicyDecision(
-            PolicyDecisionKind.ALLOW, request.digest, ("policy.allowed",)
-        )
+        return PolicyDecision(PolicyDecisionKind.ALLOW, request.digest, ("policy.allowed",))
 
 
 def _nonempty(value: object, field_name: str) -> None:

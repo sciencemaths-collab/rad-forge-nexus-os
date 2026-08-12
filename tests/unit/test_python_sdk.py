@@ -27,9 +27,7 @@ def test_create_run_returns_typed_model_and_preserves_headers() -> None:
     transport = Transport(202, body)
     client = NexusClient(transport)
     run = asyncio.run(
-        client.create_run(
-            "project-1", idempotency_key="1234567890abcdef", request_id="request-1"
-        )
+        client.create_run("project-1", idempotency_key="1234567890abcdef", request_id="request-1")
     )
     assert run == Run(**body)
     method, path, headers, request_body = transport.calls[0]
@@ -60,4 +58,3 @@ def test_api_error_is_structured_and_safe() -> None:
     assert caught.value.status == 403
     assert caught.value.code == "forbidden"
     assert caught.value.retryable is False
-

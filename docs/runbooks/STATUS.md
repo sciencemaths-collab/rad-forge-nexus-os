@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-12
 
-Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
+Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — REPOSITORY INTEGRATION APPROVED — NO CAPABILITY IS PRODUCTION READY**
 
 | Area | State | Evidence / blocker |
 |---|---|---|
@@ -41,8 +41,11 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | AC. Research mode | TESTED | 262-test suite, provenance/claims/conflicts/citations/reproducibility DAG pass |
 | AD. Data-analysis mode | TESTED | 269-test suite, deterministic analysis/chart/explanation/persistence DAG pass |
 | Modes | TESTED | AA deterministic compute and all AB-AD mode packs pass component gates |
+| AE. RW-100K proof | TESTED | 275-test suite, exact 100K fixture, compute, save/reopen, evidence reports pass |
+| AF. CI/release evidence | TESTED | 285-test suite, 15 fail-fast gates, portable dependency audits, secret scan, SBOM/provenance/report bundle pass |
+| AG. Clean-room qualification | QUALIFIED | Isolated locked install, all automated gates, independent review, and digest-bound reports pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
-| Release qualification | UNKNOWN | Depends on all prior gates |
+| Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
 ## Repository state
 
@@ -538,3 +541,63 @@ Component AD is TESTED, not production-qualified. It compiles but does not execu
 render charts, provide a virtual grid, or prove scale/performance. The AA-AD modes milestone
 is complete at its component-test boundary. Component AE implements the digest-pinned
 RW-100K reference workflow and its integration, persistence, evidence, and benchmark gates.
+
+## Component AE verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 275 tests
+- Deterministic digest-pinned fixture with exactly 100,000 data rows
+- Expected four-column schema and deterministic data-quality findings
+- Summary statistics, validated digest-linked chart specification, and grounded claims
+- Atomic state save, separate-instance reopen, compatibility and digest verification
+- Seven-record durable evidence chain plus JSON and Markdown reports
+- State mutation and duplicate/replay rejection
+- Reproducible environment/timing context without a browser-performance claim
+- Ruff, strict mypy, contracts, builds, and installed-wheel workflow smoke
+
+Component AE is TESTED at the runtime-only RW-100K boundary, not production-qualified.
+Virtual-grid/browser UI, scrolling, edits, filters, sorting, joins, pivots, chart rendering,
+and sub-two-second first usable browser rendering remain unimplemented and unclaimed under
+ADR-0002. Component AF adds CI/release-evidence automation and release gates.
+
+## Component AF verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 281 tests and repository-wide format conformance
+- Fail-fast format through build gate execution with first-failure reporting
+- Unit, contract, integration, security, provider-conformance, RW-100K, and SDK gates
+- Repository secret scan with safe finding paths and no disclosed values
+- JSON/Markdown evidence, limitations, checklist, and build-provenance generation
+- Lockfile-derived CycloneDX 1.6 SBOM containing 36 Python/npm components
+- Least-privilege GitHub workflow and blocking moderate-severity dependency review
+- Ruff, strict mypy, contracts, TypeScript tests, builds, and real generator execution
+
+Component AF is TESTED, not independently release-authorized. The hosted qualification job
+passed, while GitHub Dependency Review proved unavailable for this private repository without
+an Advanced Security entitlement. Blocking portable Python and npm advisory audits now replace
+that provider-specific job. The generator intentionally leaves clean-room qualification,
+independent review, owner approval, and release-candidate status false; Component AG owns the
+first two gates.
+
+## Component AG verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 285 tests
+- Declared-source snapshot with dependency, cache, build, VCS, and prior-evidence exclusion
+- Snapshot and automated-evidence SHA-256 binding
+- Fresh locked Python and TypeScript installs using disposable per-run caches
+- All 15 automated gates, including blocking `pip-audit` and `npm audit`
+- Independent placeholder, dynamic-execution, vendor-import, and status-drift review
+- Zero independent-review findings and JSON/Markdown qualification reports
+- Ruff, repository-wide format conformance, strict mypy, and clean-room execution
+
+Component AG is clean-room QUALIFIED. Its generated technical report deliberately records
+human authorization as a separate pending concern rather than manufacturing approval from
+automation. On 2026-08-12 the owner explicitly approved the release checklist, public-facing
+repository cleanup, and policy-compliant integration of the stacked pull requests after current
+verification passes. The authorization does not change repository visibility and does not cover
+deployment, package publication, external announcements, or production promotion. No capability
+is production ready.

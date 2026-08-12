@@ -76,9 +76,7 @@ class McpGateway:
         self._limit = max_calls_per_actor
         self._counts: dict[str, int] = {}
 
-    async def handle(
-        self, request: Mapping[str, Any], context: GatewayContext
-    ) -> dict[str, Any]:
+    async def handle(self, request: Mapping[str, Any], context: GatewayContext) -> dict[str, Any]:
         request_id: str | int | None = None
         try:
             request_id, method, params = self._request(request)
@@ -118,9 +116,7 @@ class McpGateway:
             except ToolError:
                 self._audit_item(context, request_id, method, name, "rejected")
                 return self._error(request_id, -32000, "Tool execution rejected")
-            self._audit_item(
-                context, request_id, method, name, "allowed", result.action_digest
-            )
+            self._audit_item(context, request_id, method, name, "allowed", result.action_digest)
             return self._success(
                 request_id,
                 {

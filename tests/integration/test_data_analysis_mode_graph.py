@@ -13,5 +13,7 @@ def test_analysis_graph_round_trips_frozen_contract() -> None:
     assert round_tripped.digest == graph.digest
     reopen = next(task for task in round_tripped.tasks if str(task.task_id) == "reopen_verify")
     assert tuple(reopen.input["deterministic_checks"]) == (
-        "dataset_digest_matches", "artifacts_match", "state_is_compatible",
+        "dataset_digest_matches",
+        "artifacts_match",
+        "state_is_compatible",
     )

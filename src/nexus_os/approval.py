@@ -92,8 +92,14 @@ class ApprovalStore:
             self._connection.execute(
                 "INSERT INTO approvals VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL)",
                 (
-                    str(approval_id), project_id, str(run_id), action_digest, effect.value,
-                    requested_by, requested_at.isoformat(), expires_at.isoformat(),
+                    str(approval_id),
+                    project_id,
+                    str(run_id),
+                    action_digest,
+                    effect.value,
+                    requested_by,
+                    requested_at.isoformat(),
+                    expires_at.isoformat(),
                     ApprovalStatus.PENDING.value,
                 ),
             )
@@ -127,8 +133,14 @@ class ApprovalStore:
         cursor = self._connection.execute(
             """UPDATE approvals SET status = ?, decided_by = ?, decided_at = ?, reason = ?
             WHERE approval_id = ? AND status = ?""",
-            (status.value, decided_by, decided_at.isoformat(), reason,
-             str(approval_id), ApprovalStatus.PENDING.value),
+            (
+                status.value,
+                decided_by,
+                decided_at.isoformat(),
+                reason,
+                str(approval_id),
+                ApprovalStatus.PENDING.value,
+            ),
         )
         if cursor.rowcount != 1:
             raise ApprovalError("only pending approvals can be decided")
@@ -178,9 +190,15 @@ class ApprovalStore:
 
 def _record(row: tuple[object, ...]) -> ApprovalRecord:
     return ApprovalRecord(
-        UUID(str(row[0])), str(row[1]), RunId.parse(row[2]), str(row[3]),
-        ActionEffect(str(row[4])), str(row[5]), datetime.fromisoformat(str(row[6])),
-        datetime.fromisoformat(str(row[7])), ApprovalStatus(str(row[8])),
+        UUID(str(row[0])),
+        str(row[1]),
+        RunId.parse(row[2]),
+        str(row[3]),
+        ActionEffect(str(row[4])),
+        str(row[5]),
+        datetime.fromisoformat(str(row[6])),
+        datetime.fromisoformat(str(row[7])),
+        ApprovalStatus(str(row[8])),
         None if row[9] is None else str(row[9]),
         None if row[10] is None else datetime.fromisoformat(str(row[10])),
         None if row[11] is None else str(row[11]),

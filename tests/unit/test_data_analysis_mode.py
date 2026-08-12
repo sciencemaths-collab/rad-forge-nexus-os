@@ -37,8 +37,15 @@ acceptance:
 def test_analysis_compiles_deterministic_grounded_sequence(tmp_path: Path) -> None:
     result = DataAnalysisMode().compile(_config(tmp_path))
     assert tuple(str(item) for item in result.topological_order) == (
-        "ingestion", "schema_inspection", "quality_check", "statistics", "chart_spec",
-        "explanation", "persistence", "reopen_verify", "evidence_report",
+        "ingestion",
+        "schema_inspection",
+        "quality_check",
+        "statistics",
+        "chart_spec",
+        "explanation",
+        "persistence",
+        "reopen_verify",
+        "evidence_report",
     )
     by_id = {str(task.task_id): task for task in result.graph.tasks}
     assert by_id["ingestion"].input["model_generated_numbers_allowed"] is False
@@ -61,7 +68,10 @@ def test_analysis_graph_is_deterministic(tmp_path: Path) -> None:
     [("research", False, "mode"), ("data_analysis", True, "writable")],
 )
 def test_analysis_rejects_wrong_mode_and_read_only_workspace(
-    tmp_path: Path, mode: str, read_only: bool, message: str,
+    tmp_path: Path,
+    mode: str,
+    read_only: bool,
+    message: str,
 ) -> None:
     with pytest.raises(ModeCompileError, match=message):
         DataAnalysisMode().compile(_config(tmp_path, mode=mode, read_only=read_only))

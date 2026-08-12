@@ -57,9 +57,7 @@ class WorkspaceSandbox:
     def root(self) -> Path:
         return self._root
 
-    def resolve(
-        self, path: str | Path, *, operation: Literal["read", "write"]
-    ) -> Path:
+    def resolve(self, path: str | Path, *, operation: Literal["read", "write"]) -> Path:
         relative = self._validate_relative_path(path)
         candidate = (self._root / relative).resolve(strict=False)
         if not candidate.is_relative_to(self._root):

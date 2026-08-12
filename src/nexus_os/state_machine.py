@@ -15,16 +15,12 @@ _REASON_PATTERN: Final = re.compile(r"^[a-z][a-z0-9_.-]{0,127}$")
 _RUN_TRANSITIONS: Final = MappingProxyType(
     {
         RunState.CREATED: frozenset({RunState.PLANNING, RunState.CANCELLING, RunState.FAILED}),
-        RunState.PLANNING: frozenset(
-            {RunState.READY, RunState.CANCELLING, RunState.FAILED}
-        ),
+        RunState.PLANNING: frozenset({RunState.READY, RunState.CANCELLING, RunState.FAILED}),
         RunState.READY: frozenset({RunState.RUNNING, RunState.CANCELLING, RunState.FAILED}),
         RunState.RUNNING: frozenset(
             {RunState.PAUSED, RunState.CANCELLING, RunState.SUCCEEDED, RunState.FAILED}
         ),
-        RunState.PAUSED: frozenset(
-            {RunState.RUNNING, RunState.CANCELLING, RunState.FAILED}
-        ),
+        RunState.PAUSED: frozenset({RunState.RUNNING, RunState.CANCELLING, RunState.FAILED}),
         RunState.CANCELLING: frozenset({RunState.CANCELLED, RunState.FAILED}),
     }
 )

@@ -72,8 +72,10 @@ def test_executor_validates_input_output_and_runs_allowed_handler() -> None:
     with pytest.raises(ToolError, match="input validation"):
         asyncio.run(
             executor.execute(
-                "nexus.echo", {"value": "bad", "extra": True},
-                actor_id="runtime", project_id="project-1"
+                "nexus.echo",
+                {"value": "bad", "extra": True},
+                actor_id="runtime",
+                project_id="project-1",
             )
         )
 

@@ -35,9 +35,7 @@ class TransportError(RuntimeError):
 class AnthropicTransport(Protocol):
     async def health(self, api_key: str) -> bool: ...
 
-    async def create(
-        self, request: Mapping[str, object], api_key: str
-    ) -> Mapping[str, Any]: ...
+    async def create(self, request: Mapping[str, object], api_key: str) -> Mapping[str, Any]: ...
 
 
 @dataclass(slots=True)
@@ -194,9 +192,7 @@ class AnthropicAdapter:
         return execution
 
     @staticmethod
-    def _append(
-        execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]
-    ) -> None:
+    def _append(execution: _Execution, kind: ProviderEventKind, payload: Mapping[str, Any]) -> None:
         sequence = len(execution.events) + 1
         execution.events.append(
             ProviderEvent.create(

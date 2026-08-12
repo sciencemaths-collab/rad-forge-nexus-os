@@ -237,13 +237,22 @@ def verify_chain(
 
 def _from_row(row: tuple[object, ...]) -> EvidenceRecord:
     return EvidenceRecord(
-        evidence_id=UUID(str(row[0])), sequence=int(str(row[1])),
-        timestamp=datetime.fromisoformat(str(row[2])), project_id=str(row[3]),
-        run_id=RunId.parse(row[4]), task_id=None if row[5] is None else TaskId(str(row[5])),
-        actor=str(row[6]), producer=str(row[7]), kind=EvidenceKind(str(row[8])),
-        outcome=EvidenceOutcome(str(row[9])), test_id=None if row[10] is None else str(row[10]),
-        input_digest=str(row[11]), output_digest=str(row[12]), trace_id=TraceId(str(row[13])),
-        previous_record_hash=str(row[14]), record_hash=str(row[15]),
+        evidence_id=UUID(str(row[0])),
+        sequence=int(str(row[1])),
+        timestamp=datetime.fromisoformat(str(row[2])),
+        project_id=str(row[3]),
+        run_id=RunId.parse(row[4]),
+        task_id=None if row[5] is None else TaskId(str(row[5])),
+        actor=str(row[6]),
+        producer=str(row[7]),
+        kind=EvidenceKind(str(row[8])),
+        outcome=EvidenceOutcome(str(row[9])),
+        test_id=None if row[10] is None else str(row[10]),
+        input_digest=str(row[11]),
+        output_digest=str(row[12]),
+        trace_id=TraceId(str(row[13])),
+        previous_record_hash=str(row[14]),
+        record_hash=str(row[15]),
     )
 
 

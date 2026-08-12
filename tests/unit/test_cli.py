@@ -38,9 +38,7 @@ def test_runs_create_outputs_canonical_json_and_preserves_idempotency() -> None:
     assert code == ExitCode.SUCCESS
     assert json.loads(output) == body
     assert error == ""
-    assert client.calls == [
-        ("POST", "/v1/runs", {"project_id": "project-1"}, "1234567890abcdef")
-    ]
+    assert client.calls == [("POST", "/v1/runs", {"project_id": "project-1"}, "1234567890abcdef")]
 
 
 def test_read_commands_map_to_expected_paths() -> None:
@@ -64,4 +62,3 @@ def test_api_error_maps_to_stable_exit_class_without_traceback() -> None:
     assert output == ""
     assert json.loads(error)["code"] == "forbidden"
     assert "Traceback" not in error
-
