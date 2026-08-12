@@ -12,6 +12,8 @@ def test_release_gate_contract_has_required_order_and_version() -> None:
         "lint",
         "typecheck",
         "schemas",
+        "python_dependency_audit",
+        "typescript_dependency_audit",
         "unit",
         "contract",
         "integration",
@@ -23,8 +25,8 @@ def test_release_gate_contract_has_required_order_and_version() -> None:
     )
 
 
-def test_ci_workflow_is_least_privilege_and_has_dependency_review() -> None:
+def test_ci_workflow_is_least_privilege_and_uses_portable_audits() -> None:
     workflow = yaml.safe_load(Path(".github/workflows/ci.yml").read_text())
     assert workflow["permissions"] == {"contents": "read"}
-    assert "dependency-review" in workflow["jobs"]
+    assert set(workflow["jobs"]) == {"qualify"}
     assert workflow["jobs"]["qualify"]["timeout-minutes"] == 30

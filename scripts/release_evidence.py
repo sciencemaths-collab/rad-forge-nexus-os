@@ -64,6 +64,21 @@ GATES: Final = (
     Gate("lint", ("uv", "run", "ruff", "check", ".")),
     Gate("typecheck", ("uv", "run", "mypy", "src", "scripts")),
     Gate("schemas", ("uv", "run", "python", "scripts/validate_contracts.py")),
+    Gate(
+        "python_dependency_audit",
+        (
+            "uv",
+            "run",
+            "pip-audit",
+            "--progress-spinner=off",
+            "--cache-dir",
+            "artifacts/pip-audit-cache",
+        ),
+    ),
+    Gate(
+        "typescript_dependency_audit",
+        ("npm", "audit", "--prefix", "sdk/typescript", "--audit-level=moderate"),
+    ),
     Gate("unit", ("uv", "run", "pytest", "-q", "tests/unit")),
     Gate("contract", ("uv", "run", "pytest", "-q", "tests/contract")),
     Gate("integration", ("uv", "run", "pytest", "-q", "tests/integration")),
