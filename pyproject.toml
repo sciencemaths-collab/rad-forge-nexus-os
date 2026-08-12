@@ -7,7 +7,14 @@ name = "nexus-os"
 version = "0.0.1"
 description = "Provider-neutral, evidence-driven autonomous work runtime"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+]
 dependencies = [
   "jsonschema[format]>=4.23,<5",
   "PyYAML>=6.0.2,<7",

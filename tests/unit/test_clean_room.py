@@ -17,7 +17,16 @@ def test_snapshot_excludes_dirty_and_dependency_directories(tmp_path) -> None:
     for directory in directories:
         (source / directory).mkdir(parents=True)
         (source / directory / "keep.txt").write_text(directory)
-    for name in (".gitignore", "AGENTS.md", "README.md", "pyproject.toml", "uv.lock"):
+    for name in (
+        ".gitignore",
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "LICENSE",
+        "README.md",
+        "SECURITY.md",
+        "pyproject.toml",
+        "uv.lock",
+    ):
         (source / name).write_text(name)
     (source / "src/node_modules").mkdir()
     (source / "src/node_modules/drop.txt").write_text("drop")

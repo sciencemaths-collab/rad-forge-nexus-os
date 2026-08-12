@@ -1,58 +1,169 @@
 # RAD Forge / NEXUS OS
 
-RAD Forge / NEXUS OS is a specification-first, provider-neutral autonomous work
-runtime originated by Bernard Kwadwo Essuman. A user supplies a goal, project
-configuration, workspace, provider credentials by reference, policies, and
-acceptance criteria. NEXUS compiles bounded work, executes it through replaceable
-providers and deterministic tools, checkpoints progress, requests approvals for
-sensitive effects, and qualifies results from tamper-evident evidence.
+RAD Forge / NEXUS OS is a provider-neutral, evidence-driven runtime for autonomous
+software engineering, research, and data-analysis workflows. Goals and acceptance
+criteria are compiled into bounded task graphs, executed through replaceable provider
+adapters and deterministic tools, checkpointed for recovery, evaluated by policy, and
+qualified from tamper-evident evidence.
 
-This repository is in **foundation status**. File presence is not proof of a
-working or trusted capability. Current qualification is tracked in
+The project treats model output as untrusted input. Schemas, policy decisions, approval
+records, deterministic computations, and verified evidence—not provider claims—govern
+what the runtime may execute and what it may claim.
+
+## Current maturity
+
+The implementation sequence and clean-room qualification are complete. All 285 tests,
+15 automated release gates, dependency audits, contract validation, package builds, and
+the independent source review pass at the recorded Component AG boundary.
+
+No capability is currently promoted to production. Live provider access, production
+hosting, package-registry publication, and operational deployment remain explicitly
+outside the verified boundary. Exact component states and limitations are maintained in
 [`docs/runbooks/STATUS.md`](docs/runbooks/STATUS.md).
 
-## Modes
+## Core properties
 
-- `app_build`: builds and verifies software artifacts.
-- `research`: produces traceable research artifacts with source and claim lineage.
-- `data_analysis`: computes deterministic analytical artifacts, then permits
-  grounded model explanation of those artifacts.
+- Provider-neutral kernel with OpenAI/Codex, Claude/Anthropic, mock, and future providers
+  isolated behind adapters
+- Schema-validated configuration, task graphs, API messages, tool inputs, and model output
+- Deterministic policy evaluation for sensitive, destructive, costly, publishing, and
+  external-communication effects
+- Scoped, one-use approvals bound to action digests
+- Durable atomic checkpoints with restart, resume, cancellation, and compatibility checks
+- Workspace and network access denied by default and enabled only through policy scopes
+- Opaque secret references with bounded resolution and recursive redaction
+- Tamper-evident evidence chains and evidence-derived capability qualification
+- Bounded retry and repair constrained by attempt, elapsed-time, repetition, and cost limits
+- Python and TypeScript control clients with caller-injected transports
 
-All modes share one kernel: configuration, task graphs, durable execution,
-policies, approvals, adapters, tools, evidence, and qualification.
+## Workflow modes
 
-## Foundation layout
+| Mode | Purpose | Verified boundary |
+|---|---|---|
+| `app_build` | Specification-first software delivery | Deterministic engineering graph compilation and evidence binding |
+| `research` | Traceable research synthesis | Source, claim, contradiction, calculation, and citation provenance |
+| `data_analysis` | Reproducible analytical work | Deterministic statistics, chart specifications, grounded explanations, and persistence checks |
 
-- `docs/specifications/`: normative product, implementation, protocol, acceptance,
-  and mode requirements.
-- `docs/architecture/`: architecture, trust, security, threat, provider, and
-  observability designs plus ADRs.
-- `schemas/`: JSON Schema contracts.
-- `contracts/`: OpenAPI and MCP contracts.
-- `tests/`: test suites separated by verification purpose.
-- `src/nexus_os/`: runtime implementation (added only after contract gates pass).
+Every mode uses the same runtime kernel for configuration, task graphs, execution,
+policy, approvals, tools, evidence, and qualification.
 
-## Development
+## Requirements
 
-Prerequisites: Python 3.12+ and `uv`.
+- Python 3.12 or newer
+- [`uv`](https://docs.astral.sh/uv/) for locked Python environments
+- Node.js 24 or newer for the TypeScript SDK checks
+- npm for locked TypeScript dependency installation
+
+## Installation for development
 
 ```bash
-uv sync --all-groups
-uv run pytest
+git clone https://github.com/sciencemaths-collab/rad-forge-nexus-os.git
+cd rad-forge-nexus-os
+uv sync --all-groups --locked
+npm ci --prefix sdk/typescript --ignore-scripts
 ```
 
-No live provider test runs by default. Live tests require explicit opt-in,
-configured secret references, and a trusted CI environment.
+Editable source is installed into the locked `uv` environment. Live provider calls do
+not run during installation or during the default test suite.
 
-## Trust statement
+## Validate a project configuration
 
-An LLM may propose a plan or completion result, but it cannot promote a
-capability. Only deterministic qualification rules over verified evidence can do
-so. The meanings of `IMPLEMENTED`, `TESTED`, `VERIFIED`, `QUALIFIED`, and
-production states are specified in the trust model.
+Start with one of the versioned examples in [`examples/`](examples/). Provider credentials
+must be opaque references such as `env:VARIABLE_NAME`, `vault:path`, or
+`secret:logical/name`; literal secret values are rejected.
+
+```python
+from nexus_os.config import load_project_config
+
+config = load_project_config("examples/project.data-analysis.yaml")
+print(config.digest)
+print(config.redacted_manifest())
+```
+
+The loader applies documented defaults, validates against the packaged JSON Schema,
+produces canonical JSON, and computes a stable SHA-256 digest without resolving secrets.
+
+## Run the verification suite
+
+```bash
+uv run python scripts/validate_contracts.py
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy src scripts
+uv run pytest -q
+npm test --prefix sdk/typescript
+uv build
+```
+
+Generate the full automated evidence bundle with:
+
+```bash
+uv run python scripts/release_evidence.py --output artifacts/release-evidence
+```
+
+The generator runs the frozen release gates in order, stops at the first failure, scans
+for secret material, audits Python and npm dependencies, and emits JSON/Markdown evidence,
+CycloneDX SBOM data, build provenance, known limitations, and a release checklist.
+
+Run the isolated qualification path with:
+
+```bash
+uv run python scripts/clean_room.py --output artifacts/clean-room
+```
+
+The clean-room process creates a declared-source snapshot, excludes caches and build
+products, installs locked dependencies with disposable caches, repeats every automated
+gate, performs the independent static review, and binds the report to snapshot and
+evidence digests.
+
+## CLI and SDK boundaries
+
+The reusable CLI command parser and both SDKs operate through injected control transports.
+The installed `nexus` entry point intentionally returns `client_not_configured` until an
+application supplies an authenticated control transport; it never guesses an endpoint or
+reads ambient credentials.
+
+Supported control operations include:
+
+- create, inspect, cancel, and resume runs
+- list providers and qualified capabilities
+- retrieve and verify run evidence
+
+See [`docs/components/CLI_SURFACE.md`](docs/components/CLI_SURFACE.md),
+[`docs/components/PYTHON_SDK.md`](docs/components/PYTHON_SDK.md), and
+[`docs/components/TYPESCRIPT_SDK.md`](docs/components/TYPESCRIPT_SDK.md) for exact contracts.
+
+## Repository map
+
+| Path | Contents |
+|---|---|
+| `src/nexus_os/` | Provider-neutral runtime kernel, adapters, SDK, and control surfaces |
+| `schemas/` | JSON Schema contracts for configuration, graphs, evidence, approvals, and capabilities |
+| `contracts/` | OpenAPI and MCP protocol contracts |
+| `examples/` | Valid project configurations and task-graph fixtures |
+| `tests/` | Unit, contract, integration, security, failure, and benchmark coverage |
+| `docs/specifications/` | Normative product, protocol, implementation, and acceptance requirements |
+| `docs/architecture/` | Security, trust, provider, observability, and threat models |
+| `docs/components/` | Implemented component boundaries and limitations |
+| `docs/evidence/` | Component verification records |
+| `docs/runbooks/` | Implementation, release, planning, and status procedures |
+
+## Security model
+
+Provider text, tool output, external data, configuration, and API messages cross trust
+boundaries and are validated before use. Secrets remain opaque references. High-impact
+effects require policy evaluation and exact-scope approval. Workspace and network access
+remain denied unless explicitly authorized.
+
+Report suspected vulnerabilities through the private process in
+[`SECURITY.md`](SECURITY.md). Avoid public issues for security-sensitive details.
+
+## Contributing
+
+Contribution requirements, focused-change expectations, and verification commands are
+documented in [`CONTRIBUTING.md`](CONTRIBUTING.md). Specifications and machine-readable
+contracts take precedence over implementation convenience.
 
 ## License
 
-No license has yet been selected. Until the owner chooses one, all rights are
-reserved; this repository must not be presented as open source.
-
+RAD Forge / NEXUS OS is available under the [MIT License](LICENSE).

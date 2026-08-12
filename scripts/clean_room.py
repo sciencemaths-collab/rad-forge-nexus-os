@@ -27,7 +27,10 @@ COPY_PATHS: Final = (
     "tests",
     ".gitignore",
     "AGENTS.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
     "README.md",
+    "SECURITY.md",
     "pyproject.toml",
     "uv.lock",
 )

@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-12
 
-Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — OWNER RELEASE APPROVAL PENDING — NO CAPABILITY IS PRODUCTION READY**
+Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — REPOSITORY INTEGRATION APPROVED — NO CAPABILITY IS PRODUCTION READY**
 
 | Area | State | Evidence / blocker |
 |---|---|---|
@@ -43,9 +43,9 @@ Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — OWNER RELEASE APPROVAL PEN
 | Modes | TESTED | AA deterministic compute and all AB-AD mode packs pass component gates |
 | AE. RW-100K proof | TESTED | 275-test suite, exact 100K fixture, compute, save/reopen, evidence reports pass |
 | AF. CI/release evidence | TESTED | 285-test suite, 15 fail-fast gates, portable dependency audits, secret scan, SBOM/provenance/report bundle pass |
-| AG. Clean-room qualification | QUALIFIED (APPROVAL PENDING) | Isolated locked install, all automated gates, independent review, and digest-bound reports pass; owner approval remains false |
+| AG. Clean-room qualification | QUALIFIED | Isolated locked install, all automated gates, independent review, and digest-bound reports pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
-| Release qualification | OWNER APPROVAL PENDING | Clean-room and independent review pass; latest hosted workflow and owner-approved checklist remain required |
+| Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
 ## Repository state
 
@@ -594,8 +594,10 @@ On 2026-08-12 the following passed:
 - Zero independent-review findings and JSON/Markdown qualification reports
 - Ruff, repository-wide format conformance, strict mypy, and clean-room execution
 
-Component AG is clean-room QUALIFIED with owner approval pending. The report state is
-`CLEAN_ROOM_QUALIFIED_OWNER_APPROVAL_PENDING`; both `owner_approved` and
-`release_candidate` are false. The current Component AG commit still requires a passing hosted
-workflow and an explicit owner-approved, digest-bound release checklist. Nothing has been
-deployed, published, merged, or promoted to production, and no capability is production ready.
+Component AG is clean-room QUALIFIED. Its generated technical report deliberately records
+human authorization as a separate pending concern rather than manufacturing approval from
+automation. On 2026-08-12 the owner explicitly approved the release checklist, public-facing
+repository cleanup, and policy-compliant integration of the stacked pull requests after current
+verification passes. The authorization does not change repository visibility and does not cover
+deployment, package publication, external announcements, or production promotion. No capability
+is production ready.
