@@ -19,7 +19,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | G. Runtime orchestrator | TESTED | 92-test full suite, dependency ordering, durable resume/cancel, stale-snapshot rejection, and wheel smoke pass |
 | H. Retry/repair engine | TESTED | 102-test full suite, attempt/time/cost/repetition bounds, deterministic backoff, and wheel smoke pass |
 | I. Policy engine | TESTED | 115-test suite, deterministic action digests, denial precedence, and approval classification pass |
-| J-O. Runtime safety | UNKNOWN | Approval through telemetry remain gated after I |
+| J. Approval store | TESTED | 121-test suite, exact-scope expiry, atomic one-use consumption, restart and race tests pass |
+| K-O. Runtime safety | UNKNOWN | Secrets through telemetry remain gated after J |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -171,3 +172,18 @@ On 2026-08-12 the following passed:
 Component I is TESTED, not production-qualified. It classifies and binds actions
 but cannot itself authorize an approval-gated effect. Component J adds durable,
 exact-digest, expiring, one-use approval records.
+
+## Component J verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 121 tests
+- Durable approval request and explicit approve/deny/revoke transitions
+- Exact project/run/action-digest scope and expiration enforcement
+- Atomic one-use consumption, replay rejection, and two-consumer race exclusion
+- Restart persistence and non-consumption after mismatched authorization
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component J is TESTED, not production-qualified. Authentication and an approval UI
+remain integration requirements. Component K adds opaque secret references,
+short-lived resolution, and mandatory redaction boundaries.
