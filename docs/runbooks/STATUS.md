@@ -36,7 +36,11 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
 | Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
 | Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
-| Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
+| AA. Deterministic compute | TESTED | 248-test suite, bounded CSV/schema/statistics/transforms/chart inputs and provenance pass |
+| AB. App-build mode | TESTED | 255-test suite, fail-fast engineering DAG, acceptance/retry binding, secret exclusion pass |
+| AC. Research mode | TESTED | 262-test suite, provenance/claims/conflicts/citations/reproducibility DAG pass |
+| AD. Data-analysis mode | TESTED | 269-test suite, deterministic analysis/chart/explanation/persistence DAG pass |
+| Modes | TESTED | AA deterministic compute and all AB-AD mode packs pass component gates |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
@@ -465,3 +469,72 @@ TLS, retry/pooling behavior, browser compatibility, live control-service integra
 registry publication, and downstream consumer compatibility remain unverified. The U-Z
 surface milestone is complete at its component-test boundary. Component AA begins the
 deterministic compute and mode-pack milestone.
+
+## Component AA verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 248 tests
+- Bounded UTF-8 CSV loading and deterministic schema/type inspection
+- Summary counts, nulls, distinct values, minimum, maximum, mean, and median
+- Column projection, stable typed sorting, and validated chart input generation
+- Engine/version, canonical parameter, explicit seed, and input/output digest provenance
+- Immutable post-digest results and safe malformed/hostile-input rejection
+- Ruff, strict mypy, contracts, builds, and offline installed-wheel compute smoke
+
+Component AA is TESTED, not production-qualified. Tables remain in memory; out-of-core
+execution, date/decimal types, advanced transformations, econometrics, numerical solvers,
+chart rendering, large-data benchmarks, and evidence-ledger orchestration remain later
+gates. Component AB adds the `app_build` mode pack over kernel contracts.
+
+## Component AB verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 255 tests
+- Specification-through-evidence fail-fast engineering task sequence
+- Deterministic version/config-bound graph identity and canonical digest
+- Project-bounded creative retries and single-attempt verification gates
+- Final evidence-task binding to all declared acceptance identifiers
+- Wrong-mode and read-only-workspace rejection before graph execution
+- Provider, credential, secret, network, and cost configuration exclusion from tasks
+- Frozen graph contract round-trip, Ruff, strict mypy, contracts, builds, and wheel smoke
+
+Component AB is TESTED, not production-qualified. It compiles but does not execute work,
+select providers, authorize effects, prove generated software correctness, or qualify a
+release. Component AC adds the `research` mode pack with source and claim provenance.
+
+## Component AC verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 262 tests
+- Protocol-through-evidence provenance-first research sequence
+- Required source, claim-link, derivation, computation, and reproducibility metadata
+- Contradiction retention and unresolved-conflict reporting
+- Artifact-grounded numeric synthesis and deterministic citation/value checks
+- Explicit non-publication plus provider, credential, and secret exclusion
+- Wrong-mode/read-only rejection and final acceptance evidence binding
+- Frozen graph round trip, Ruff, strict mypy, contracts, builds, and wheel smoke
+
+Component AC is TESTED, not production-qualified. It compiles but does not acquire sources,
+execute computations, classify data, assess scientific quality, authorize egress, or publish.
+Component AD adds the `data_analysis` mode pack and closes the modes milestone.
+
+## Component AD verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 269 tests
+- Ingestion-through-evidence deterministic data-analysis sequence
+- Dataset shape/digest, schema, quality, statistics, and chart provenance requirements
+- Model-generated authoritative numbers explicitly prohibited
+- Artifact-ID grounding required for every numeric explanation claim
+- Persistence identity and compatible reopen verification gates
+- Wrong-mode/read-only rejection plus provider, credential, and secret exclusion
+- Frozen graph round trip, Ruff, strict mypy, contracts, builds, and wheel smoke
+
+Component AD is TESTED, not production-qualified. It compiles but does not execute analysis,
+render charts, provide a virtual grid, or prove scale/performance. The AA-AD modes milestone
+is complete at its component-test boundary. Component AE implements the digest-pinned
+RW-100K reference workflow and its integration, persistence, evidence, and benchmark gates.
