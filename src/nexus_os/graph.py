@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
 from typing import Any, cast
@@ -19,6 +20,54 @@ _SOURCE_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas" / "task-gr
 
 class GraphCompileError(ValueError):
     """Safe, stable rejection of an invalid graph wire payload."""
+
+
+class GraphValidationError(ValueError):
+    """Safe rejection of graph dependency semantics."""
+
+
+@dataclass(frozen=True, slots=True)
+class ValidatedTaskGraph:
+    """A graph paired with deterministic topological scheduling metadata."""
+
+    graph: TaskGraph
+    topological_order: tuple[TaskId, ...]
+    levels: tuple[tuple[TaskId, ...], ...]
+
+
+def validate_task_graph(graph: TaskGraph) -> ValidatedTaskGraph:
+    """Validate dependency existence and acyclicity using deterministic Kahn traversal."""
+    tasks = {task.task_id: task for task in graph.tasks}
+    unknown = sorted(
+        {
+            dependency
+            for task in graph.tasks
+            for dependency in task.depends_on
+            if dependency not in tasks
+        },
+        key=str,
+    )
+    if unknown:
+        names = ", ".join(str(item) for item in unknown)
+        raise GraphValidationError(f"unknown task dependencies: {names}")
+
+    remaining = {task_id: set(task.depends_on) for task_id, task in tasks.items()}
+    order: list[TaskId] = []
+    levels: list[tuple[TaskId, ...]] = []
+    while remaining:
+        ready = tuple(sorted((task_id for task_id, deps in remaining.items() if not deps), key=str))
+        if not ready:
+            involved = ", ".join(sorted(str(task_id) for task_id in remaining))
+            raise GraphValidationError(f"task graph contains a cycle involving: {involved}")
+        levels.append(ready)
+        order.extend(ready)
+        ready_set = set(ready)
+        remaining = {
+            task_id: dependencies - ready_set
+            for task_id, dependencies in remaining.items()
+            if task_id not in ready_set
+        }
+    return ValidatedTaskGraph(graph=graph, topological_order=tuple(order), levels=tuple(levels))
 
 
 def compile_task_graph(payload: Mapping[str, Any]) -> TaskGraph:

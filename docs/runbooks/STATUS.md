@@ -14,6 +14,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | B. Core domain models | TESTED | 47-test full suite, immutable JSON boundary, canonical graph digest, and installed-wheel smoke pass |
 | C. State machine | TESTED | 63-test full suite, exhaustive lifecycle pair coverage, and installed-wheel smoke pass |
 | D. Task graph compiler | TESTED | 73-test full suite, bounded schema compilation, deterministic digest, and installed-wheel smoke pass |
+| E. Task graph validator | TESTED | 79-test full suite, dependency/cycle checks, deterministic scheduling levels, and installed-wheel smoke pass |
 | Runtime and modes | UNKNOWN | Correctly not started before F0 |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -93,3 +94,17 @@ On 2026-08-12 the following passed:
 Component D is TESTED, not production-qualified. It compiles bounded untrusted
 wire payloads into canonical immutable graphs. Unknown dependencies, cycle
 detection, and topological scheduling remain assigned to Component E.
+
+## Component E verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 79 tests
+- Ruff and strict mypy
+- Contract/schema validation
+- Source distribution and wheel build
+- Fresh-environment installed-wheel graph compile/validate smoke
+- Iterative validation of a 1,500-task dependency chain
+
+Component E is TESTED, not production-qualified. It proves deterministic graph
+semantics in memory. Durable checkpointing and resume begin with Component F.
