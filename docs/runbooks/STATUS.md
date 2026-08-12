@@ -27,8 +27,9 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
+| R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
-| Provider adapters | IN PROGRESS | Deterministic mock is tested; conformance and live adapters remain unverified |
+| Provider adapters | IN PROGRESS | SDK, deterministic mock, and conformance harness are tested; live adapters remain unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
 ## Repository state
@@ -302,3 +303,20 @@ On 2026-08-12 the following passed:
 Component Q is TESTED at the deterministic mock boundary, not production-qualified.
 It performs no provider or network I/O and establishes no live-provider claim.
 Component R adds the reusable adapter conformance harness.
+
+## Component R verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 181 tests
+- Typed health/capability discovery and normalized successful lifecycle
+- Contiguous event sequencing, task/trace identity, and terminal-result agreement
+- Idempotent cancellation, advertised/unsupported resume, and unknown-task rejection
+- Bounded timeout, malformed sequence/identity failure, safe details, and stable digest
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel harness smoke
+
+Component R is TESTED at the provider-neutral conformance boundary, not
+production-qualified. A passing deterministic suite derives only `mock_verified`.
+Live-provider execution, workspace/policy integration, reliability qualification,
+and release approval remain later gates. Component S begins the first live adapter
+implementation without credentials or a live-verification claim.
