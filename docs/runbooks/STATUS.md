@@ -23,7 +23,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | K. Secrets and redaction | TESTED | 129-test suite, opaque references, scoped resolution, non-serialization, recursive redaction pass |
 | L. Workspace sandbox | TESTED | 140-test suite, traversal/symlink escape, scoped writes, environment/network deny-by-default pass |
 | M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
-| N-O. Runtime safety | UNKNOWN | Qualification and observability remain gated after M |
+| N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
+| O. Observability | UNKNOWN | Telemetry boundary remains gated after N |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -239,3 +240,18 @@ Component M is TESTED, not production-qualified. A hash chain is tamper-evident,
 not tamper-proof: a database owner can replace the database. Trusted anchors,
 signatures/WORM storage, and deployment controls remain release hardening. Component
 N adds deterministic evidence-to-capability qualification rules.
+
+## Component N verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 155 tests
+- Versioned required-kind and minimum-passing-evidence rules
+- Integrity, failure, duplicate-test, and future-evidence refusal
+- Deterministic evidence IDs, limitations, and optional expiration
+- Automatic promotion capped below production states
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component N is TESTED, not production-qualified. It evaluates immutable input but
+does not persist decisions, authenticate release approvers, or grant production
+status. Component O adds provider-neutral observability contracts and safe telemetry.
