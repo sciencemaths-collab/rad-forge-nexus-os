@@ -25,8 +25,13 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
 | N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
+| P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
+| Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
+| R. Provider conformance harness | TESTED | 181-test suite, bounded lifecycle/capability checks, safe failures, stable digest pass |
+| S. OpenAI/Codex adapter | TESTED (FAKE) | 188-test suite and fake-transport conformance pass; live provider remains unverified |
+| T. Claude/Anthropic adapter | TESTED (FAKE) | 196-test suite and fake-transport conformance pass; live provider remains unverified |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
-| Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
+| Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
 ## Repository state
@@ -271,3 +276,83 @@ Component O is TESTED, not production-qualified. The core defines a provider-neu
 export port and bounded test exporter. OpenTelemetry deployment wiring, durable
 buffering, sampling, backpressure, alerting, and delivery guarantees remain later
 integration/release work. Component P begins the provider adapter SDK.
+
+## Component P verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 166 tests
+- Schema-aligned descriptor and reference-only credential validation
+- Immutable normalized tasks, sequenced events, usage, results, and async port
+- Recursive provider-boundary redaction and duplicate-safe registry
+- Vendor-import exclusion from the core provider SDK
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component P is TESTED, not production-qualified. It defines contracts only and has
+not executed any provider. Component Q adds the deterministic mock adapter.
+
+## Component Q verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 173 tests
+- Fixed UTC timestamps and contiguous, repeatable provider event sequences
+- Normalized success, injected failure, pending, cancellation, and resume scenarios
+- Duplicate/unknown-task, premature-result, and unconfigured-operation rejection
+- Provider input/metadata redaction and vendor/randomness import exclusion
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component Q is TESTED at the deterministic mock boundary, not production-qualified.
+It performs no provider or network I/O and establishes no live-provider claim.
+Component R adds the reusable adapter conformance harness.
+
+## Component R verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 181 tests
+- Typed health/capability discovery and normalized successful lifecycle
+- Contiguous event sequencing, task/trace identity, and terminal-result agreement
+- Idempotent cancellation, advertised/unsupported resume, and unknown-task rejection
+- Bounded timeout, malformed sequence/identity failure, safe details, and stable digest
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel harness smoke
+
+Component R is TESTED at the provider-neutral conformance boundary, not
+production-qualified. A passing deterministic suite derives only `mock_verified`.
+Live-provider execution, workspace/policy integration, reliability qualification,
+and release approval remain later gates. Component S begins the first live adapter
+implementation without credentials or a live-verification claim.
+
+## Component S verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 188 tests
+- Responses request mapping with background execution and `store: false`
+- Opaque secret references and per-call scoped credential resolution
+- Normalized lifecycle, terminal results, token usage, cancellation, and resume
+- Malformed identity/status/usage, duplicate task, unknown task, and safe-error checks
+- Component R conformance through an injected fake transport
+- Vendor SDK/ambient environment exclusion, Ruff, strict mypy, contracts, builds, wheel smoke
+
+Component S is TESTED with deterministic fake transports, not live-verified or
+production-qualified. No API key or live request was used. Account/model access,
+vendor behavior, network reliability, cost, and real cancellation/resume require
+explicit opt-in live qualification. Component T adds the Claude/Anthropic adapter.
+
+## Component T verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 196 tests
+- Anthropic Messages request and strict message identity/type/role validation
+- Opaque secret references and per-call scoped credential resolution
+- Stop-reason, token usage, success, truncation, and refusal normalization
+- Terminal cancellation idempotency and explicit unsupported resume
+- Malformed response, duplicate/unknown task, and safe-error checks
+- Component R fake-transport conformance, vendor exclusion, typing, contracts, builds, wheel smoke
+
+Component T is TESTED with deterministic fake transports, not live-verified or
+production-qualified. No API key or live request was used. Provider milestone P-T is
+complete at its non-live component-test boundary. Component U begins the typed tool
+registry and deterministic tool execution boundary.
