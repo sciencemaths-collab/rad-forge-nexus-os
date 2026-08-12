@@ -20,7 +20,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | H. Retry/repair engine | TESTED | 102-test full suite, attempt/time/cost/repetition bounds, deterministic backoff, and wheel smoke pass |
 | I. Policy engine | TESTED | 115-test suite, deterministic action digests, denial precedence, and approval classification pass |
 | J. Approval store | TESTED | 121-test suite, exact-scope expiry, atomic one-use consumption, restart and race tests pass |
-| K-O. Runtime safety | UNKNOWN | Secrets through telemetry remain gated after J |
+| K. Secrets and redaction | TESTED | 129-test suite, opaque references, scoped resolution, non-serialization, recursive redaction pass |
+| L-O. Runtime safety | UNKNOWN | Sandbox through telemetry remain gated after K |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -187,3 +188,19 @@ On 2026-08-12 the following passed:
 Component J is TESTED, not production-qualified. Authentication and an approval UI
 remain integration requirements. Component K adds opaque secret references,
 short-lived resolution, and mandatory redaction boundaries.
+
+## Component K verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 129 tests
+- Reference-only parsing and explicit environment/backend resolution
+- Scoped close, best-effort buffer clearing, and serialization rejection
+- Recursive exact-canary, sensitive-key, reference, and credential-format redaction
+- Cycle and nesting-depth attack handling with safe failure messages
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component K is TESTED, not production-qualified. Python cannot guarantee erasure of
+all immutable string copies. Backend authentication, subprocess isolation, path and
+network restrictions, and provider-specific credential scoping remain later gates.
+Component L adds the deny-by-default workspace sandbox.
