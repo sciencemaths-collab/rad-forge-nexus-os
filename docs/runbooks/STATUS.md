@@ -41,6 +41,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | AC. Research mode | TESTED | 262-test suite, provenance/claims/conflicts/citations/reproducibility DAG pass |
 | AD. Data-analysis mode | TESTED | 269-test suite, deterministic analysis/chart/explanation/persistence DAG pass |
 | Modes | TESTED | AA deterministic compute and all AB-AD mode packs pass component gates |
+| AE. RW-100K proof | TESTED | 275-test suite, exact 100K fixture, compute, save/reopen, evidence reports pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
 
@@ -538,3 +539,22 @@ Component AD is TESTED, not production-qualified. It compiles but does not execu
 render charts, provide a virtual grid, or prove scale/performance. The AA-AD modes milestone
 is complete at its component-test boundary. Component AE implements the digest-pinned
 RW-100K reference workflow and its integration, persistence, evidence, and benchmark gates.
+
+## Component AE verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 275 tests
+- Deterministic digest-pinned fixture with exactly 100,000 data rows
+- Expected four-column schema and deterministic data-quality findings
+- Summary statistics, validated digest-linked chart specification, and grounded claims
+- Atomic state save, separate-instance reopen, compatibility and digest verification
+- Seven-record durable evidence chain plus JSON and Markdown reports
+- State mutation and duplicate/replay rejection
+- Reproducible environment/timing context without a browser-performance claim
+- Ruff, strict mypy, contracts, builds, and installed-wheel workflow smoke
+
+Component AE is TESTED at the runtime-only RW-100K boundary, not production-qualified.
+Virtual-grid/browser UI, scrolling, edits, filters, sorting, joins, pivots, chart rendering,
+and sub-two-second first usable browser rendering remain unimplemented and unclaimed under
+ADR-0002. Component AF adds CI/release-evidence automation and release gates.
