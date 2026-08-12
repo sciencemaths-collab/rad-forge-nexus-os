@@ -36,6 +36,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
 | Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
 | Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
+| AA. Deterministic compute | TESTED | 248-test suite, bounded CSV/schema/statistics/transforms/chart inputs and provenance pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -465,3 +466,20 @@ TLS, retry/pooling behavior, browser compatibility, live control-service integra
 registry publication, and downstream consumer compatibility remain unverified. The U-Z
 surface milestone is complete at its component-test boundary. Component AA begins the
 deterministic compute and mode-pack milestone.
+
+## Component AA verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 248 tests
+- Bounded UTF-8 CSV loading and deterministic schema/type inspection
+- Summary counts, nulls, distinct values, minimum, maximum, mean, and median
+- Column projection, stable typed sorting, and validated chart input generation
+- Engine/version, canonical parameter, explicit seed, and input/output digest provenance
+- Immutable post-digest results and safe malformed/hostile-input rejection
+- Ruff, strict mypy, contracts, builds, and offline installed-wheel compute smoke
+
+Component AA is TESTED, not production-qualified. Tables remain in memory; out-of-core
+execution, date/decimal types, advanced transformations, econometrics, numerical solvers,
+chart rendering, large-data benchmarks, and evidence-ledger orchestration remain later
+gates. Component AB adds the `app_build` mode pack over kernel contracts.
