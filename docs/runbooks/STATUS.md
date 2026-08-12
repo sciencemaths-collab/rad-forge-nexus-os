@@ -25,6 +25,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
 | N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
+| P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -271,3 +272,17 @@ Component O is TESTED, not production-qualified. The core defines a provider-neu
 export port and bounded test exporter. OpenTelemetry deployment wiring, durable
 buffering, sampling, backpressure, alerting, and delivery guarantees remain later
 integration/release work. Component P begins the provider adapter SDK.
+
+## Component P verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 166 tests
+- Schema-aligned descriptor and reference-only credential validation
+- Immutable normalized tasks, sequenced events, usage, results, and async port
+- Recursive provider-boundary redaction and duplicate-safe registry
+- Vendor-import exclusion from the core provider SDK
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component P is TESTED, not production-qualified. It defines contracts only and has
+not executed any provider. Component Q adds the deterministic mock adapter.
