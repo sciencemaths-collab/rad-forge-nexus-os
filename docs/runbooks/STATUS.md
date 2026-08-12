@@ -17,7 +17,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | E. Task graph validator | TESTED | 79-test full suite, dependency/cycle checks, deterministic scheduling levels, and installed-wheel smoke pass |
 | F. Durable checkpoint store | TESTED | 85-test full suite, atomic CAS writes, process-kill recovery, compatibility guards, and wheel smoke pass |
 | G. Runtime orchestrator | TESTED | 92-test full suite, dependency ordering, durable resume/cancel, stale-snapshot rejection, and wheel smoke pass |
-| H-O. Runtime safety | UNKNOWN | Retry/repair through telemetry remain gated after G |
+| H. Retry/repair engine | TESTED | 102-test full suite, attempt/time/cost/repetition bounds, deterministic backoff, and wheel smoke pass |
+| I-O. Runtime safety | UNKNOWN | Policy through telemetry remain gated after H |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -140,3 +141,17 @@ On 2026-08-12 the following passed:
 Component G is TESTED, not production-qualified. It coordinates provider-neutral
 runtime state only. Component H adds bounded retry and repair semantics without
 rewriting prior attempts.
+
+## Component H verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 102 tests
+- Attempt, elapsed-time, cost, and repeated-failure stopping
+- Deterministic capped backoff and retry-versus-repair classification
+- Non-retryable security/cancellation handling and hostile numeric rejection
+- Ruff, strict mypy, contract/schema validation, builds, and fresh-wheel smoke
+
+Component H is TESTED, not production-qualified. It decides whether another bounded
+attempt is eligible but does not authorize the action. Component I adds policy
+evaluation before runtime effects.
