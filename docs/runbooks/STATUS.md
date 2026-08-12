@@ -18,7 +18,8 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | F. Durable checkpoint store | TESTED | 85-test full suite, atomic CAS writes, process-kill recovery, compatibility guards, and wheel smoke pass |
 | G. Runtime orchestrator | TESTED | 92-test full suite, dependency ordering, durable resume/cancel, stale-snapshot rejection, and wheel smoke pass |
 | H. Retry/repair engine | TESTED | 102-test full suite, attempt/time/cost/repetition bounds, deterministic backoff, and wheel smoke pass |
-| I-O. Runtime safety | UNKNOWN | Policy through telemetry remain gated after H |
+| I. Policy engine | TESTED | 115-test suite, deterministic action digests, denial precedence, and approval classification pass |
+| J-O. Runtime safety | UNKNOWN | Approval through telemetry remain gated after I |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -155,3 +156,18 @@ On 2026-08-12 the following passed:
 Component H is TESTED, not production-qualified. It decides whether another bounded
 attempt is eligible but does not authorize the action. Component I adds policy
 evaluation before runtime effects.
+
+## Component I verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 115 tests
+- Deterministic allow, deny, and require-approval decisions
+- Exact canonical action digest and stable ordered reason codes
+- Denial precedence, operation allowlisting, and high-risk effect classification
+- Hostile numeric, invalid identifier, oversized metadata, and prompt-injection guards
+- Ruff, strict mypy, contract/schema validation, builds, and fresh-wheel smoke
+
+Component I is TESTED, not production-qualified. It classifies and binds actions
+but cannot itself authorize an approval-gated effect. Component J adds durable,
+exact-digest, expiring, one-use approval records.
