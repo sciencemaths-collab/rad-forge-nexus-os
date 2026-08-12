@@ -33,6 +33,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | U. Typed tool registry | TESTED | 203-test suite, schemas, policy gates, timeouts, replay binding, and wheel execution pass |
 | V. MCP gateway | TESTED | 211-test suite, strict JSON-RPC, trusted scopes, quota, audit, contract execution pass |
 | W. REST control application | TESTED | 218-test suite, all OpenAPI operations, auth scopes, replay binding, wheel smoke pass |
+| X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -410,3 +411,21 @@ Component W is TESTED, not production-qualified. It is an in-process application
 boundary, not an HTTP server. Bearer-token verification, TLS, proxy/CORS controls,
 durable/distributed replay, repositories, and production middleware remain unverified.
 Component X adds the CLI surface over application/client ports.
+
+## Component X verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 225 tests
+- Run create/get/cancel/resume, provider/capability list, and evidence verify commands
+- UUID, project, idempotency-key, and argument validation before client calls
+- Canonical JSON stdout, safe JSON stderr, and stable exit-code classes
+- Evidence invalidity, authorization, API, validation, and internal error mapping
+- Configured-client integration through Component W and exception sanitization
+- Ruff, strict mypy, contracts, builds, and offline installed console entry-point smoke
+
+Component X is TESTED, not production-qualified. The reusable CLI requires an injected
+control client; the bare installed entry point safely reports `client_not_configured`
+until Component Y supplies client/SDK wiring. HTTP transport, authentication discovery,
+shell completion, and production distribution remain later gates. Component Y adds the
+Python SDK.
