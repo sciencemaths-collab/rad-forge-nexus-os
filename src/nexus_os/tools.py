@@ -170,7 +170,7 @@ class ToolExecutor:
         if descriptor.approval_required or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL:
             raise ToolError("tool execution requires approval")
 
-        cache_key = self._cache_key(descriptor, safe_input, project_id)
+        cache_key = self._cache_key(descriptor, safe_input, input_digest, project_id)
         if cache_key is not None and cache_key in self._cache:
             prior_digest, prior = self._cache[cache_key]
             if prior_digest != input_digest:
@@ -199,10 +199,16 @@ class ToolExecutor:
 
     @staticmethod
     def _cache_key(
-        descriptor: ToolDescriptor, payload: dict[str, Any], project_id: str
+        descriptor: ToolDescriptor,
+        payload: dict[str, Any],
+        input_digest: str,
+        project_id: str,
     ) -> tuple[str, str, str] | None:
         if not descriptor.idempotent:
             return None
+        properties = descriptor.input_schema.get("properties", {})
+        if not isinstance(properties, Mapping) or "idempotency_key" not in properties:
+            return (project_id, descriptor.name, input_digest)
         value = payload.get("idempotency_key")
         if not isinstance(value, str) or not 16 <= len(value) <= 256:
             raise ToolError("idempotent tool requires a bounded idempotency_key")
