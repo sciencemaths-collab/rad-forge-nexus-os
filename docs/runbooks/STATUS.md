@@ -35,6 +35,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | W. REST control application | TESTED | 218-test suite, all OpenAPI operations, auth scopes, replay binding, wheel smoke pass |
 | X. CLI surface | TESTED | 225-test suite, commands, JSON, exit classes, W integration, packaged entry point pass |
 | Y. Python SDK | TESTED | 232-test suite, typed client/models/errors, W integration, wheel execution pass |
+| Z. TypeScript SDK | TESTED | 235-test Python suite, 6 Node tests, strict declarations, safe transport, package dry run pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -446,3 +447,21 @@ On 2026-08-12 the following passed:
 Component Y is TESTED, not production-qualified. HTTP transport, endpoint and bearer
 configuration, TLS, retry/pooling behavior, and published package compatibility remain
 unverified. Component Z adds the TypeScript SDK surface.
+
+## Component Z verification
+
+On 2026-08-12 the following passed:
+
+- Full Python suite: 235 tests; TypeScript/Node suite: 6 tests
+- Strict TypeScript compilation with generated declarations and no runtime dependencies
+- Run create/get/cancel/resume and provider/capability/evidence collections
+- Required mutation idempotency, bounded request IDs, UUID paths, and trace validation
+- Immutable response parsing and sanitized API/transport failures
+- Ambient credential/endpoint exclusion and npm package-content dry run
+- Ruff, strict mypy, contracts, Python builds, and offline installed-wheel smoke
+
+Component Z is TESTED, not production-qualified. Concrete HTTP transport, authentication,
+TLS, retry/pooling behavior, browser compatibility, live control-service integration,
+registry publication, and downstream consumer compatibility remain unverified. The U-Z
+surface milestone is complete at its component-test boundary. Component AA begins the
+deterministic compute and mode-pack milestone.
