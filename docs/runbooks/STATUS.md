@@ -11,6 +11,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | Architecture/ADRs | VERIFIED | Initial modular architecture, threat/trust boundaries, and two ADRs created |
 | Machine-readable contracts | VERIFIED | Six schemas, OpenAPI, MCP contracts, examples, and semantic graph validation pass |
 | A. Configuration loader | TESTED | 20-test full suite, security/failure coverage, canonical digest, and installed-wheel smoke pass |
+| B. Core domain models | TESTED | 47-test full suite, immutable JSON boundary, canonical graph digest, and installed-wheel smoke pass |
 | Runtime and modes | UNKNOWN | Correctly not started before F0 |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -45,4 +46,19 @@ On 2026-08-12 the following passed:
 
 Component A is TESTED, not production-qualified. Secret resolution, sandbox path
 authorization, and chained evidence remain assigned to later components. The next
-component is B, core domain models, after Component A's focused commit.
+component commit was B, core domain models.
+
+## Component B verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 47 tests
+- Ruff and strict mypy
+- Contract/schema validation
+- Source distribution and wheel build
+- Fresh-environment wheel installation and domain import smoke
+
+Component B is TESTED, not production-qualified. It provides immutable shared
+values but intentionally does not implement lifecycle transitions or task-graph
+semantic validation. The next component is C, the state machine, after Component
+B's focused commit.
