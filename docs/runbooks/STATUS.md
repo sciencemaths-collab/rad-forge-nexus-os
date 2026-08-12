@@ -24,7 +24,7 @@ Overall state: **MILESTONE 1 IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 | L. Workspace sandbox | TESTED | 140-test suite, traversal/symlink escape, scoped writes, environment/network deny-by-default pass |
 | M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
 | N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
-| O. Observability | UNKNOWN | Telemetry boundary remains gated after N |
+| O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | Modes | UNKNOWN | Correctly not started before deterministic runtime safety |
 | Provider adapters | UNKNOWN | No credentials requested; no adapter claims |
 | Release qualification | UNKNOWN | Depends on all prior gates |
@@ -255,3 +255,19 @@ On 2026-08-12 the following passed:
 Component N is TESTED, not production-qualified. It evaluates immutable input but
 does not persist decisions, authenticate release approvers, or grant production
 status. Component O adds provider-neutral observability contracts and safe telemetry.
+
+## Component O verification
+
+On 2026-08-12 the following passed:
+
+- Full suite: 161 tests
+- Correlated trace, structured-log, and metric event generation
+- Bounded scalar attributes and immutable canonical event snapshots
+- Exact-canary, prompt, raw payload, user-data, credential, and secret redaction
+- Exporter-failure isolation with safe health counters
+- Ruff, strict mypy, contracts, builds, and offline fresh-wheel smoke
+
+Component O is TESTED, not production-qualified. The core defines a provider-neutral
+export port and bounded test exporter. OpenTelemetry deployment wiring, durable
+buffering, sampling, backpressure, alerting, and delivery guarantees remain later
+integration/release work. Component P begins the provider adapter SDK.
