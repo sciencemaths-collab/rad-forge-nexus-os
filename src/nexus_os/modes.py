@@ -13,6 +13,7 @@ from nexus_os.graph import ValidatedTaskGraph, validate_task_graph
 
 APP_BUILD_VERSION: Final = "1.0"
 RESEARCH_VERSION: Final = "1.0"
+DATA_ANALYSIS_VERSION: Final = "1.0"
 
 
 class ModeCompileError(ValueError):
@@ -55,6 +56,18 @@ _RESEARCH_STAGES = (
     ),
     _Stage("reproducibility", "mode.research.reproducibility", "reproducibility.json", 900, False),
     _Stage("evidence_report", "mode.research.evidence", "evidence-report.json", 300, False),
+)
+
+_DATA_ANALYSIS_STAGES = (
+    _Stage("ingestion", "mode.data_analysis.ingestion", "dataset.json", 900, False),
+    _Stage("schema_inspection", "mode.data_analysis.schema", "schema.json", 300, False),
+    _Stage("quality_check", "mode.data_analysis.quality", "data-quality.json", 600, False),
+    _Stage("statistics", "mode.data_analysis.statistics", "statistics.json", 900, False),
+    _Stage("chart_spec", "mode.data_analysis.chart_spec", "chart-spec.json", 300, False),
+    _Stage("explanation", "mode.data_analysis.explanation", "explanation.md", 600, True),
+    _Stage("persistence", "mode.data_analysis.persistence", "analysis-state.json", 600, False),
+    _Stage("reopen_verify", "mode.data_analysis.reopen_verify", "reopen-check.json", 600, False),
+    _Stage("evidence_report", "mode.data_analysis.evidence", "evidence-report.json", 300, False),
 )
 
 
@@ -158,6 +171,54 @@ class ResearchMode:
         return validate_task_graph(TaskGraph(graph_id, project_id, tuple(tasks)))
 
 
+class DataAnalysisMode:
+    """Compile analysis goals into deterministic, artifact-grounded work."""
+
+    def compile(self, config: LoadedConfig) -> ValidatedTaskGraph:
+        if not isinstance(config, LoadedConfig):
+            raise ModeCompileError("data_analysis requires a validated project configuration")
+        data = config.data
+        if data.get("mode") != "data_analysis":
+            raise ModeCompileError("project mode must be data_analysis")
+        workspace = _mapping(data.get("workspace"), "workspace")
+        if workspace.get("read_only") is True:
+            raise ModeCompileError("data_analysis requires a writable workspace")
+        project_id = _string(data.get("project_id"), "project_id")
+        goal = _string(data.get("goal"), "goal")
+        policy = _mapping(data.get("policy"), "policy")
+        max_attempts = policy.get("max_attempts")
+        if not isinstance(max_attempts, int) or isinstance(max_attempts, bool):
+            raise ModeCompileError("project retry policy is invalid")
+        acceptance = _acceptance(data.get("acceptance"))
+        acceptance_ids = tuple(item["id"] for item in acceptance)
+        if len(set(acceptance_ids)) != len(acceptance_ids):
+            raise ModeCompileError("acceptance identifiers must be unique")
+
+        tasks: list[TaskDefinition] = []
+        previous: TaskId | None = None
+        for stage in _DATA_ANALYSIS_STAGES:
+            task_id = TaskId(stage.task_id)
+            task_input = _analysis_input(stage, goal, acceptance)
+            tasks.append(
+                TaskDefinition(
+                    task_id=task_id,
+                    kind=stage.kind,
+                    depends_on=() if previous is None else (previous,),
+                    effect=ActionEffect.WORKSPACE_WRITE,
+                    timeout_seconds=stage.timeout_seconds,
+                    max_attempts=max_attempts if stage.retryable else 1,
+                    backoff_seconds=1.0 if stage.retryable else 0.0,
+                    input=task_input,
+                    acceptance_ids=acceptance_ids if stage.task_id == "evidence_report" else (),
+                )
+            )
+            previous = task_id
+        graph_id = uuid5(
+            NAMESPACE_URL, f"nexus:data_analysis:{DATA_ANALYSIS_VERSION}:{config.digest}"
+        )
+        return validate_task_graph(TaskGraph(graph_id, project_id, tuple(tasks)))
+
+
 def _research_input(
     stage: _Stage, question: str, acceptance: tuple[dict[str, str], ...]
 ) -> dict[str, Any]:
@@ -216,6 +277,48 @@ def _research_input(
         )
     elif stage.task_id == "reproducibility":
         value.update(require_explicit_limitations=True, require_reproducible_artifacts=True)
+    elif stage.task_id == "evidence_report":
+        value["acceptance"] = acceptance
+    return value
+
+
+def _analysis_input(
+    stage: _Stage, goal: str, acceptance: tuple[dict[str, str], ...]
+) -> dict[str, Any]:
+    value: dict[str, Any] = {
+        "mode_version": DATA_ANALYSIS_VERSION,
+        "expected_artifact": stage.artifact,
+    }
+    if stage.task_id == "ingestion":
+        value.update(
+            goal=goal,
+            model_generated_numbers_allowed=False,
+            required_provenance=("input_digest", "row_count", "column_count", "format"),
+        )
+    elif stage.task_id == "schema_inspection":
+        value["deterministic_checks"] = ("column_names", "types", "nullability", "row_width")
+    elif stage.task_id == "quality_check":
+        value.update(
+            deterministic_findings=True,
+            required_checks=("missing", "duplicates", "type_violations", "non_finite"),
+        )
+    elif stage.task_id == "statistics":
+        value["required_provenance"] = (
+            "engine", "version", "parameters", "seed", "input_digest", "output_digest"
+        )
+    elif stage.task_id == "chart_spec":
+        value.update(require_computed_columns=True, validate_specification=True)
+    elif stage.task_id == "explanation":
+        value.update(
+            numeric_claims_require_artifact_ids=True,
+            unverified_numbers_allowed=False,
+        )
+    elif stage.task_id == "persistence":
+        value["required_state"] = ("dataset_digest", "analysis_artifacts", "graph_digest")
+    elif stage.task_id == "reopen_verify":
+        value["deterministic_checks"] = (
+            "dataset_digest_matches", "artifacts_match", "state_is_compatible"
+        )
     elif stage.task_id == "evidence_report":
         value["acceptance"] = acceptance
     return value

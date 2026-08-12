@@ -1,0 +1,26 @@
+schema_version: "1.0"
+project_id: data_analysis_demo
+name: Deterministic Data Analysis
+mode: data_analysis
+goal: Analyze a dataset with deterministic statistics and artifact-grounded explanations.
+workspace:
+  root: ./workspace
+  read_only: false
+  network_allowlist: []
+providers:
+  explainer:
+    adapter: mock
+    model: deterministic-fixture-v1
+secrets: {}
+policy:
+  max_attempts: 3
+  max_elapsed_seconds: 7200
+  max_cost_usd: 0
+  require_approval: [SENSITIVE, DESTRUCTIVE]
+acceptance:
+  - id: ANALYSIS_VALUES
+    description: Every numeric claim traces to a verified deterministic artifact.
+    verifier: nexus.verify.numeric_claims
+  - id: ANALYSIS_REOPEN
+    description: Saved data and analysis artifacts match after reopening.
+    verifier: nexus.verify.reopen
