@@ -733,3 +733,23 @@ sources under a regression contract. No live model was called or scored.
 rather than a hidden, statistically complete, or production-grade certification exam.
 Controlled variants, rotation, leakage review, expert content review, reliability
 analysis, live execution, owner approval, and production release remain later work.
+
+## Component AN verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Installed local-model evaluation command composing Components AL, AI, AM, and AK
+- Explicit endpoint/model/corpus/digest/time/run/trace/output/network authorization
+- Optional environment credential reference without manifest reference/value leakage
+- Canonical endpoint, report, corpus, and manifest digest binding
+- Exclusive private atomic output and stable machine-readable summaries/exit classes
+- Remote endpoint, missing authorization, invalid time/identity/digest, existing file,
+  symlink, unsupported credential backend, and provider exception handling
+- Public local-model evaluation manifest schema
+- Focused suite: 9 tests
+
+Component AN is clean-room QUALIFIED using injected transports. The full 356-test
+Python suite, 6-test TypeScript suite, all 15 portable release gates, and independent
+review passed with zero findings. Automated tests open no socket. No live server/model
+compatibility, benchmark score, evidence UUID, Agent permission, model qualification,
+owner approval, or production release is claimed.
