@@ -3,7 +3,9 @@ from datetime import timedelta
 
 from nexus_os.attempt_store import AttemptStore
 from nexus_os.domain import TaskId, TaskStatus
+from nexus_os.evidence import EvidenceLedger
 from nexus_os.retry import RetryEngine, RetryLimits
+from nexus_os.runtime_evidence import RuntimeEvidenceWriter
 from nexus_os.scheduler import GovernedScheduler, SchedulerOutcome
 from nexus_os.tools import ToolExecutor
 from tests.contract.test_governed_scheduler_contract import NOW, TRACE, _subject
@@ -31,6 +33,7 @@ def test_transient_failure_is_evidenced_and_rescheduled_then_succeeds(tmp_path) 
         approvals=approvals,
         attempts=attempts,
         retry=RetryEngine(RetryLimits(max_attempts=3)),
+        evidence=RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "retry-evidence.db")),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
     )
     first = asyncio.run(
@@ -84,6 +87,7 @@ def test_invalid_tool_output_requires_repair_without_mutating_approved_input(tmp
         approvals=approvals,
         attempts=attempts,
         retry=RetryEngine(RetryLimits(max_attempts=3)),
+        evidence=RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "repair-evidence.db")),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
     )
     original_digest = snapshot.graph.graph.digest
@@ -112,6 +116,7 @@ def test_repeated_failure_limit_stops_third_attempt(tmp_path) -> None:
         approvals=approvals,
         attempts=attempts,
         retry=RetryEngine(RetryLimits(max_attempts=5, max_repeated_failures=2)),
+        evidence=RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "repeat-evidence.db")),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
     )
     current = snapshot

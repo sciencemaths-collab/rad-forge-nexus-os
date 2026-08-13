@@ -70,6 +70,9 @@ class AgentEventType(StrEnum):
     SPECIFICATION_REVISED = "SPECIFICATION_REVISED"
     SPECIFICATION_APPROVED = "SPECIFICATION_APPROVED"
     RUN_STARTED = "RUN_STARTED"
+    VERIFICATION_STARTED = "VERIFICATION_STARTED"
+    SESSION_COMPLETED = "SESSION_COMPLETED"
+    SESSION_FAILED = "SESSION_FAILED"
 
 
 class AgentActorType(StrEnum):
@@ -555,6 +558,53 @@ class AgentSessionStore:
                 self._connection.execute("ROLLBACK")
             raise
         return self.get(session_id)
+
+    def start_verification(
+        self,
+        session_id: UUID,
+        *,
+        event_id: UUID,
+        actor_id: str,
+        occurred_at: datetime,
+        expected_sequence: int,
+    ) -> AgentSession:
+        return self._simple_transition(
+            session_id,
+            event_id,
+            actor_id,
+            occurred_at,
+            expected_sequence,
+            AgentState.RUNNING,
+            AgentState.VERIFYING,
+            AgentEventType.VERIFICATION_STARTED,
+            AgentActorType.SYSTEM,
+            "Runtime succeeded; acceptance verification started.",
+        )
+
+    def complete_verification(
+        self,
+        session_id: UUID,
+        *,
+        event_id: UUID,
+        actor_id: str,
+        occurred_at: datetime,
+        expected_sequence: int,
+        passed: bool,
+    ) -> AgentSession:
+        return self._simple_transition(
+            session_id,
+            event_id,
+            actor_id,
+            occurred_at,
+            expected_sequence,
+            AgentState.VERIFYING,
+            AgentState.COMPLETED if passed else AgentState.FAILED,
+            AgentEventType.SESSION_COMPLETED if passed else AgentEventType.SESSION_FAILED,
+            AgentActorType.SYSTEM,
+            "All approved acceptance criteria passed."
+            if passed
+            else "Acceptance verification failed.",
+        )
 
     def get_candidate(self, session_id: UUID) -> CandidateSpecification:
         row = self._connection.execute(

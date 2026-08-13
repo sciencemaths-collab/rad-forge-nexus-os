@@ -53,6 +53,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AT. Agent runtime handoff | QUALIFIED | Exact approved-digest and capability gates, deterministic graph/run binding, READY-only checkpoint initialization, and all release/clean-room gates pass |
 | AU. Governed scheduler | QUALIFIED | Canonical one-task ticks, policy denial, exact approval parking/consumption, typed-tool dispatch, and all release/clean-room gates pass |
 | AV. Scheduler retry/repair | QUALIFIED | Immutable attempt evidence, graph/time/cost/repetition bounds, unchanged-input retry/repair states, and all release/clean-room gates pass |
+| AW. Agent completion evidence | QUALIFIED | Digest-bound task outcomes, intact-chain and exact acceptance verification, completion gating, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -885,6 +886,26 @@ Component AV is clean-room QUALIFIED with synthetic failures, costs, elapsed dur
 approvals, and tool handlers. It does not sleep or run background workers, mutate approved
 inputs, generate repair code, invoke a model, auto-meter provider cost, execute live tools,
 deploy, publish, or authorize production release.
+
+## Component AW verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Deterministic runtime-event evidence bound to task input and validated tool output digests
+- Evidence append before final successful task transition and exact idempotent recovery
+- Exact Agent session/run/approved-candidate binding before verification
+- Successful runtime and every-task-success prerequisites independent of evidence
+- Complete passing task evidence set and hash-chain integrity verification
+- Exact registered verifier routing for every approved acceptance method
+- Environment- and output-digest-bound PASS/FAIL acceptance evidence
+- `RUNNING -> VERIFYING -> COMPLETED` only when every approved criterion passes
+- Missing task evidence blocks verification; failed acceptance ends the Agent as `FAILED`
+- Focused Agent/runtime/evidence suite: 26 tests
+- Full suite: 434 Python tests and 6 TypeScript tests
+
+Component AW is clean-room QUALIFIED with synthetic task outputs and deterministic verifier
+fixtures. It does not infer truth from model output, discover verifiers, execute live external
+tests, generate a UI/report, promote capabilities, deploy, publish, or authorize production.
 
 ## Component AQ verification
 

@@ -8,10 +8,12 @@ import pytest
 from nexus_os.approval import ApprovalStatus, ApprovalStore
 from nexus_os.attempt_store import AttemptStore
 from nexus_os.domain import ActionEffect, RunId, TaskId, TaskStatus, TraceId
+from nexus_os.evidence import EvidenceLedger
 from nexus_os.graph import compile_task_graph, validate_task_graph
 from nexus_os.policy import PolicyEngine, PolicyRules
 from nexus_os.retry import RetryEngine, RetryLimits
 from nexus_os.runtime import RuntimeOrchestrator
+from nexus_os.runtime_evidence import RuntimeEvidenceWriter
 from nexus_os.scheduler import GovernedScheduler, SchedulerError, SchedulerOutcome
 from nexus_os.stores import SQLiteCheckpointStore
 from nexus_os.tools import ToolDescriptor, ToolExecutor, ToolRegistry
@@ -97,6 +99,7 @@ def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None, max_attempts=1
         approvals=approvals,
         attempts=AttemptStore(tmp_path / "attempts.db"),
         retry=RetryEngine(RetryLimits()),
+        evidence=RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "evidence.db")),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
     )
     snapshot = runtime.create(
