@@ -1,221 +1,265 @@
-# RAD Forge / NEXUS OS
+# NEXUS Agent / NEXUS OS
 
-RAD Forge / NEXUS OS is a provider-neutral, evidence-driven runtime for autonomous
-software engineering, research, and data-analysis workflows. Goals and acceptance
-criteria are compiled into bounded task graphs, executed through replaceable provider
-adapters and deterministic tools, checkpointed for recovery, evaluated by policy, and
-qualified from tamper-evident evidence.
+**A provider-neutral runtime for governed AI-assisted work.**
 
-The project treats model output as untrusted input. Schemas, policy decisions, approval
-records, deterministic computations, and verified evidence—not provider claims—govern
-what the runtime may execute and what it may claim.
+NEXUS Agent turns a natural-language objective into a structured, reviewable work
+specification. NEXUS OS provides the control layer beneath it: model qualification,
+policy evaluation, human approvals, bounded recovery, durable state, typed tools, and
+tamper-evident evidence.
 
-## Current maturity
+The project is designed for work where an AI model should help reason and plan, but
+should not be trusted to decide its own permissions or declare its own success.
 
-The NEXUS OS implementation sequence and clean-room qualification are complete at the
-recorded Component AG boundary. The subsequent NEXUS Agent upgrade now includes the
-contract boundary, a fake-transport-tested credential-optional local
-OpenAI-compatible adapter, an evidence-derived model-qualification harness, and a
-controlled structured-output evaluation runner, and an explicitly authorized loopback
-HTTP transport, a digest-anchored 14-case reference reasoning corpus, an explicit
-local-model evaluation command, an independently anchored evidence-to-qualification
-bridge, and a durable qualification registry with exact-binding lookup and revocation.
-The Agent layer now also has durable candidate revisions, append-only session history,
-clarification/review transitions, exact-digest human approval, and a proposal-only
-reasoning controller with strict output validation and bounded repair. The current
-Agent workflow is now exposed through a transport-neutral authenticated API with scoped
-authorization and durable idempotent replay. The local product now includes a loopback
-server, password-derived operator sessions, qualified local-model configuration, durable
-planning/review, and a browser interface. Governed execution requires real, explicitly
-registered typed tools and acceptance verifiers for the intended work.
+## Why NEXUS exists
 
-No capability is currently promoted to production. Live provider access, production
-hosting, package-registry publication, and operational deployment remain explicitly
-outside the verified boundary. Exact component states and limitations are maintained in
-[`docs/runbooks/STATUS.md`](docs/runbooks/STATUS.md).
+Most agent frameworks begin with a model and a loop: prompt, choose a tool, observe the
+result, and repeat. NEXUS separates those responsibilities.
 
-## Core properties
+- The **language model** interprets goals and proposes structured plans.
+- **NEXUS Agent** manages conversation, clarification, review, and approval.
+- **NEXUS OS** governs state transitions, tools, policy, permissions, recovery, and evidence.
+- **Deterministic code** validates contracts and performs deterministic computation.
+- The **human operator** remains the authority for consequential actions.
 
-- Provider-neutral kernel with OpenAI/Codex, Claude/Anthropic, deterministic mock,
-  local OpenAI-compatible, and future providers isolated behind adapters
-- Schema-validated configuration, task graphs, API messages, tool inputs, and model output
-- Deterministic policy evaluation for sensitive, destructive, costly, publishing, and
-  external-communication effects
-- Scoped, one-use approvals bound to action digests
-- Durable atomic checkpoints with restart, resume, cancellation, and compatibility checks
-- Workspace and network access denied by default and enabled only through policy scopes
-- Opaque secret references with bounded resolution and recursive redaction
-- Tamper-evident evidence chains and evidence-derived capability qualification
-- Durable exact-model qualification registration, atomic supersession, and revocation
-- Durable Agent sessions with immutable candidate revisions and digest-bound approval
-- Qualification-gated conversational candidate generation with one bounded repair
-- Authenticated scoped Agent API with durable actor/request-bound mutation replay
-- Bounded retry and repair constrained by attempt, elapsed-time, repetition, and cost limits
-- Python and TypeScript control clients with caller-injected transports
+Model output is always untrusted input. Availability does not imply qualification, a
+generated plan does not imply approval, and task completion does not imply verified success.
 
-## Workflow modes
+## Applications
 
-| Mode | Purpose | Verified boundary |
+| Application | Typical use | NEXUS contribution |
 |---|---|---|
-| `app_build` | Specification-first software delivery | Deterministic engineering graph compilation and evidence binding |
-| `research` | Traceable research synthesis | Source, claim, contradiction, calculation, and citation provenance |
-| `data_analysis` | Reproducible analytical work | Deterministic statistics, chart specifications, grounded explanations, and persistence checks |
+| Software engineering | Turn requirements into an implementation and verification plan | Contract-first task graphs, approvals, recovery, and evidence |
+| Scientific research | Structure questions, sources, calculations, claims, and citations | Provenance, contradiction tracking, deterministic analysis, and review |
+| Data analysis | Plan ingestion, quality checks, statistics, charts, and persistence | Reproducible stages, typed computation, and acceptance criteria |
+| Internal operations | Coordinate approved tools and repeatable workflows | Policy-scoped actions, durable checkpoints, and audit records |
+| Domain-specific agents | Build controlled agents for a laboratory, company, or team | Provider-neutral models plus explicitly registered tools and verifiers |
 
-Every mode uses the same runtime kernel for configuration, task graphs, execution,
-policy, approvals, tools, evidence, and qualification.
+The included local application supports governed planning and human review. Execution is
+enabled by registering real typed tools, policies, capabilities, and acceptance verifiers
+for the intended domain.
 
-## Requirements
+## How it works
+
+```text
+Operator goal
+    ↓
+NEXUS Agent — clarification and structured proposal
+    ↓
+Schema validation and exact model qualification
+    ↓
+Human review and digest-bound approval
+    ↓
+NEXUS OS — task graph, policy, tools, checkpoints, recovery
+    ↓
+Acceptance verification and tamper-evident evidence
+```
+
+The model proposes. The runtime governs. Tools perform declared operations. Verifiers
+evaluate acceptance criteria. Evidence records what actually occurred.
+
+## Core capabilities
+
+- Provider-neutral model and tool interfaces
+- Local OpenAI-compatible model support without a mandatory API key
+- Adapters for OpenAI/Codex and Anthropic-style providers
+- Exact provider, model, and adapter qualification bindings
+- Strict validation of model output, API messages, and tool payloads
+- Human approvals bound to the exact action digest
+- Deny-by-default workspace and network boundaries
+- Atomic checkpoints and restart-safe workflow recovery
+- Bounded retry and repair by attempt, time, repetition, and cost
+- Opaque secret references with scoped resolution and redaction
+- Tamper-evident evidence chains and acceptance verification
+- Python and TypeScript SDK surfaces
+- Local browser interface for login, goal entry, review, and approval
+
+## Local quick start
+
+### Requirements
 
 - Python 3.12 or newer
-- [`uv`](https://docs.astral.sh/uv/) for locked Python environments
-- Node.js 24 or newer for the TypeScript SDK checks
-- npm for locked TypeScript dependency installation
+- [`uv`](https://docs.astral.sh/uv/)
+- A local OpenAI-compatible model server or another configured provider adapter
+- A current NEXUS qualification attestation for the exact model binding
 
-## Installation for development
+Clone and install:
 
 ```bash
 git clone https://github.com/sciencemaths-collab/rad-forge-nexus-os.git
 cd rad-forge-nexus-os
 uv sync --all-groups --locked
-npm ci --prefix sdk/typescript --ignore-scripts
 ```
 
-Editable source is installed into the locked `uv` environment. Live provider calls do
-not run during installation or during the default test suite.
-
-## Run NEXUS Agent locally
-
-NEXUS Agent is local software, not a hosted public service. First evaluate and
-independently attest the exact model/adapter binding using the model-evaluation runbook.
-Create a private password file and start the server:
+Create a private operator password file:
 
 ```bash
 install -m 600 /dev/null .nexus-password
 printf '%s\n' 'choose-a-long-unique-password' > .nexus-password
+```
+
+Configure the model and its attestation:
+
+```bash
 export NEXUS_AGENT_MODEL_CONFIG="$PWD/examples/agent-models.local.yaml"
 export NEXUS_AGENT_MODEL_ATTESTATION="$PWD/path/to/current-attestation.json"
-nexus-agent-serve --state-dir "$PWD/.nexus-agent" --password-file .nexus-password
 ```
 
-Open `http://127.0.0.1:8765/` on the same computer. Log in, describe the goal,
-review the candidate specification, and approve its exact digest. The interface does not
-execute or publish work. Never commit the password, resolved provider keys, state
-directory, or private attestations.
-
-## Validate a project configuration
-
-Start with one of the versioned examples in [`examples/`](examples/). Provider credentials
-must be opaque references such as `env:VARIABLE_NAME`, `vault:path`, or
-`secret:logical/name`; literal secret values are rejected.
-
-```python
-from nexus_os.config import load_project_config
-
-config = load_project_config("examples/project.data-analysis.yaml")
-print(config.digest)
-print(config.redacted_manifest())
-```
-
-The loader applies documented defaults, validates against the packaged JSON Schema,
-produces canonical JSON, and computes a stable SHA-256 digest without resolving secrets.
-
-## Run the verification suite
+Start the local application:
 
 ```bash
-uv run python scripts/validate_contracts.py
-uv run ruff format --check .
-uv run ruff check .
-uv run mypy src scripts
-uv run pytest -q
-npm test --prefix sdk/typescript
-uv build
+uv run nexus-agent-serve \
+  --state-dir "$PWD/.nexus-agent" \
+  --password-file "$PWD/.nexus-password"
 ```
 
-Generate the full automated evidence bundle with:
+Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on the same computer.
 
-```bash
-uv run python scripts/release_evidence.py --output artifacts/release-evidence
+### Usage
+
+1. Log in with the local operator password.
+2. Enter a project identifier and describe the objective.
+3. Let the qualified model generate a structured candidate specification.
+4. Review its objective, constraints, inputs, risks, capabilities, and acceptance criteria.
+5. Approve the exact candidate digest or revise the request.
+
+Approval records the reviewed specification. It does not automatically publish, contact
+external users, or grant arbitrary tool access.
+
+## Model configuration
+
+NEXUS supports local OpenAI-compatible endpoints such as a compatible Ollama, LM Studio,
+or self-hosted inference server. A minimal profile looks like this:
+
+```yaml
+schema_version: "1.0"
+selected: local_default
+profiles:
+  local_default:
+    type: local_openai
+    base_url: http://127.0.0.1:11434/v1
+    model: your-qualified-model-id
+    adapter_version: "1.0"
+    timeout_seconds: 5
 ```
 
-The generator runs the frozen release gates in order, stops at the first failure, scans
-for secret material, audits Python and npm dependencies, and emits JSON/Markdown evidence,
-CycloneDX SBOM data, build provenance, known limitations, and a release checklist.
+If the local server requires a credential, use an opaque reference:
 
-Run the isolated qualification path with:
-
-```bash
-uv run python scripts/clean_room.py --output artifacts/clean-room
+```yaml
+credential: env:LOCAL_MODEL_KEY
 ```
 
-The clean-room process creates a declared-source snapshot, excludes caches and build
-products, installs locked dependencies with disposable caches, repeats every automated
-gate, performs the independent static review, and binds the report to snapshot and
-evidence digests.
+NEXUS resolves the value only for the transport call. It does not persist the resolved
+credential in configuration, session state, evidence, or browser storage.
 
-## CLI and SDK boundaries
+Model discovery reports availability only. Before reasoning is allowed, the exact
+provider, model, and adapter version must have current evidence permitting the requested
+use. See the [local model evaluation runbook](docs/runbooks/LOCAL_MODEL_EVALUATION.md).
 
-The reusable CLI command parser and both SDKs operate through injected control transports.
-The installed `nexus` entry point intentionally returns `client_not_configured` until an
-application supplies an authenticated control transport; it never guesses an endpoint or
-reads ambient credentials.
+## Project configuration
 
-Supported control operations include:
+Projects declare their mode, goal, workspace, provider bindings, policy limits, and
+acceptance criteria. Versioned examples are available in [`examples/`](examples/).
 
-- create, inspect, cancel, and resume runs
-- list providers and qualified capabilities
-- retrieve and verify run evidence
+```yaml
+schema_version: "1.0"
+project_id: research_example
+name: Traceable research workflow
+mode: research
+goal: Produce an evidence-grounded synthesis of the supplied question.
+workspace:
+  root: ./workspace
+  read_only: false
+  network_allowlist: []
+providers:
+  reasoning:
+    adapter: local_openai
+    model: your-qualified-model-id
+policy:
+  max_attempts: 3
+  max_elapsed_seconds: 86400
+  max_cost_usd: 0
+  require_approval: [SENSITIVE, DESTRUCTIVE]
+acceptance:
+  - id: AC-SOURCES
+    description: Every material claim is linked to a recorded source.
+    verifier: citation_verification
+```
 
-See [`docs/components/CLI_SURFACE.md`](docs/components/CLI_SURFACE.md),
-[`docs/components/PYTHON_SDK.md`](docs/components/PYTHON_SDK.md), and
-[`docs/components/TYPESCRIPT_SDK.md`](docs/components/TYPESCRIPT_SDK.md) for exact contracts.
+Configuration is schema-validated and canonicalized before use. Literal credentials,
+unknown fields, unsafe YAML constructs, invalid endpoints, and incompatible bindings are
+rejected.
 
-## Repository map
+## Architecture
 
-| Path | Contents |
+| Layer | Responsibility |
 |---|---|
-| `src/nexus_os/` | Provider-neutral runtime kernel, adapters, SDK, and control surfaces |
-| `schemas/` | JSON Schema contracts for configuration, graphs, evidence, approvals, and capabilities |
-| `contracts/` | OpenAPI and MCP protocol contracts |
-| `examples/` | Valid project configurations and task-graph fixtures |
-| `tests/` | Unit, contract, integration, security, failure, and benchmark coverage |
-| `docs/specifications/` | Normative product, protocol, implementation, and acceptance requirements |
-| `docs/architecture/` | Security, trust, provider, observability, and threat models |
-| `docs/components/` | Implemented component boundaries and limitations |
-| `docs/evidence/` | Component verification records |
-| `docs/runbooks/` | Implementation, release, planning, and status procedures |
+| Agent application | Conversation, clarification, candidate revisions, and human review |
+| Qualification layer | Determines which model uses are supported by verified evidence |
+| Runtime kernel | Task graphs, lifecycle transitions, checkpoints, retries, and recovery |
+| Policy and approval layer | Evaluates action attributes and enforces exact-scope approval |
+| Tool boundary | Validates typed inputs and outputs around every operation |
+| Evidence layer | Records outcomes and verifies acceptance without trusting model claims |
+| Provider adapters | Isolates models and local inference behind neutral interfaces |
 
-## Security model
+Detailed documents are available in [`docs/architecture/`](docs/architecture/) and
+[`docs/specifications/`](docs/specifications/).
 
-Provider text, tool output, external data, configuration, and API messages cross trust
-boundaries and are validated before use. Secrets remain opaque references. High-impact
-effects require policy evaluation and exact-scope approval. Workspace and network access
-remain denied unless explicitly authorized.
+## Extending NEXUS
 
-Report suspected vulnerabilities through the private process in
-[`SECURITY.md`](SECURITY.md). Avoid public issues for security-sensitive details.
+A domain-specific NEXUS application normally supplies:
 
-## Support and issue reporting
+1. A qualified reasoning-model profile.
+2. Typed tool descriptors and handlers.
+3. Policy rules for allowed, denied, and approval-gated effects.
+4. Capability evidence showing which operations are supported.
+5. Acceptance verifiers for the artifacts the workflow claims to produce.
+6. An application composition exposing only those registered capabilities.
 
-Use [GitHub Issues](https://github.com/sciencemaths-collab/rad-forge-nexus-os/issues)
-for reproducible defects, documentation problems, and narrowly scoped enhancement
-proposals. Search existing issues before opening a new report and use the repository's
-structured bug-report form when an operation fails.
+Core packages do not import vendor SDKs. Provider implementations belong behind adapters,
+and deterministic work should remain in deterministic code.
 
-A useful error report identifies the affected version or commit, operating system,
-Python and Node.js versions, installation method, command or API operation, expected
-behavior, actual behavior, minimal reproduction steps, and the smallest relevant log
-excerpt. Remove credentials, tokens, personal data, proprietary inputs, and resolved
-secret values before attaching configuration, logs, screenshots, or evidence artifacts.
+## Security and operating boundary
 
-General implementation questions may also be raised through GitHub Issues when they are
-specific enough to answer and do not disclose sensitive information. Security
-vulnerabilities must follow [`SECURITY.md`](SECURITY.md), not a public issue.
+The included browser application binds only to loopback and is intended for local use.
+Do not expose it directly to the internet.
+
+Sensitive, destructive, costly, publishing, external-communication, and production
+actions require policy evaluation and human approval. Secrets must remain opaque
+references. Never commit password files, resolved credentials, private state directories,
+proprietary inputs, or private attestations.
+
+See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and
+[`docs/runbooks/STATUS.md`](docs/runbooks/STATUS.md) for precise qualification status.
+
+## SDKs and integration
+
+NEXUS provides Python and TypeScript control surfaces for applications that need to
+create and inspect runs, query providers and capabilities, and retrieve or verify
+evidence. The embedding application supplies transport and authentication.
+
+- [Python SDK](docs/components/PYTHON_SDK.md)
+- [TypeScript SDK](docs/components/TYPESCRIPT_SDK.md)
+- [CLI surface](docs/components/CLI_SURFACE.md)
+- [Agent API](docs/components/AGENT_APPLICATION_API.md)
+
+## Repository structure
+
+| Path | Purpose |
+|---|---|
+| `src/nexus_os/` | Runtime kernel, Agent application, adapters, tools, and SDK |
+| `schemas/` | Machine-readable validation contracts |
+| `contracts/` | REST and MCP interface contracts |
+| `examples/` | Model and project configuration examples |
+| `docs/architecture/` | Architecture, trust, provider, and security models |
+| `docs/specifications/` | Normative behavioral specifications |
+| `docs/runbooks/` | Setup, operation, evaluation, and status guidance |
+| `docs/evidence/` | Component qualification records |
 
 ## Contributing
 
-Contribution requirements, focused-change expectations, and verification commands are
-documented in [`CONTRIBUTING.md`](CONTRIBUTING.md). Specifications and machine-readable
-contracts take precedence over implementation convenience.
+Contributions should preserve provider neutrality, strict validation, deterministic
+governance, deny-by-default access, bounded recovery, and evidence-derived claims. Read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change.
 
 ## License
 
