@@ -57,7 +57,9 @@ def parser() -> argparse.ArgumentParser:
     setup.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     setup.add_argument("--base-url")
     setup.add_argument("--model")
-    setup.add_argument("--mode", choices=("development", "qualified"), default="development")
+    setup.add_argument(
+        "--mode", choices=("development", "qualified"), default="development"
+    )
     setup.add_argument("--attestation", type=Path)
     setup.add_argument("--credential-ref")
     setup.add_argument("--force", action="store_true")
@@ -142,7 +144,9 @@ def setup_local(
     if not endpoints:
         raise RadCliError("no compatible loopback model endpoint was detected")
     if len(endpoints) != 1:
-        raise RadCliError("multiple model endpoints detected; select one with --base-url")
+        raise RadCliError(
+            "multiple model endpoints detected; select one with --base-url"
+        )
     endpoint = endpoints[0]
     model = values.model
     if model is None:
@@ -154,13 +158,19 @@ def setup_local(
     if values.mode == "qualified" and values.attestation is None:
         raise RadCliError("qualified mode requires --attestation")
     credential = values.credential_ref
-    if credential is not None and not credential.startswith(("env:", "file:", "keyring:")):
-        raise RadCliError("credential must be an opaque env:, file:, or keyring: reference")
+    if credential is not None and not credential.startswith(
+        ("env:", "file:", "keyring:")
+    ):
+        raise RadCliError(
+            "credential must be an opaque env:, file:, or keyring: reference"
+        )
 
     password = password_reader("Create an operator password (12+ characters): ")
     confirmation = password_reader("Confirm the operator password: ")
     if password != confirmation or not _MIN_PASSWORD <= len(password) <= 1024:
-        raise RadCliError("operator passwords do not match or are outside allowed length")
+        raise RadCliError(
+            "operator passwords do not match or are outside allowed length"
+        )
 
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(root, 0o700)
@@ -233,7 +243,9 @@ def doctor_local(
         _check(
             "password_file",
             private,
-            "password file is private" if private else "password file must be owner-only",
+            "password file is private"
+            if private
+            else "password file must be owner-only",
         )
     )
     models = probe(profile.base_url, profile.timeout_seconds)
@@ -242,7 +254,9 @@ def doctor_local(
         _check(
             "model_endpoint",
             available,
-            "selected model is available" if available else "selected model is unavailable",
+            "selected model is available"
+            if available
+            else "selected model is unavailable",
         )
     )
     if mode == "qualified":
@@ -252,7 +266,9 @@ def doctor_local(
             _check(
                 "qualification",
                 present,
-                "attestation file is present" if present else "qualified mode needs an attestation",
+                "attestation file is present"
+                if present
+                else "qualified mode needs an attestation",
             )
         )
     else:
@@ -312,7 +328,9 @@ def run(
                 _emit({"healthy": healthy, "checks": checks})
             else:
                 for item in checks:
-                    print(f"[{item['status'].upper()}] {item['name']}: {item['message']}")
+                    print(
+                        f"[{item['status'].upper()}] {item['name']}: {item['message']}"
+                    )
             return 0 if healthy else 2
         if values.command == "serve":
             return serve_local(values)
@@ -345,7 +363,10 @@ def _load_settings(config_dir: Path) -> dict[str, Any]:
         or set(value) - (required | {"attestation"})
         or value["schema_version"] != "1.0"
         or value["mode"] not in {"development", "qualified"}
-        or any(not isinstance(value[key], str) for key in required - {"schema_version", "mode"})
+        or any(
+            not isinstance(value[key], str)
+            for key in required - {"schema_version", "mode"}
+        )
         or ("attestation" in value and not isinstance(value["attestation"], str))
     ):
         raise RadCliError("RAD Agent settings are invalid")
