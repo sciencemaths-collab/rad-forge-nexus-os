@@ -691,3 +691,23 @@ independent review passed with zero findings. It contains no live benchmark corp
 network client, model installation, evidence persistence, provider comparison, or
 production qualification. A controlled live transport and independently maintained
 benchmark corpus remain later components.
+
+## Component AL verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Concrete standard-library HTTP/HTTPS transport behind the Phase AI protocol
+- Mandatory exact loopback host/port sandbox authorization and localhost pinning
+- Bounded canonical requests, responses, timeouts, credentials, and connection closure
+- Strict status, content type, UTF-8, JSON object, duplicate-key, and finite-value checks
+- Remote/ambiguous endpoint, redirect surface, header injection, oversized payload,
+  provider-body leakage, and unauthorized-network rejection
+- Full adapter integration using an injected connection with no socket
+- Focused suite: 13 tests
+
+Component AL is clean-room QUALIFIED using injected connections. The full 339-test
+Python suite, 6-test TypeScript suite, all 15 portable release gates, and independent
+review passed with zero findings. Automated tests open no socket and establish no
+compatibility claim for Ollama, LM Studio, llama.cpp, or any named model/server
+version. Server discovery, process management, weight installation, streaming,
+retries, live qualification, owner approval, and production release remain later work.
