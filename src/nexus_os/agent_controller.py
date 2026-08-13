@@ -17,7 +17,7 @@ from nexus_os.agent_store import (
 )
 from nexus_os.domain import RunId, TaskId, TaskStatus, TraceId
 from nexus_os.model_qualification import ModelUse
-from nexus_os.model_registry import ModelQualificationRegistry, ModelRegistryError
+from nexus_os.model_registry import ModelRegistryError
 from nexus_os.providers import AgentAdapter, ProviderTask
 from nexus_os.secrets import redact
 
@@ -43,6 +43,18 @@ class AgentControllerError(ValueError):
     """Safe controlled-inference or proposal-validation failure."""
 
 
+class ModelUseAuthorizer(Protocol):
+    def authorize(
+        self,
+        *,
+        provider_id: str,
+        model_id: str,
+        adapter_version: str,
+        use: ModelUse,
+        at: datetime,
+    ) -> object: ...
+
+
 class IdFactory(Protocol):
     def candidate_id(self) -> UUID: ...
     def event_id(self) -> UUID: ...
@@ -53,7 +65,7 @@ class AgentReasoningController:
         self,
         *,
         sessions: AgentSessionStore,
-        qualifications: ModelQualificationRegistry,
+        qualifications: ModelUseAuthorizer,
         adapter: AgentAdapter,
         provider_id: str,
         model_id: str,
