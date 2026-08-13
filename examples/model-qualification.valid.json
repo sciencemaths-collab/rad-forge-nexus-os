@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "qualification_id": "20000000-0000-4000-8000-000000000001",
+  "provider_id": "local_reference",
+  "model_id": "reference-model",
+  "adapter_version": "1.0.0",
+  "evaluated_at": "2026-08-13T12:00:00Z",
+  "expires_at": "2026-09-13T12:00:00Z",
+  "evaluations": [
+    {"evaluation_id": "schema.v1", "category": "schema_conformance", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000010"]},
+    {"evaluation_id": "planning.v1", "category": "planning", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000011"]},
+    {"evaluation_id": "tools.v1", "category": "tool_selection", "result": "LIMITED", "evidence_ids": ["20000000-0000-4000-8000-000000000012"], "limitations": ["Read-only proposals only."]},
+    {"evaluation_id": "approval.v1", "category": "approval_boundary", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000013"]},
+    {"evaluation_id": "evidence.v1", "category": "evidence_grounding", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000014"]},
+    {"evaluation_id": "adversarial.v1", "category": "adversarial_input", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000015"]},
+    {"evaluation_id": "repair.v1", "category": "bounded_repair", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000016"]}
+  ],
+  "allowed_uses": ["clarification", "candidate_specification", "result_explanation"],
+  "state": "LIMITED",
+  "limitations": ["Tool-selection proposals are limited to read-only use."],
+  "evidence_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-12
 
-Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — REPOSITORY INTEGRATION APPROVED — NO CAPABILITY IS PRODUCTION READY**
+Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 
 | Area | State | Evidence / blocker |
 |---|---|---|
@@ -44,6 +44,7 @@ Overall state: **IMPLEMENTATION SEQUENCE COMPLETE — REPOSITORY INTEGRATION APP
 | AE. RW-100K proof | TESTED | 275-test suite, exact 100K fixture, compute, save/reopen, evidence reports pass |
 | AF. CI/release evidence | TESTED | 285-test suite, 15 fail-fast gates, portable dependency audits, secret scan, SBOM/provenance/report bundle pass |
 | AG. Clean-room qualification | QUALIFIED | Isolated locked install, all automated gates, independent review, and digest-bound reports pass |
+| AH. NEXUS Agent contracts | QUALIFIED (CONTRACT) | Agent/runtime/provider separation, four schemas, lifecycle semantics, separate API contract, 293 tests, all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -601,3 +602,27 @@ repository cleanup, and policy-compliant integration of the stacked pull request
 verification passes. The authorization does not change repository visibility and does not cover
 deployment, package publication, external announcements, or production promotion. No capability
 is production ready.
+
+## Component AH verification
+
+On 2026-08-13 the following passed:
+
+- Accepted ADR-0003 and normative NEXUS Agent product/acceptance boundary
+- Candidate specification, agent event, agent session, and model qualification
+  Draft 2020-12 schemas with valid examples
+- Deterministic lifecycle, history, uniqueness, review-readiness, and privileged-use
+  qualification semantics
+- Separate contract-only Agent OpenAPI boundary; the frozen NEXUS OS Control API and
+  implemented dispatcher remain unchanged
+- Literal-secret, direct-execution-payload, illegal-transition, state-mismatch,
+  duplicate-acceptance, and unsafe-promotion rejection
+- Full suite: 293 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, schema validation, Python builds, and TypeScript
+  package dry-run
+
+Component AH is clean-room QUALIFIED at its contract boundary only. All 15 portable
+release gates and the independent review passed with zero findings. NEXUS Agent inference, local
+model integration, hardware discovery, controller implementation, durable agent
+application services, authentication, streaming, UI, deployment, and live-provider
+qualification remain unimplemented and unclaimed. Component AI is the next eligible
+component: an OpenAI-compatible local reasoning-provider adapter, after AH integration.

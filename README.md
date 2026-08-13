@@ -12,9 +12,11 @@ what the runtime may execute and what it may claim.
 
 ## Current maturity
 
-The implementation sequence and clean-room qualification are complete. All 285 tests,
-15 automated release gates, dependency audits, contract validation, package builds, and
-the independent source review pass at the recorded Component AG boundary.
+The NEXUS OS implementation sequence and clean-room qualification are complete at the
+recorded Component AG boundary. The subsequent NEXUS Agent upgrade has begun with a
+contract-only product boundary. The current repository has 293 Python tests plus the
+TypeScript suite; agent inference, a local-model adapter, and a user interface are not
+yet implemented.
 
 No capability is currently promoted to production. Live provider access, production
 hosting, package-registry publication, and operational deployment remain explicitly

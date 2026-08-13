@@ -39,6 +39,20 @@ The CLI and both SDK examples execute against the mock runtime. OpenAPI requests
 and responses validate. MCP tools validate input/output and enforce effect policy.
 A clean install from documented instructions succeeds without undeclared tools.
 
+## NEXUS Agent contract gate AH
+
+- Agent session, candidate specification, agent event, and model qualification
+  schemas pass Draft 2020-12 meta-validation.
+- Valid examples pass; invalid lifecycle, duplicate identifier, literal-secret,
+  unsupported qualification, and history/state fixtures fail for the expected reason.
+- Agent API operations reference existing schemas and require idempotency on mutations.
+- Model proposals cannot represent approval decisions, direct tool execution, verified
+  completion, capability promotion, or production authorization.
+- The accepted ADR and product specification preserve NEXUS OS as the execution
+  authority and reasoning providers as replaceable untrusted inputs.
+- Passing AH establishes contracts only; it does not establish an implemented or
+  production-ready NEXUS Agent.
+
 ## Reference workflow RW-100K
 
 Using a generated, digest-pinned 100,000-data-row CSV fixture:
@@ -70,4 +84,3 @@ Done means every deliverable in the project directive is implemented, the requir
 tests pass from a clean environment, evidence verifies, limitations are explicit,
 documentation matches behavior, and release qualification has been approved. It
 does not mean every provider is production-qualified.
-

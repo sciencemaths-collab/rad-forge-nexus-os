@@ -1,6 +1,6 @@
 # Product Specification
 
-Status: Draft baseline | Owner: Bernard Kwadwo Essuman
+Status: Accepted baseline
 
 ## Purpose
 
@@ -33,6 +33,11 @@ criteria. NEXUS validates it, compiles a task graph, previews effects and requir
 approvals, executes ready nodes, persists checkpoints and evidence, performs
 bounded repair, verifies outputs, and returns artifacts plus limitations.
 
+For the conversational product boundary, NEXUS Agent is the user-facing objective
+and specification interface, NEXUS OS is the governing runtime, and reasoning
+providers are replaceable untrusted components. The normative separation is defined
+in [`NEXUS_AGENT_SPEC.md`](NEXUS_AGENT_SPEC.md) and ADR-0003.
+
 ## Non-goals
 
 - Replacing professional judgment or guaranteeing correctness from model output.
@@ -58,4 +63,3 @@ execute the mock-backed reference workflow, survive restart, enforce approvals a
 workspace boundaries, verify the evidence chain, and refuse capability promotion
 without sufficient evidence. Live provider qualification is independent and
 opt-in.
-

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/model-qualification.schema.json",
+  "title": "NEXUS Reasoning Model Qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "qualification_id", "provider_id", "model_id", "adapter_version", "evaluated_at", "expires_at", "evaluations", "allowed_uses", "state", "evidence_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "qualification_id": {"type": "string", "format": "uuid"},
+    "provider_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,63}$"},
+    "model_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "adapter_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "evaluations": {
+      "type": "array", "minItems": 7, "maxItems": 64,
+      "items": {"$ref": "#/$defs/evaluation"}
+    },
+    "allowed_uses": {
+      "type": "array", "uniqueItems": true, "maxItems": 32,
+      "items": {"enum": ["clarification", "candidate_specification", "task_planning", "tool_selection", "repair_proposal", "result_explanation", "sensitive_action_proposal"]}
+    },
+    "state": {"enum": ["UNQUALIFIED", "LIMITED", "QUALIFIED", "EXPIRED", "REVOKED"]},
+    "limitations": {"type": "array", "maxItems": 64, "items": {"type": "string", "minLength": 1, "maxLength": 1000}},
+    "evidence_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "evaluation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evaluation_id", "category", "result", "evidence_ids"],
+      "properties": {
+        "evaluation_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+        "category": {"enum": ["schema_conformance", "planning", "tool_selection", "approval_boundary", "evidence_grounding", "adversarial_input", "bounded_repair"]},
+        "result": {"enum": ["PASS", "FAIL", "LIMITED"]},
+        "evidence_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "format": "uuid"}},
+        "limitations": {"type": "array", "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 1000}}
+      }
+    }
+  }
+}

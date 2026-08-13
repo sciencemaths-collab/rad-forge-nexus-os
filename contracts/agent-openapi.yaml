@@ -1,0 +1,109 @@
+openapi: 3.1.1
+info:
+  title: NEXUS Agent API Contract
+  version: 0.1.0
+  description: Contract-only agent product boundary; no server implementation is claimed.
+security:
+  - bearerAuth: []
+paths:
+  /v1/agent/sessions:
+    post:
+      operationId: createAgentSession
+      parameters: [$ref: '#/components/parameters/IdempotencyKey']
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [project_id, objective]
+              properties:
+                project_id: {type: string, pattern: '^[a-z][a-z0-9_-]{1,63}$'}
+                objective: {type: string, minLength: 1, maxLength: 8000}
+      responses:
+        '201': {$ref: '#/components/responses/AgentSessionResponse'}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+  /v1/agent/sessions/{sessionId}:
+    get:
+      operationId: getAgentSession
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses:
+        '200': {$ref: '#/components/responses/AgentSessionResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+  /v1/agent/sessions/{sessionId}/clarifications:
+    post:
+      operationId: submitAgentClarification
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [response]
+              properties: {response: {type: string, minLength: 1, maxLength: 8000}}
+      responses:
+        '200': {$ref: '#/components/responses/AgentSessionResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+  /v1/agent/sessions/{sessionId}/candidate:
+    get:
+      operationId: getAgentCandidateSpecification
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses:
+        '200':
+          description: Candidate specification
+          content: {application/json: {schema: {$ref: '../schemas/agent-candidate-specification.schema.json'}}}
+  /v1/agent/sessions/{sessionId}/approve:
+    post:
+      operationId: approveAgentCandidateSpecification
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [candidate_digest]
+              properties: {candidate_digest: {type: string, pattern: '^[a-f0-9]{64}$'}}
+      responses:
+        '200': {$ref: '#/components/responses/AgentSessionResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+  /v1/model-qualifications:
+    get:
+      operationId: listModelQualifications
+      responses:
+        '200':
+          description: Reasoning model qualifications
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '../schemas/model-qualification.schema.json'}}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer}
+  parameters:
+    SessionId: {name: sessionId, in: path, required: true, schema: {type: string, format: uuid}}
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 16, maxLength: 128}}
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, request_id, retryable]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        request_id: {type: string}
+        retryable: {type: boolean}
+  responses:
+    AgentSessionResponse:
+      description: Agent session
+      content: {application/json: {schema: {$ref: '../schemas/agent-session.schema.json'}}}
+    ErrorResponse:
+      description: Error
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
