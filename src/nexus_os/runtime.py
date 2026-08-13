@@ -170,6 +170,82 @@ class RuntimeOrchestrator:
             now=now,
         )
 
+    def wait_for_approval(
+        self,
+        snapshot: RuntimeSnapshot,
+        task_id: TaskId,
+        *,
+        trace_id: TraceId,
+        now: datetime,
+    ) -> RuntimeSnapshot:
+        """Durably park one ready task without starting the run or dispatching work."""
+        current = self._task_state(snapshot, task_id)
+        if current is not TaskStatus.READY:
+            raise RuntimeOrchestratorError(f"task {task_id} is not READY")
+        sequence = snapshot.transition_sequence + 1
+        self._states.transition_task(
+            run_id=snapshot.run_id,
+            task_id=task_id,
+            current=current,
+            target=TaskStatus.WAITING_APPROVAL,
+            sequence=sequence,
+            occurred_at=now,
+            trace_id=trace_id,
+            reason_code="approval.required",
+        )
+        task_states = dict(snapshot.task_states)
+        task_states[task_id] = TaskStatus.WAITING_APPROVAL
+        return self._persist(
+            RuntimeSnapshot(
+                snapshot.run_id,
+                snapshot.graph,
+                snapshot.run_state,
+                task_states,
+                sequence,
+                snapshot.revision,
+            ),
+            expected_revision=snapshot.revision,
+            now=now,
+        )
+
+    def release_approval(
+        self,
+        snapshot: RuntimeSnapshot,
+        task_id: TaskId,
+        *,
+        trace_id: TraceId,
+        now: datetime,
+    ) -> RuntimeSnapshot:
+        """Return an approval-waiting task to READY after external scope validation."""
+        current = self._task_state(snapshot, task_id)
+        if current is not TaskStatus.WAITING_APPROVAL:
+            raise RuntimeOrchestratorError(f"task {task_id} is not WAITING_APPROVAL")
+        sequence = snapshot.transition_sequence + 1
+        self._states.transition_task(
+            run_id=snapshot.run_id,
+            task_id=task_id,
+            current=current,
+            target=TaskStatus.READY,
+            sequence=sequence,
+            occurred_at=now,
+            trace_id=trace_id,
+            reason_code="approval.validated",
+        )
+        task_states = dict(snapshot.task_states)
+        task_states[task_id] = TaskStatus.READY
+        return self._persist(
+            RuntimeSnapshot(
+                snapshot.run_id,
+                snapshot.graph,
+                snapshot.run_state,
+                task_states,
+                sequence,
+                snapshot.revision,
+            ),
+            expected_revision=snapshot.revision,
+            now=now,
+        )
+
     def complete_task(
         self,
         snapshot: RuntimeSnapshot,
