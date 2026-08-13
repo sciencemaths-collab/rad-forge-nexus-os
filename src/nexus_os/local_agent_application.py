@@ -41,7 +41,11 @@ from nexus_os.policy import PolicyEngine, PolicyRules
 from nexus_os.providers import AgentAdapter
 from nexus_os.retry import RetryEngine, RetryLimits
 from nexus_os.runtime import RuntimeOrchestrator
-from nexus_os.runtime_evidence import AgentCompletionVerifier, RuntimeEvidenceWriter
+from nexus_os.runtime_evidence import (
+    AgentCompletionVerifier,
+    RuntimeEvidenceWriter,
+    RuntimeTaskEvidenceVerifier,
+)
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.scheduler import GovernedScheduler
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
@@ -355,11 +359,14 @@ def _create_reference_runtime(
         runtime=runtime,
         scheduler=scheduler,
         approvals=approvals,
+        evidence=ledger,
         completion=AgentCompletionVerifier(
             sessions=sessions,
             ledger=ledger,
             writer=writer,
-            verifiers={},
+            verifiers={
+                RuntimeTaskEvidenceVerifier.method: RuntimeTaskEvidenceVerifier(),
+            },
         ),
         capabilities=ReferenceRuntimeCapabilities(),
         ids=ids,

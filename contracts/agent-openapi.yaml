@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: NEXUS Agent API Contract
-  version: 0.3.0
+  version: 0.4.0
   description: Transport-neutral authenticated Agent and governed runtime application boundary; no network server or live tool is claimed.
 security:
   - bearerAuth: []
@@ -105,6 +105,20 @@ paths:
       requestBody:
         content: {application/json: {schema: {type: object, additionalProperties: false, properties: {approval_id: {type: string, format: uuid}, task_id: {type: string}}}}}
       responses: {'200': {description: Governed scheduler tick}}
+  /v1/agent/sessions/{sessionId}/runtime/preview:
+    get:
+      operationId: previewAgentRuntimeAction
+      x-required-scope: agent:read
+      description: Side-effect-free preview of the exact next typed-tool action and policy decision.
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses: {'200': {description: Exact next governed action preview}}
+  /v1/agent/sessions/{sessionId}/runtime/evidence:
+    get:
+      operationId: listAgentRuntimeEvidence
+      x-required-scope: agent:read
+      description: Ordered append-only evidence records for the exact Agent run.
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses: {'200': {description: Runtime evidence chain}}
   /v1/agent/sessions/{sessionId}/runtime/approvals/{approvalId}:
     post:
       operationId: decideAgentRuntimeApproval

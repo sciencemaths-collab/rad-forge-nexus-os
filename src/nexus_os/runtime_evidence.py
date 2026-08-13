@@ -151,6 +151,42 @@ class RuntimeEvidenceWriter:
         return self._ledger.append(record, expected_head=head)
 
 
+class RuntimeTaskEvidenceVerifier:
+    """Verify a criterion only from complete, hash-valid task evidence bound to it."""
+
+    method = "runtime_task_evidence"
+
+    def verify(
+        self,
+        criterion: Mapping[str, Any],
+        snapshot: RuntimeSnapshot,
+        records: tuple[EvidenceRecord, ...],
+    ) -> AcceptanceResult:
+        acceptance_id = str(criterion.get("acceptance_id", ""))
+        relevant_tasks = {
+            task.task_id
+            for task in snapshot.graph.graph.tasks
+            if acceptance_id in task.acceptance_ids
+        }
+        passing = {
+            record.task_id
+            for record in records
+            if record.kind is EvidenceKind.RUNTIME_EVENT
+            and record.outcome is EvidenceOutcome.PASS
+            and record.task_id is not None
+        }
+        bound_records = tuple(
+            record.record_hash for record in records if record.task_id in relevant_tasks
+        )
+        return AcceptanceResult(
+            acceptance_id,
+            self.method,
+            bool(relevant_tasks) and relevant_tasks <= passing,
+            "local-governed-runtime",
+            _digest({"acceptance_id": acceptance_id, "records": bound_records}),
+        )
+
+
 class AgentCompletionVerifier:
     def __init__(
         self,

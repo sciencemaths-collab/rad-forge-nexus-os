@@ -29,7 +29,7 @@ def proposal():
             {
                 "acceptance_id": "AC-PLAN_READY",
                 "statement": "The plan is reviewable.",
-                "verification_method": "manual_review",
+                "verification_method": "runtime_task_evidence",
             }
         ],
         "required_capabilities": ["app_build.planning"],

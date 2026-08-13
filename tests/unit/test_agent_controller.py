@@ -53,7 +53,7 @@ def proposal(*, ready=True, questions=None):
             {
                 "acceptance_id": "AC-BUILD",
                 "statement": "Build succeeds.",
-                "verification_method": "Run the locked build.",
+                "verification_method": "runtime_task_evidence",
             }
         ],
         "required_capabilities": ["app_build.planning"],

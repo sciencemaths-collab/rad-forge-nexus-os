@@ -12,6 +12,7 @@ from nexus_os.runtime_evidence import (
     AgentCompletionVerifier,
     RuntimeEvidenceError,
     RuntimeEvidenceWriter,
+    RuntimeTaskEvidenceVerifier,
 )
 from nexus_os.stores import SQLiteCheckpointStore
 from nexus_os.tools import ToolResult
@@ -38,6 +39,7 @@ def _graph():
                         "timeout_seconds": 30,
                         "retry": {"max_attempts": 1, "backoff_seconds": 0},
                         "input": {"value": "approved"},
+                        "acceptance_ids": ["AC-BUILD"],
                     }
                 ],
             }
@@ -187,3 +189,30 @@ def test_failed_acceptance_evidence_finishes_agent_as_failed(tmp_path) -> None:
         expected_sequence=5,
     )
     assert sessions.get(SESSION_ID).state.value == "FAILED"
+
+
+def test_runtime_task_verifier_uses_only_digest_bound_task_evidence(tmp_path) -> None:
+    snapshot, task = _succeeded(tmp_path)
+    ledger = EvidenceLedger(tmp_path / "evidence.db")
+    writer = RuntimeEvidenceWriter(ledger)
+    criterion = {
+        "acceptance_id": "AC-BUILD",
+        "statement": "Build evidence exists.",
+        "verification_method": RuntimeTaskEvidenceVerifier.method,
+    }
+    verifier = RuntimeTaskEvidenceVerifier()
+    missing = verifier.verify(criterion, snapshot, ())
+    assert not missing.passed
+
+    writer.task_success(
+        snapshot,
+        task,
+        ToolResult("nexus.test", {"ok": True}, "sha256:" + "1" * 64, False),
+        actor="runtime",
+        trace_id=TRACE,
+        now=NOW,
+    )
+    records = ledger.records("reference_agent", RUN)
+    verified = verifier.verify(criterion, snapshot, records)
+    assert verified.passed
+    assert verified.output_digest.startswith("sha256:")

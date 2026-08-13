@@ -30,7 +30,7 @@ from nexus_os.policy import (
 from nexus_os.retry import RetryAction, RetryDecision, RetryEngine
 from nexus_os.runtime import RuntimeOrchestrator, RuntimeSnapshot
 from nexus_os.runtime_evidence import RuntimeEvidenceWriter
-from nexus_os.tools import ToolError, ToolExecutor, ToolRegistry, ToolResult
+from nexus_os.tools import ToolError, ToolExecutor, ToolPreview, ToolRegistry, ToolResult
 
 
 class SchedulerError(ValueError):
@@ -94,6 +94,30 @@ class GovernedScheduler:
         self._evidence = evidence
         self._bindings = MappingProxyType(bindings)
         self._approval_ttl = approval_ttl
+
+    def preview(
+        self,
+        snapshot: RuntimeSnapshot,
+        *,
+        actor_id: str,
+        task_id: TaskId | None = None,
+    ) -> tuple[TaskDefinition, ToolPreview]:
+        """Return the exact next typed-tool action without dispatching or changing state."""
+        task = self._select(snapshot, approval_id=None, task_id=task_id)
+        if task is None:
+            raise SchedulerError("runtime has no ready task to preview")
+        tool_name = self._bindings.get(task.kind)
+        if tool_name is None:
+            raise SchedulerError("task tool binding is missing")
+        descriptor = self._registry.get(tool_name)
+        if descriptor.effect is not task.effect:
+            raise SchedulerError("task and tool effects do not match")
+        return task, self._executor.preview(
+            tool_name,
+            task.input,
+            actor_id=actor_id,
+            project_id=snapshot.graph.graph.project_id,
+        )
 
     async def tick(
         self,
