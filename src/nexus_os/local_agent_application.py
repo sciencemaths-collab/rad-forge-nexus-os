@@ -15,22 +15,22 @@ from nexus_os.agent_api import (
     DurableReplayStore,
 )
 from nexus_os.agent_controller import AgentReasoningController
-from nexus_os.anthropic_adapter import AnthropicAdapter
-from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
 from nexus_os.agent_model_config import (
     load_agent_model_config,
     resolve_agent_model_sync,
 )
 from nexus_os.agent_store import AgentSessionStore
+from nexus_os.anthropic_adapter import AnthropicAdapter
+from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
 from nexus_os.model_qualification import ModelUse
-from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.model_registry import (
     ModelQualificationRegistry,
     ModelRegistryError,
     RegistryRecord,
 )
+from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
