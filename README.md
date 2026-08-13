@@ -1,23 +1,22 @@
-# NEXUS Agent / NEXUS OS
+# RAD Agent
 
-**A provider-neutral runtime for governed AI-assisted work.**
+**Reasoning, Action, and Decision for governed AI-assisted work.**
 
-NEXUS Agent turns a natural-language objective into a structured, reviewable work
-specification. NEXUS OS provides the control layer beneath it: model qualification,
-policy evaluation, human approvals, bounded recovery, durable state, typed tools, and
-tamper-evident evidence.
+**RAD Agent** stands for **Reasoning, Action, and Decision Agent**. It turns a natural-language objective into a structured, reviewable plan and carries approved work through a governed execution process.
+
+The **RAD Forge Runtime** is the engine beneath the agent. It provides model qualification, policy evaluation, human approvals, bounded recovery, durable state, typed tools, and tamper-evident evidence.
 
 The project is designed for work where an AI model should help reason and plan, but
 should not be trusted to decide its own permissions or declare its own success.
 
-## Why NEXUS exists
+## Why RAD Agent exists
 
 Most agent frameworks begin with a model and a loop: prompt, choose a tool, observe the
 result, and repeat. NEXUS separates those responsibilities.
 
 - The **language model** interprets goals and proposes structured plans.
-- **NEXUS Agent** manages conversation, clarification, review, and approval.
-- **NEXUS OS** governs state transitions, tools, policy, permissions, recovery, and evidence.
+- **RAD Agent** manages conversation, clarification, review, and approval.
+- The **RAD Forge Runtime** governs state transitions, tools, policy, permissions, recovery, and evidence.
 - **Deterministic code** validates contracts and performs deterministic computation.
 - The **human operator** remains the authority for consequential actions.
 
@@ -26,7 +25,7 @@ generated plan does not imply approval, and task completion does not imply verif
 
 ## Applications
 
-| Application | Typical use | NEXUS contribution |
+| Application | Typical use | RAD Agent contribution |
 |---|---|---|
 | Software engineering | Turn requirements into an implementation and verification plan | Contract-first task graphs, approvals, recovery, and evidence |
 | Scientific research | Structure questions, sources, calculations, claims, and citations | Provenance, contradiction tracking, deterministic analysis, and review |
@@ -34,7 +33,7 @@ generated plan does not imply approval, and task completion does not imply verif
 | Internal operations | Coordinate approved tools and repeatable workflows | Policy-scoped actions, durable checkpoints, and audit records |
 | Domain-specific agents | Build controlled agents for a laboratory, company, or team | Provider-neutral models plus explicitly registered tools and verifiers |
 
-The included local application supports governed planning and human review. Execution is
+The included RAD Agent application supports governed planning and human review. Execution is
 enabled by registering real typed tools, policies, capabilities, and acceptance verifiers
 for the intended domain.
 
@@ -43,13 +42,13 @@ for the intended domain.
 ```text
 Operator goal
     ↓
-NEXUS Agent — clarification and structured proposal
+RAD Agent — reasoning, clarification, and structured proposal
     ↓
 Schema validation and exact model qualification
     ↓
 Human review and digest-bound approval
     ↓
-NEXUS OS — task graph, policy, tools, checkpoints, recovery
+RAD Forge Runtime — governed decisions, actions, checkpoints, recovery
     ↓
 Acceptance verification and tamper-evident evidence
 ```
@@ -80,7 +79,7 @@ evaluate acceptance criteria. Evidence records what actually occurred.
 - Python 3.12 or newer
 - [`uv`](https://docs.astral.sh/uv/)
 - A local OpenAI-compatible model server or another configured provider adapter
-- A current NEXUS qualification attestation for the exact model binding
+- A current qualification attestation for the exact model binding
 
 Clone and install:
 
@@ -127,7 +126,7 @@ external users, or grant arbitrary tool access.
 
 ## Model configuration
 
-NEXUS supports local OpenAI-compatible endpoints such as a compatible Ollama, LM Studio,
+RAD Agent supports local OpenAI-compatible endpoints such as a compatible Ollama, LM Studio,
 or self-hosted inference server. A minimal profile looks like this:
 
 ```yaml
@@ -148,7 +147,7 @@ If the local server requires a credential, use an opaque reference:
 credential: env:LOCAL_MODEL_KEY
 ```
 
-NEXUS resolves the value only for the transport call. It does not persist the resolved
+The runtime resolves the value only for the transport call. It does not persist the resolved
 credential in configuration, session state, evidence, or browser storage.
 
 Model discovery reports availability only. Before reasoning is allowed, the exact
@@ -204,9 +203,9 @@ rejected.
 Detailed documents are available in [`docs/architecture/`](docs/architecture/) and
 [`docs/specifications/`](docs/specifications/).
 
-## Extending NEXUS
+## Extending RAD Agent
 
-A domain-specific NEXUS application normally supplies:
+A domain-specific RAD Agent application normally supplies:
 
 1. A qualified reasoning-model profile.
 2. Typed tool descriptors and handlers.
@@ -233,7 +232,7 @@ See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and
 
 ## SDKs and integration
 
-NEXUS provides Python and TypeScript control surfaces for applications that need to
+RAD Agent provides Python and TypeScript control surfaces for applications that need to
 create and inspect runs, query providers and capabilities, and retrieve or verify
 evidence. The embedding application supplies transport and authentication.
 
@@ -263,4 +262,4 @@ governance, deny-by-default access, bounded recovery, and evidence-derived claim
 
 ## License
 
-RAD Forge / NEXUS OS is available under the [MIT License](LICENSE).
+RAD Agent and the RAD Forge Runtime are available under the [MIT License](LICENSE).
