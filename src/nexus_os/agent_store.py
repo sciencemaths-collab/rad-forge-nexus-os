@@ -505,6 +505,21 @@ class AgentSessionStore:
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             raise AgentStoreError("stored candidate failed integrity validation") from exc
 
+    def objective(self, session_id: UUID) -> str:
+        row = self._connection.execute(
+            "SELECT objective FROM agent_sessions WHERE session_id = ?", (str(session_id),)
+        ).fetchone()
+        if row is None:
+            raise AgentStoreError("session not found")
+        value = str(row[0])
+        try:
+            _text(value, 8000)
+        except ValueError as exc:
+            raise AgentStoreError("stored Agent objective failed integrity validation") from exc
+        if redact(value) != value:
+            raise AgentStoreError("stored Agent objective failed integrity validation")
+        return value
+
     def get(self, session_id: UUID) -> AgentSession:
         row = self._connection.execute(
             "SELECT * FROM agent_sessions WHERE session_id = ?", (str(session_id),)
