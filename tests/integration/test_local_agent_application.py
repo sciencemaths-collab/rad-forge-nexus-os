@@ -68,9 +68,7 @@ def configure(tmp_path, monkeypatch):
     monkeypatch.setenv("NEXUS_AGENT_MODEL_ATTESTATION", str(attestation_path))
 
 
-def test_composition_creates_reviewable_session_and_survives_restart(
-    tmp_path, monkeypatch
-) -> None:
+def test_composition_creates_reviewable_session_and_survives_restart(tmp_path, monkeypatch) -> None:
     configure(tmp_path, monkeypatch)
 
     async def health(self, base_url, api_key, timeout_seconds):
@@ -116,18 +114,14 @@ def test_composition_creates_reviewable_session_and_survives_restart(
     assert replay.status == 201 and replay.headers["Idempotent-Replay"] == "true"
 
 
-def test_missing_configuration_fails_before_application_start(
-    tmp_path, monkeypatch
-) -> None:
+def test_missing_configuration_fails_before_application_start(tmp_path, monkeypatch) -> None:
     monkeypatch.delenv("NEXUS_AGENT_MODEL_CONFIG", raising=False)
     authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
     with pytest.raises(LocalAgentApplicationError, match="MODEL_CONFIG"):
         create_local_application(authenticator, tmp_path)
 
 
-def test_explicit_development_mode_plans_without_attestation(
-    tmp_path, monkeypatch
-) -> None:
+def test_explicit_development_mode_plans_without_attestation(tmp_path, monkeypatch) -> None:
     model_config = tmp_path / "agent-models.yaml"
     model_config.write_text(
         "schema_version: '1.0'\nselected: local\nprofiles:\n  local:\n"
