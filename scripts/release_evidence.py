@@ -122,6 +122,8 @@ def run_release_gates(
         results.append(result)
         if completed.returncode != 0:
             failure = gate.gate_id
+            diagnostic = completed.stdout.decode("utf-8", errors="replace")
+            print(diagnostic[-4000:], file=sys.stderr)
             break
     if failure is None:
         findings = scan_secrets(repository)

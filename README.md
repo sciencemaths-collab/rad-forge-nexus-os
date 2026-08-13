@@ -93,16 +93,11 @@ troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
 
 ## Local quick start
 
-This abbreviated setup is for experienced operators. New users should follow the
-[complete usage guide](docs/USING_RAD_AGENT.md), including the required model-qualification
-step.
-
 ### Requirements
 
 - Python 3.12 or newer
 - [`uv`](https://docs.astral.sh/uv/)
-- A local OpenAI-compatible model server or another configured provider adapter
-- A current qualification attestation for the exact model binding
+- A running OpenAI-compatible model server on the same computer
 
 Clone and install:
 
@@ -112,32 +107,27 @@ cd rad-forge-nexus-os
 uv sync --all-groups --locked
 ```
 
-Create a private operator password file:
+Start your local model server, then let RAD Agent detect it and generate private
+configuration:
 
 ```bash
-install -m 600 /dev/null .nexus-password
-printf '%s\n' 'choose-a-long-unique-password' > .nexus-password
-```
-
-Configure the model and its attestation:
-
-```bash
-export NEXUS_AGENT_MODEL_CONFIG="$PWD/examples/agent-models.local.yaml"
-export NEXUS_AGENT_MODEL_ATTESTATION="$PWD/path/to/current-attestation.json"
-```
-
-The `NEXUS_AGENT_*` environment-variable names are retained for compatibility with the
-current implementation; they do not represent a separate product.
-
-Start the local application:
-
-```bash
-uv run nexus-agent-serve \
-  --state-dir "$PWD/.nexus-agent" \
-  --password-file "$PWD/.nexus-password"
+uv run rad setup
+uv run rad doctor
+uv run rad serve
 ```
 
 Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on the same computer.
+
+The default is explicitly **unqualified development mode**: local planning and human review
+only, with no runtime tool execution. Qualified mode requires an independently attested
+model binding:
+
+```bash
+uv run rad setup --mode qualified --attestation /path/to/current-attestation.json
+```
+
+Existing `nexus-*` commands and `NEXUS_AGENT_*` variables remain compatibility aliases.
+New integrations should use `rad` and `RAD_AGENT_*`.
 
 ### Usage
 

@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-13
 
-Overall state: **QUALIFIED LOCAL NEXUS AGENT PLANNING/REVIEW BASELINE — NO CAPABILITY IS PRODUCTION READY**
+Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — NO CAPABILITY IS PRODUCTION READY**
 
 | Area | State | Evidence / blocker |
 |---|---|---|
@@ -10,6 +10,7 @@ Overall state: **QUALIFIED LOCAL NEXUS AGENT PLANNING/REVIEW BASELINE — NO CAP
 | Specification corpus | VERIFIED | Required corpus created and reviewed against the owner directive and formal PDF |
 | Architecture/ADRs | VERIFIED | Initial modular architecture, threat/trust boundaries, and two ADRs created |
 | Machine-readable contracts | VERIFIED | Six schemas, OpenAPI, MCP contracts, examples, and semantic graph validation pass |
+| BC. RAD local setup | AUTOMATED GATES PASS | `rad setup`, `rad doctor`, `rad serve`, restricted development mode, qualification-preserving mode, compatibility aliases, and all 15 release gates pass |
 | A. Configuration loader | TESTED | 20-test full suite, security/failure coverage, canonical digest, and installed-wheel smoke pass |
 | B. Core domain models | TESTED | 47-test full suite, immutable JSON boundary, canonical graph digest, and installed-wheel smoke pass |
 | C. State machine | TESTED | 63-test full suite, exhaustive lifecycle pair coverage, and installed-wheel smoke pass |

@@ -17,7 +17,7 @@ from uuid import UUID
 from nexus_os.agent_controller import AgentControllerError, AgentReasoningController
 from nexus_os.agent_store import AgentSessionStore, AgentStoreError, ReviewPrincipal
 from nexus_os.domain import TraceId
-from nexus_os.model_registry import ModelQualificationRegistry, ModelRegistryError
+from nexus_os.model_registry import ModelRegistryError, RegistryRecord
 from nexus_os.secrets import redact
 
 _TOKEN = re.compile(r"^Bearer ([\x21-\x7e]{16,4096})$")
@@ -56,6 +56,10 @@ class AgentIdentity:
 
 class BearerAuthenticator(Protocol):
     def authenticate(self, token: str) -> AgentIdentity | None: ...
+
+
+class QualificationReader(Protocol):
+    def active(self, *, at: datetime) -> tuple[RegistryRecord, ...]: ...
 
 
 class ApplicationIds(Protocol):
@@ -125,7 +129,11 @@ class _Route:
 _ROUTES = (
     _Route("POST", re.compile(r"^/v1/agent/sessions$"), "create", "agent:write", True),
     _Route(
-        "GET", re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"), "get", "agent:read", False
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"),
+        "get",
+        "agent:read",
+        False,
     ),
     _Route(
         "POST",
@@ -254,7 +262,7 @@ class AgentApplicationService:
         *,
         sessions: AgentSessionStore,
         controller: AgentReasoningController,
-        qualifications: ModelQualificationRegistry,
+        qualifications: QualificationReader,
         ids: ApplicationIds,
         runtime: AgentRuntimeApi | None = None,
     ) -> None:
@@ -405,7 +413,10 @@ class AgentApplication:
         binding = f"{route.operation}:{request.path}:{digest}"
         if route.mutation and (not isinstance(key, str) or not _KEY.fullmatch(key)):
             return _error(
-                400, "invalid_idempotency_key", "Idempotency-Key is required", request.request_id
+                400,
+                "invalid_idempotency_key",
+                "Idempotency-Key is required",
+                request.request_id,
             )
         if key is not None:
             try:
@@ -440,14 +451,22 @@ class AgentApplication:
             )
         except Exception:
             response = _error(
-                500, "internal_error", "Internal service failure", request.request_id, True
+                500,
+                "internal_error",
+                "Internal service failure",
+                request.request_id,
+                True,
             )
         if key is not None and response.status < 500:
             try:
                 self._replays.save(identity.actor_id, key, binding, response)
             except AgentApiError:
                 return _error(
-                    500, "internal_error", "Internal service failure", request.request_id, True
+                    500,
+                    "internal_error",
+                    "Internal service failure",
+                    request.request_id,
+                    True,
                 )
         return response
 
@@ -464,7 +483,12 @@ class AgentApplication:
         if request.occurred_at.tzinfo is None or request.occurred_at.utcoffset() != UTC.utcoffset(
             request.occurred_at
         ):
-            return _error(400, "invalid_request", "Request envelope is invalid", request.request_id)
+            return _error(
+                400,
+                "invalid_request",
+                "Request envelope is invalid",
+                request.request_id,
+            )
         return None
 
     @staticmethod
@@ -548,5 +572,11 @@ def _error(
     status: int, code: str, message: str, request_id: str, retryable: bool = False
 ) -> AgentApiResponse:
     return AgentApiResponse(
-        status, {"code": code, "message": message, "request_id": request_id, "retryable": retryable}
+        status,
+        {
+            "code": code,
+            "message": message,
+            "request_id": request_id,
+            "retryable": retryable,
+        },
     )

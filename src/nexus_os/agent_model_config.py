@@ -122,6 +122,7 @@ async def resolve_agent_model(
     qualifications: ModelQualificationRegistry,
     resolver: SecretResolver,
     at: datetime,
+    require_qualification: bool = True,
 ) -> ResolvedAgentModel:
     profile = configuration.profiles[configuration.selected]
     model = profile.model
@@ -144,19 +145,20 @@ async def resolve_agent_model(
                 "model must be selected explicitly unless discovery returns exactly one model"
             )
         model = models[0]
-    try:
-        for use in (ModelUse.CANDIDATE_SPECIFICATION, ModelUse.REPAIR_PROPOSAL):
-            qualifications.authorize(
-                provider_id="local_openai",
-                model_id=model,
-                adapter_version=profile.adapter_version,
-                use=use,
-                at=at,
-            )
-    except ModelRegistryError as exc:
-        raise AgentModelConfigError(
-            "selected model lacks current qualification for Agent reasoning"
-        ) from exc
+    if require_qualification:
+        try:
+            for use in (ModelUse.CANDIDATE_SPECIFICATION, ModelUse.REPAIR_PROPOSAL):
+                qualifications.authorize(
+                    provider_id="local_openai",
+                    model_id=model,
+                    adapter_version=profile.adapter_version,
+                    use=use,
+                    at=at,
+                )
+        except ModelRegistryError as exc:
+            raise AgentModelConfigError(
+                "selected model lacks current qualification for Agent reasoning"
+            ) from exc
     if not healthy:
         raise AgentModelConfigError("selected model provider is unavailable")
     return ResolvedAgentModel(profile, model)
@@ -169,6 +171,7 @@ def resolve_agent_model_sync(
     qualifications: ModelQualificationRegistry,
     resolver: SecretResolver,
     at: datetime,
+    require_qualification: bool = True,
 ) -> ResolvedAgentModel:
     return asyncio.run(
         resolve_agent_model(
@@ -177,6 +180,7 @@ def resolve_agent_model_sync(
             qualifications=qualifications,
             resolver=resolver,
             at=at,
+            require_qualification=require_qualification,
         )
     )
 

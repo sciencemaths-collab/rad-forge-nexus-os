@@ -1,4 +1,4 @@
-"""Executable bootstrap for the loopback NEXUS Agent HTTP server."""
+"""Executable bootstrap for the loopback RAD Agent HTTP server."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class AgentServerCliError(ValueError):
 
 
 def parser() -> argparse.ArgumentParser:
-    result = argparse.ArgumentParser(description="Run NEXUS Agent on a local loopback address")
+    result = argparse.ArgumentParser(description="Run RAD Agent on a local loopback address")
     result.add_argument("--state-dir", required=True, type=Path)
     result.add_argument("--password-file", type=Path)
     result.add_argument(
@@ -79,7 +79,7 @@ def run(arguments: Sequence[str] | None = None) -> int:
             authenticator.bootstrap(read_bootstrap_password(values.password_file))
         application = load_factory(values.application_factory)(authenticator, values.state_dir)
         server = AgentHttpServer((values.host, values.port), application, authenticator)
-        print(f"NEXUS Agent listening on http://{values.host}:{values.port}", flush=True)
+        print(f"RAD Agent listening on http://{values.host}:{values.port}", flush=True)
         server.serve_forever()
     except KeyboardInterrupt:
         return 0

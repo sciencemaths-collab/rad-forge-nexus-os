@@ -14,21 +14,56 @@ from nexus_os.agent_api import (
     DurableReplayStore,
 )
 from nexus_os.agent_controller import AgentReasoningController
-from nexus_os.agent_model_config import load_agent_model_config, resolve_agent_model_sync
+from nexus_os.agent_model_config import (
+    load_agent_model_config,
+    resolve_agent_model_sync,
+)
 from nexus_os.agent_store import AgentSessionStore
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
-from nexus_os.model_registry import ModelQualificationRegistry
+from nexus_os.model_qualification import ModelUse
+from nexus_os.model_registry import (
+    ModelQualificationRegistry,
+    ModelRegistryError,
+    RegistryRecord,
+)
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretResolver
 
-MODEL_CONFIG_ENV = "NEXUS_AGENT_MODEL_CONFIG"
-MODEL_ATTESTATION_ENV = "NEXUS_AGENT_MODEL_ATTESTATION"
+MODEL_CONFIG_ENV = "RAD_AGENT_MODEL_CONFIG"
+MODEL_ATTESTATION_ENV = "RAD_AGENT_MODEL_ATTESTATION"
+MODE_ENV = "RAD_AGENT_MODE"
+_LEGACY_MODEL_CONFIG_ENV = "NEXUS_AGENT_MODEL_CONFIG"
+_LEGACY_MODEL_ATTESTATION_ENV = "NEXUS_AGENT_MODEL_ATTESTATION"
 
 
 class LocalAgentApplicationError(ValueError):
     """Safe local composition or bootstrap failure."""
+
+
+class DevelopmentModelAuthorization:
+    """Explicitly unqualified authorization limited to proposal-only local development."""
+
+    _ALLOWED = frozenset({ModelUse.CANDIDATE_SPECIFICATION, ModelUse.REPAIR_PROPOSAL})
+
+    def authorize(
+        self,
+        *,
+        provider_id: str,
+        model_id: str,
+        adapter_version: str,
+        use: ModelUse,
+        at: datetime,
+    ) -> object:
+        del provider_id, model_id, adapter_version
+        if at.tzinfo is None or use not in self._ALLOWED:
+            raise ModelRegistryError("development mode does not authorize this model use")
+        return object()
+
+    def active(self, *, at: datetime) -> tuple[RegistryRecord, ...]:
+        del at
+        return ()
 
 
 class RandomIds:
@@ -46,12 +81,17 @@ def create_local_application(
     authenticator: OperatorAuthenticator, state_dir: Path
 ) -> AgentApplication:
     """Assemble the authenticated, qualified, durable local planning application."""
-    config_value = os.environ.get(MODEL_CONFIG_ENV)
+    mode = os.environ.get(MODE_ENV, "qualified")
+    if mode not in {"development", "qualified"}:
+        raise LocalAgentApplicationError(f"{MODE_ENV} must be development or qualified")
+    config_value = os.environ.get(MODEL_CONFIG_ENV) or os.environ.get(_LEGACY_MODEL_CONFIG_ENV)
     if config_value is None:
         raise LocalAgentApplicationError(f"{MODEL_CONFIG_ENV} must name a model configuration")
     config_path = Path(config_value)
     qualifications = ModelQualificationRegistry(state_dir / "model-qualifications.sqlite")
-    _bootstrap_qualification(qualifications)
+    if mode == "qualified":
+        _bootstrap_qualification(qualifications)
+    authorization = DevelopmentModelAuthorization() if mode == "development" else qualifications
     configuration = load_agent_model_config(config_path)
     selected_profile = configuration.profiles[configuration.selected]
     host = _network_host(selected_profile.base_url)
@@ -64,6 +104,7 @@ def create_local_application(
         qualifications=qualifications,
         resolver=resolver,
         at=datetime.now(UTC),
+        require_qualification=mode == "qualified",
     )
     adapter = LocalOpenAIAdapter(
         base_url=resolved.profile.base_url,
@@ -77,7 +118,7 @@ def create_local_application(
     ids = RandomIds()
     controller = AgentReasoningController(
         sessions=sessions,
-        qualifications=qualifications,
+        qualifications=authorization,
         adapter=adapter,
         provider_id="local_openai",
         model_id=resolved.model,
@@ -87,7 +128,7 @@ def create_local_application(
     service = AgentApplicationService(
         sessions=sessions,
         controller=controller,
-        qualifications=qualifications,
+        qualifications=authorization,
         ids=ids,
     )
     return AgentApplication(
@@ -98,7 +139,9 @@ def create_local_application(
 
 
 def _bootstrap_qualification(registry: ModelQualificationRegistry) -> None:
-    path_value = os.environ.get(MODEL_ATTESTATION_ENV)
+    path_value = os.environ.get(MODEL_ATTESTATION_ENV) or os.environ.get(
+        _LEGACY_MODEL_ATTESTATION_ENV
+    )
     if path_value is None:
         if not registry.active(at=datetime.now(UTC)):
             raise LocalAgentApplicationError(

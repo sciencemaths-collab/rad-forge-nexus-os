@@ -1,12 +1,12 @@
-"""Self-contained local operator interface assets for NEXUS Agent."""
+"""Self-contained local operator interface assets for RAD Agent."""
 
 # ruff: noqa: E501 - minified browser assets are intentionally immutable byte literals
 
 INDEX_HTML = b"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NEXUS Agent</title><link rel="stylesheet" href="/ui/app.css"></head>
+<title>RAD Agent</title><link rel="stylesheet" href="/ui/app.css"></head>
 <body><main>
-<header><p class="eyebrow">RAD Forge / NEXUS OS</p><h1>NEXUS Agent</h1><p>Qualified planning. Human approval. Verifiable boundaries.</p></header>
+<header><p class="eyebrow">Reasoning / Action / Decision</p><h1>RAD Agent</h1><p>Qualified planning. Human approval. Verifiable boundaries.</p></header>
 <section id="login" class="card"><h2>Operator login</h2><form id="login-form"><label>Password<input id="password" type="password" autocomplete="current-password" required minlength="12"></label><button>Unlock local agent</button></form></section>
 <section id="workspace" class="card hidden"><div class="status"><span class="dot"></span>Local session active</div><h2>What should we plan?</h2><form id="goal-form"><label>Project ID<input id="project" value="my_project" pattern="[a-z][a-z0-9_-]{2,63}" required></label><label>Goal<textarea id="objective" rows="5" maxlength="8000" required placeholder="Describe the outcome, constraints, and what success means."></textarea></label><button>Generate governed plan</button></form><p class="note">The model proposes only. Nothing is executed or published from this screen.</p></section>
 <section id="review" class="card hidden"><div class="status amber">Human review required</div><h2>Candidate specification</h2><pre id="candidate" tabindex="0"></pre><button id="approve">Approve exact specification</button><p id="digest" class="mono"></p></section>

@@ -97,7 +97,10 @@ def test_composition_creates_reviewable_session_and_survives_restart(tmp_path, m
     request = AgentApiRequest(
         "POST",
         "/v1/agent/sessions",
-        {"Authorization": f"Bearer {issued.token}", "Idempotency-Key": "create-local-agent-001"},
+        {
+            "Authorization": f"Bearer {issued.token}",
+            "Idempotency-Key": "create-local-agent-001",
+        },
         {"project_id": "local_project", "objective": "Create a reviewed local plan."},
         "request-1",
         datetime.now(UTC),
@@ -116,3 +119,58 @@ def test_missing_configuration_fails_before_application_start(tmp_path, monkeypa
     authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
     with pytest.raises(LocalAgentApplicationError, match="MODEL_CONFIG"):
         create_local_application(authenticator, tmp_path)
+
+
+def test_explicit_development_mode_plans_without_attestation(tmp_path, monkeypatch) -> None:
+    model_config = tmp_path / "agent-models.yaml"
+    model_config.write_text(
+        "schema_version: '1.0'\nselected: local\nprofiles:\n  local:\n"
+        "    type: local_openai\n    base_url: http://127.0.0.1:11434/v1\n"
+        "    model: reference-model\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("RAD_AGENT_MODE", "development")
+    monkeypatch.setenv("RAD_AGENT_MODEL_CONFIG", str(model_config))
+    monkeypatch.delenv("RAD_AGENT_MODEL_ATTESTATION", raising=False)
+    monkeypatch.delenv("NEXUS_AGENT_MODEL_ATTESTATION", raising=False)
+
+    async def health(self, base_url, api_key, timeout_seconds):
+        return True
+
+    async def completion(self, base_url, request, api_key, timeout_seconds):
+        return {
+            "id": "development-completion-1",
+            "object": "chat.completion",
+            "choices": [
+                {
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "message": {"role": "assistant", "content": json.dumps(proposal())},
+                }
+            ],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        }
+
+    monkeypatch.setattr(LoopbackHTTPTransport, "health", health)
+    monkeypatch.setattr(LoopbackHTTPTransport, "create_chat_completion", completion)
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    authenticator.bootstrap(PASSWORD)
+    issued = authenticator.login(PASSWORD, now=datetime.now(UTC))
+    state_dir = tmp_path / "state"
+    state_dir.mkdir()
+    application = create_local_application(authenticator, state_dir)
+    request = AgentApiRequest(
+        "POST",
+        "/v1/agent/sessions",
+        {
+            "Authorization": f"Bearer {issued.token}",
+            "Idempotency-Key": "development-agent-001",
+        },
+        {"project_id": "development_project", "objective": "Create a local plan only."},
+        "request-development",
+        datetime.now(UTC),
+        TraceId("d" * 32),
+    )
+    created = asyncio.run(application.handle(request))
+    assert created.status == 201
+    assert created.body["state"] == "USER_REVIEW"
