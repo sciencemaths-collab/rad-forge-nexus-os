@@ -75,6 +75,7 @@ def test_success_maps_message_to_normalized_lifecycle() -> None:
     ]
     assert result.status is TaskStatus.SUCCEEDED
     assert result.usage.total_tokens == 14
+    assert result.metadata["output_text"] == "done"
     assert transport.requests[0]["model"] == "claude-sonnet-4-20250514"
     assert transport.requests[0]["max_tokens"] == 4096
     assert subject.descriptor().conformance is ConformanceLevel.UNVERIFIED
