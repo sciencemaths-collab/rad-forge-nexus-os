@@ -1,6 +1,6 @@
 # Engineering Status
 
-Last updated: 2026-08-12
+Last updated: 2026-08-13
 
 Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS — NO CAPABILITY IS PRODUCTION READY**
 
@@ -50,6 +50,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AQ. Agent session store | QUALIFIED | Canonical candidate revisions, append-only events, clarification/review/approval lifecycle, and all release/clean-room gates pass |
 | AR. Agent reasoning controller | QUALIFIED (FAKE) | Qualification-gated proposal generation, strict JSON/candidate validation, bounded repair, and all release/clean-room gates pass |
 | AS. Agent application API | QUALIFIED (FAKE) | Injected bearer authentication, exact scopes, durable replay, full Agent workflow composition, and all release/clean-room gates pass |
+| AT. Agent runtime handoff | QUALIFIED | Exact approved-digest and capability gates, deterministic graph/run binding, READY-only checkpoint initialization, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -821,6 +822,26 @@ and synthetic qualification. All 15 portable release gates and independent revie
 with zero findings. It does not implement token cryptography, issue identities, open a socket,
 call a live model, stream chat, start a runtime run, expose tools, deploy, or authorize
 production release. Owner approval remains separate and no capability is production ready.
+
+## Component AT verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Exact current-candidate and human-approved digest equality before compilation
+- Fail-closed verification of every candidate-declared required capability
+- Deterministic mode graph and UUIDv5 run identity derived from approved content
+- Durable runtime checkpoint initialization ending in `READY` without task dispatch
+- Atomic append-only `RUN_STARTED` session transition and exact run binding
+- Compatible retry/resume without a duplicate lifecycle event
+- Public handoff schema validation and legacy Agent database migration coverage
+- Focused Agent/store/handoff suite: 18 tests
+- Full suite: 421 Python tests and 6 TypeScript tests
+- All 15 portable release gates and isolated clean-room qualification passed
+
+Component AT is clean-room QUALIFIED with synthetic approvals and capability snapshots.
+It does not dispatch tasks, invoke tools, authenticate identities, infer qualification,
+call a model, deploy, publish, or authorize production release. The Agent now reaches a
+governed `READY_NOT_EXECUTED` runtime boundary; controlled scheduling remains next.
 
 ## Component AQ verification
 

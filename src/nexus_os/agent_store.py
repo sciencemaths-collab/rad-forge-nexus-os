@@ -69,6 +69,7 @@ class AgentEventType(StrEnum):
     REVIEW_STARTED = "REVIEW_STARTED"
     SPECIFICATION_REVISED = "SPECIFICATION_REVISED"
     SPECIFICATION_APPROVED = "SPECIFICATION_APPROVED"
+    RUN_STARTED = "RUN_STARTED"
 
 
 class AgentActorType(StrEnum):
@@ -201,6 +202,7 @@ class AgentEvent:
     actor_type: AgentActorType
     summary: str
     candidate_digest: str | None = None
+    run_id: UUID | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value: dict[str, Any] = {
@@ -217,6 +219,8 @@ class AgentEvent:
         }
         if self.candidate_digest is not None:
             value["candidate_digest"] = self.candidate_digest
+        if self.run_id is not None:
+            value["run_id"] = str(self.run_id)
         return value
 
 
@@ -230,6 +234,7 @@ class AgentSession:
     events: tuple[AgentEvent, ...]
     candidate_id: UUID | None = None
     approved_candidate_digest: str | None = None
+    run_id: UUID | None = None
 
     def to_dict(self) -> dict[str, Any]:
         value: dict[str, Any] = {
@@ -245,6 +250,8 @@ class AgentSession:
             value["candidate_id"] = str(self.candidate_id)
         if self.approved_candidate_digest is not None:
             value["approved_candidate_digest"] = self.approved_candidate_digest
+        if self.run_id is not None:
+            value["run_id"] = str(self.run_id)
         return value
 
 
@@ -278,6 +285,16 @@ class AgentSessionStore:
         CREATE TRIGGER IF NOT EXISTS no_agent_candidate_delete BEFORE DELETE ON agent_candidates
           BEGIN SELECT RAISE(ABORT, 'agent candidates are append only'); END;
         """)
+        session_columns = {
+            str(row[1]) for row in self._connection.execute("PRAGMA table_info(agent_sessions)")
+        }
+        if "run_id" not in session_columns:
+            self._connection.execute("ALTER TABLE agent_sessions ADD COLUMN run_id TEXT")
+        event_columns = {
+            str(row[1]) for row in self._connection.execute("PRAGMA table_info(agent_events)")
+        }
+        if "run_id" not in event_columns:
+            self._connection.execute("ALTER TABLE agent_events ADD COLUMN run_id TEXT")
 
     def close(self) -> None:
         self._connection.close()
@@ -304,7 +321,10 @@ class AgentSessionStore:
         try:
             self._connection.execute("BEGIN IMMEDIATE")
             self._connection.execute(
-                "INSERT INTO agent_sessions VALUES (?, ?, ?, ?, ?, ?, 1, NULL, NULL, NULL)",
+                """INSERT INTO agent_sessions
+                (session_id, project_id, objective, state, created_at, updated_at,
+                 sequence, candidate_id, candidate_digest, approved_candidate_digest, run_id)
+                VALUES (?, ?, ?, ?, ?, ?, 1, NULL, NULL, NULL, NULL)""",
                 (
                     str(session_id),
                     project_id,
@@ -492,6 +512,50 @@ class AgentSessionStore:
             raise
         return self.get(session_id)
 
+    def start_run(
+        self,
+        session_id: UUID,
+        *,
+        event_id: UUID,
+        run_id: UUID,
+        candidate_digest: str,
+        actor_id: str,
+        occurred_at: datetime,
+        expected_sequence: int,
+    ) -> AgentSession:
+        """Bind exactly one initialized runtime run to an approved candidate."""
+        if not isinstance(run_id, UUID):
+            raise AgentStoreError("run_id must be a UUID")
+        if not isinstance(candidate_digest, str) or not _DIGEST.fullmatch(candidate_digest):
+            raise AgentStoreError("candidate digest is invalid")
+        _actor(actor_id)
+        self._connection.execute("BEGIN IMMEDIATE")
+        try:
+            row = self._locked(session_id, expected_sequence, AgentState.APPROVED)
+            if row[9] != candidate_digest or row[8] != candidate_digest:
+                raise AgentStoreError("run candidate digest does not match approved revision")
+            if len(row) > 10 and row[10] is not None:
+                raise AgentStoreError("Agent session already has a runtime run")
+            self._advance(
+                row,
+                event_id,
+                occurred_at,
+                AgentState.RUNNING,
+                AgentEventType.RUN_STARTED,
+                AgentActorType.SYSTEM,
+                actor_id,
+                "Approved candidate bound to initialized runtime run.",
+                candidate_digest,
+                None,
+                run_id=run_id,
+            )
+            self._connection.execute("COMMIT")
+        except Exception:
+            if self._connection.in_transaction:
+                self._connection.execute("ROLLBACK")
+            raise
+        return self.get(session_id)
+
     def get_candidate(self, session_id: UUID) -> CandidateSpecification:
         row = self._connection.execute(
             """SELECT document_json FROM agent_candidates
@@ -546,6 +610,7 @@ class AgentSessionStore:
                 events,
                 None if row[7] is None else UUID(str(row[7])),
                 None if row[9] is None else str(row[9]),
+                None if len(row) <= 10 or row[10] is None else UUID(str(row[10])),
             )
         except (ValueError, TypeError) as exc:
             raise AgentStoreError("stored Agent session failed integrity validation") from exc
@@ -616,6 +681,7 @@ class AgentSessionStore:
         digest: str | None,
         candidate_id: UUID | None,
         approved_digest: str | None = None,
+        run_id: UUID | None = None,
     ) -> None:
         _utc(occurred_at)
         if occurred_at < datetime.fromisoformat(str(row[5])):
@@ -633,11 +699,13 @@ class AgentSessionStore:
             actor_id,
             summary,
             digest,
+            run_id,
         )
         self._connection.execute(
             """UPDATE agent_sessions SET state=?, updated_at=?, sequence=?,
             candidate_id=COALESCE(?, candidate_id), candidate_digest=COALESCE(?, candidate_digest),
-            approved_candidate_digest=COALESCE(?, approved_candidate_digest) WHERE session_id=?""",
+            approved_candidate_digest=COALESCE(?, approved_candidate_digest),
+            run_id=COALESCE(?, run_id) WHERE session_id=?""",
             (
                 target.value,
                 occurred_at.isoformat(),
@@ -645,6 +713,7 @@ class AgentSessionStore:
                 None if candidate_id is None else str(candidate_id),
                 digest,
                 approved_digest,
+                None if run_id is None else str(run_id),
                 row[0],
             ),
         )
@@ -662,12 +731,16 @@ class AgentSessionStore:
         actor_id: str,
         summary: str,
         digest: str | None,
+        run_id: UUID | None = None,
     ) -> None:
         if not isinstance(event_id, UUID):
             raise AgentStoreError("event_id must be a UUID")
         _text(summary, 2000)
         self._connection.execute(
-            "INSERT INTO agent_events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            """INSERT INTO agent_events
+            (event_id, session_id, sequence, occurred_at, from_state, to_state,
+             event_type, actor_type, actor_id, summary, candidate_digest, run_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 str(event_id),
                 str(session_id),
@@ -680,6 +753,7 @@ class AgentSessionStore:
                 actor_id,
                 summary,
                 digest,
+                None if run_id is None else str(run_id),
             ),
         )
 
@@ -700,6 +774,7 @@ def _event(row: tuple[object, ...]) -> AgentEvent:
         AgentActorType(str(row[7])),
         str(row[9]),
         None if row[10] is None else str(row[10]),
+        None if len(row) <= 11 or row[11] is None else UUID(str(row[11])),
     )
 
 
