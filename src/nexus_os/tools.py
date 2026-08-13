@@ -23,6 +23,7 @@ from nexus_os.policy import (
     ActionRequest,
     DataClass,
     Environment,
+    PolicyDecision,
     PolicyDecisionKind,
     PolicyEngine,
 )
@@ -264,7 +265,7 @@ class ToolExecutor:
 
     def _decision(
         self, descriptor: ToolDescriptor, actor_id: str, project_id: str
-    ) -> Any:
+    ) -> PolicyDecision:
         return self._policy.evaluate(
             ActionRequest(
                 actor_id=actor_id,
