@@ -129,7 +129,7 @@ def setup_local(
     root = values.config_dir.resolve()
     settings_path = root / _SETTINGS
     config_path = root / _CONFIG
-    password_path = root / _PASSWORD_FILE
+    password_path = root / _OPERATOR_CREDENTIAL_FILE
     if not 1 <= values.timeout_seconds <= 60:
         raise RadCliError("timeout must be from 1 to 60 seconds")
     if settings_path.exists() and not values.force:
