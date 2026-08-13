@@ -25,7 +25,11 @@ def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description="Run NEXUS Agent on a local loopback address")
     result.add_argument("--state-dir", required=True, type=Path)
     result.add_argument("--password-file", type=Path)
-    result.add_argument("--application-factory", required=True, metavar="MODULE:FUNCTION")
+    result.add_argument(
+        "--application-factory",
+        default="nexus_os.local_agent_application:create_local_application",
+        metavar="MODULE:FUNCTION",
+    )
     result.add_argument("--host", default="127.0.0.1", choices=("127.0.0.1", "::1"))
     result.add_argument("--port", default=8765, type=int)
     return result
