@@ -23,6 +23,7 @@ dependencies = [
 [project.scripts]
 nexus = "nexus_os.cli:main"
 nexus-model-eval = "nexus_os.local_model_cli:main"
+nexus-agent-serve = "nexus_os.agent_server_cli:main"
 
 [dependency-groups]
 dev = [
