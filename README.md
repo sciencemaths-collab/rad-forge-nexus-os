@@ -15,10 +15,10 @@ what the runtime may execute and what it may claim.
 The NEXUS OS implementation sequence and clean-room qualification are complete at the
 recorded Component AG boundary. The subsequent NEXUS Agent upgrade now includes the
 contract boundary, a fake-transport-tested credential-optional local
-OpenAI-compatible adapter, and an evidence-derived model-qualification harness. The
-current repository has 316 Python tests plus the TypeScript suite; live local
-inference, model installation, benchmark execution, and a user interface are not yet
-implemented.
+OpenAI-compatible adapter, an evidence-derived model-qualification harness, and a
+controlled structured-output evaluation runner. The current repository has 326
+Python tests plus the TypeScript suite; live local inference, model installation,
+named-model benchmark execution, and a user interface are not yet implemented.
 
 No capability is currently promoted to production. Live provider access, production
 hosting, package-registry publication, and operational deployment remain explicitly
