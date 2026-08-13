@@ -651,3 +651,23 @@ All 15 portable release gates and independent review passed with zero findings. 
 not contain an HTTP client, open a socket, install or download model weights, discover
 hardware, stream tokens, establish model quality, or authorize network access. A live
 local transport and model-qualification harness remain later components.
+
+## Component AJ verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Complete seven-category reasoning-model evaluation boundary
+- Exact evidence-derived Agent proposal-use promotion matrix
+- Limited/failing result, missing category, duplicate category, duplicate evidence,
+  malformed identifier, invalid validity, and exact-expiry rejection behavior
+- Canonical evaluation ordering and SHA-256 qualification digest
+- Public model-qualification JSON Schema integration
+- Focused suite: 13 tests
+
+Component AJ is clean-room QUALIFIED using synthetic observations. The full 316-test
+Python suite, 6-test TypeScript suite, all 15 portable release gates, and independent
+review passed with zero findings. It calls no live model, verifies no underlying
+benchmark evidence, and grants proposal eligibility rather than execution authority.
+Live benchmark cases, controlled evaluator execution, model-specific qualification,
+durable revocation, Agent controller integration, owner approval, and production
+release remain later work.

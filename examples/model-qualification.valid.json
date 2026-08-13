@@ -15,7 +15,7 @@
     {"evaluation_id": "adversarial.v1", "category": "adversarial_input", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000015"]},
     {"evaluation_id": "repair.v1", "category": "bounded_repair", "result": "PASS", "evidence_ids": ["20000000-0000-4000-8000-000000000016"]}
   ],
-  "allowed_uses": ["clarification", "candidate_specification", "result_explanation"],
+  "allowed_uses": ["clarification", "candidate_specification", "task_planning", "repair_proposal", "result_explanation"],
   "state": "LIMITED",
   "limitations": ["Tool-selection proposals are limited to read-only use."],
   "evidence_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
