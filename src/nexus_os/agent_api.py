@@ -17,7 +17,7 @@ from uuid import UUID
 from nexus_os.agent_controller import AgentControllerError, AgentReasoningController
 from nexus_os.agent_store import AgentSessionStore, AgentStoreError, ReviewPrincipal
 from nexus_os.domain import TraceId
-from nexus_os.model_registry import ModelQualificationRegistry, ModelRegistryError
+from nexus_os.model_registry import ModelRegistryError, RegistryRecord
 from nexus_os.secrets import redact
 
 _TOKEN = re.compile(r"^Bearer ([\x21-\x7e]{16,4096})$")
@@ -56,6 +56,10 @@ class AgentIdentity:
 
 class BearerAuthenticator(Protocol):
     def authenticate(self, token: str) -> AgentIdentity | None: ...
+
+
+class QualificationReader(Protocol):
+    def active(self, *, at: datetime) -> tuple[RegistryRecord, ...]: ...
 
 
 class ApplicationIds(Protocol):
@@ -254,7 +258,7 @@ class AgentApplicationService:
         *,
         sessions: AgentSessionStore,
         controller: AgentReasoningController,
-        qualifications: ModelQualificationRegistry,
+        qualifications: QualificationReader,
         ids: ApplicationIds,
         runtime: AgentRuntimeApi | None = None,
     ) -> None:
