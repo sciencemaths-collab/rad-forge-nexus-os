@@ -6,9 +6,11 @@ from uuid import UUID
 import pytest
 
 from nexus_os.approval import ApprovalStatus, ApprovalStore
+from nexus_os.attempt_store import AttemptStore
 from nexus_os.domain import ActionEffect, RunId, TaskId, TaskStatus, TraceId
 from nexus_os.graph import compile_task_graph, validate_task_graph
 from nexus_os.policy import PolicyEngine, PolicyRules
+from nexus_os.retry import RetryEngine, RetryLimits
 from nexus_os.runtime import RuntimeOrchestrator
 from nexus_os.scheduler import GovernedScheduler, SchedulerError, SchedulerOutcome
 from nexus_os.stores import SQLiteCheckpointStore
@@ -18,7 +20,7 @@ NOW = datetime(2026, 8, 13, 21, tzinfo=UTC)
 TRACE = TraceId("abcdef1234567890abcdef1234567890")
 
 
-def _graph(effect: ActionEffect = ActionEffect.READ_ONLY):
+def _graph(effect: ActionEffect = ActionEffect.READ_ONLY, max_attempts: int = 1):
     return validate_task_graph(
         compile_task_graph(
             {
@@ -32,7 +34,7 @@ def _graph(effect: ActionEffect = ActionEffect.READ_ONLY):
                         "depends_on": [],
                         "effect": effect.value,
                         "timeout_seconds": 30,
-                        "retry": {"max_attempts": 1, "backoff_seconds": 0},
+                        "retry": {"max_attempts": max_attempts, "backoff_seconds": 0},
                         "input": {
                             "value": "approved input",
                             "idempotency_key": "scheduler-test-0001",
@@ -80,7 +82,7 @@ def _registry(effect: ActionEffect, calls: list[dict[str, Any]]) -> ToolRegistry
     return registry
 
 
-def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None):
+def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None, max_attempts=1):
     calls: list[dict[str, Any]] = []
     store = SQLiteCheckpointStore(tmp_path / "runtime.db")
     runtime = RuntimeOrchestrator(store)
@@ -93,11 +95,13 @@ def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None):
         executor=ToolExecutor(registry, policy, approvals),
         policy=policy,
         approvals=approvals,
+        attempts=AttemptStore(tmp_path / "attempts.db"),
+        retry=RetryEngine(RetryLimits()),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
     )
     snapshot = runtime.create(
         run_id=RunId.parse("82000000-0000-4000-8000-000000000002"),
-        graph=_graph(effect),
+        graph=_graph(effect, max_attempts),
         trace_id=TRACE,
         now=NOW,
     )

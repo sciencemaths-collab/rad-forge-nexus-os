@@ -46,7 +46,7 @@ _TASK_TRANSITIONS: Final = MappingProxyType(
             }
         ),
         TaskStatus.RUNNING: frozenset(
-            {TaskStatus.SUCCEEDED, TaskStatus.FAILED, TaskStatus.CANCELLED}
+            {TaskStatus.READY, TaskStatus.SUCCEEDED, TaskStatus.FAILED, TaskStatus.CANCELLED}
         ),
         TaskStatus.BLOCKED: frozenset(
             {

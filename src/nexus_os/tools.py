@@ -18,7 +18,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from nexus_os.approval import ApprovalError, ApprovalStore
-from nexus_os.domain import ActionEffect, RunId
+from nexus_os.domain import ActionEffect, Failure, FailureClass, RunId
 from nexus_os.policy import (
     ActionRequest,
     DataClass,
@@ -35,6 +35,17 @@ ToolHandler = Callable[[dict[str, Any]], Awaitable[dict[str, Any]]]
 
 class ToolError(ValueError):
     """Safe tool-boundary rejection."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        classification: FailureClass = FailureClass.CONTRACT_MISMATCH,
+        code: str = "tool.contract_rejected",
+        retryable: bool = False,
+    ) -> None:
+        super().__init__(message)
+        self.failure = Failure(classification, code, message, retryable)
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,9 +212,19 @@ class ToolExecutor:
                 self._registry.handler(name)(safe_input), timeout=descriptor.timeout_seconds
             )
         except TimeoutError as exc:
-            raise ToolError("tool execution timed out") from exc
+            raise ToolError(
+                "tool execution timed out",
+                classification=FailureClass.TIMEOUT,
+                code="tool.timeout",
+                retryable=True,
+            ) from exc
         except Exception as exc:
-            raise ToolError("tool handler failed") from exc
+            raise ToolError(
+                "tool handler failed",
+                classification=FailureClass.ENVIRONMENT,
+                code="tool.handler_failed",
+                retryable=True,
+            ) from exc
         safe_output, _ = _payload(raw_output)
         _validate(descriptor.output_schema, safe_output, "output")
         result = ToolResult(
@@ -282,4 +303,9 @@ def _validate(schema: Mapping[str, Any], value: dict[str, Any], boundary: str) -
     try:
         Draft202012Validator(schema, format_checker=FormatChecker()).validate(value)
     except ValidationError as exc:
-        raise ToolError(f"tool {boundary} validation failed") from exc
+        raise ToolError(
+            f"tool {boundary} validation failed",
+            classification=FailureClass.CONTRACT_MISMATCH,
+            code=f"tool.{boundary}_invalid",
+            retryable=boundary == "output",
+        ) from exc

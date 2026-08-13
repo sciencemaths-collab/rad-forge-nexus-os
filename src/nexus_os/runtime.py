@@ -302,6 +302,45 @@ class RuntimeOrchestrator:
             now=now,
         )
 
+    def reschedule_task(
+        self,
+        snapshot: RuntimeSnapshot,
+        task_id: TaskId,
+        *,
+        trace_id: TraceId,
+        now: datetime,
+        reason_code: str,
+    ) -> RuntimeSnapshot:
+        """Return a running task to READY for a separately evidenced bounded attempt."""
+        current = self._task_state(snapshot, task_id)
+        if current is not TaskStatus.RUNNING:
+            raise RuntimeOrchestratorError(f"task {task_id} is not RUNNING")
+        sequence = snapshot.transition_sequence + 1
+        self._states.transition_task(
+            run_id=snapshot.run_id,
+            task_id=task_id,
+            current=current,
+            target=TaskStatus.READY,
+            sequence=sequence,
+            occurred_at=now,
+            trace_id=trace_id,
+            reason_code=reason_code,
+        )
+        task_states = dict(snapshot.task_states)
+        task_states[task_id] = TaskStatus.READY
+        return self._persist(
+            RuntimeSnapshot(
+                snapshot.run_id,
+                snapshot.graph,
+                snapshot.run_state,
+                task_states,
+                sequence,
+                snapshot.revision,
+            ),
+            expected_revision=snapshot.revision,
+            now=now,
+        )
+
     def cancel(
         self,
         snapshot: RuntimeSnapshot,
