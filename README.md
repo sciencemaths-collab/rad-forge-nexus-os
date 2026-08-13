@@ -17,9 +17,10 @@ recorded Component AG boundary. The subsequent NEXUS Agent upgrade now includes 
 contract boundary, a fake-transport-tested credential-optional local
 OpenAI-compatible adapter, an evidence-derived model-qualification harness, and a
 controlled structured-output evaluation runner, and an explicitly authorized loopback
-HTTP transport. The current repository has 339 Python tests plus the TypeScript suite;
-live-model qualification, model installation, named-model benchmark execution, and a
-user interface are not yet implemented.
+HTTP transport and a digest-anchored 14-case reference reasoning corpus. The current
+repository has 347 Python tests plus the TypeScript suite; live-model qualification,
+model installation, hidden/rotating certification suites, and a user interface are not
+yet implemented.
 
 No capability is currently promoted to production. Live provider access, production
 hosting, package-registry publication, and operational deployment remain explicitly

@@ -7,6 +7,7 @@ def test_clean_room_contract_contains_all_release_inputs() -> None:
         "LICENSE",
         "README.md",
         "SECURITY.md",
+        "benchmarks",
         "contracts",
         "docs",
         "schemas",

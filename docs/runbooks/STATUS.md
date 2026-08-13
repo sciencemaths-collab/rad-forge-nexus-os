@@ -711,3 +711,25 @@ review passed with zero findings. Automated tests open no socket and establish n
 compatibility claim for Ollama, LM Studio, llama.cpp, or any named model/server
 version. Server discovery, process management, weight installation, streaming,
 retries, live qualification, owner approval, and production release remain later work.
+
+## Component AM verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Fourteen machine-readable reference cases, with two in each Phase AJ category
+- Provider/model-independent exact JSON rubrics spanning software and research work
+- Separate trusted SHA-256 anchor and canonical order-independent corpus digest
+- Public suite schema plus strict loader and category-depth semantics
+- Unknown field, duplicate key, non-finite value, oversized file, secret-like prompt,
+  shallow category, changed input, and invalid/mismatched anchor rejection
+- Phase AK runner integration with complete passing synthetic rubric responses
+- Focused suite: 8 tests
+
+Component AM is clean-room QUALIFIED as a public reference corpus. The full 347-test
+Python suite, 6-test TypeScript suite, all 15 portable release gates, and independent
+review passed with zero findings. The clean-room snapshot now includes benchmark
+sources under a regression contract. No live model was called or scored.
+`reference-v1` is public, small, and exact-match, so it is a reproducible baseline
+rather than a hidden, statistically complete, or production-grade certification exam.
+Controlled variants, rotation, leakage review, expert content review, reliability
+analysis, live execution, owner approval, and production release remain later work.

@@ -5,6 +5,7 @@ def test_snapshot_excludes_dirty_and_dependency_directories(tmp_path) -> None:
     source = tmp_path / "source"
     directories = (
         ".github",
+        "benchmarks",
         "contracts",
         "docs",
         "examples",
@@ -34,6 +35,7 @@ def test_snapshot_excludes_dirty_and_dependency_directories(tmp_path) -> None:
 
     digest = materialize_snapshot(source, destination)
     assert digest.startswith("sha256:")
+    assert (destination / "benchmarks/keep.txt").read_text() == "benchmarks"
     assert not (destination / "src/node_modules").exists()
 
 
