@@ -129,7 +129,11 @@ class _Route:
 _ROUTES = (
     _Route("POST", re.compile(r"^/v1/agent/sessions$"), "create", "agent:write", True),
     _Route(
-        "GET", re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"), "get", "agent:read", False
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"),
+        "get",
+        "agent:read",
+        False,
     ),
     _Route(
         "POST",
@@ -231,11 +235,17 @@ class DurableReplayStore:
             body = json.loads(str(row[2]))
             if not isinstance(body, (dict, list)):
                 raise ValueError
-            return AgentApiResponse(int(str(row[1])), body, {"Idempotent-Replay": "true"})
+            return AgentApiResponse(
+                int(str(row[1])), body, {"Idempotent-Replay": "true"}
+            )
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
-            raise AgentApiError("stored idempotent response failed integrity validation") from exc
+            raise AgentApiError(
+                "stored idempotent response failed integrity validation"
+            ) from exc
 
-    def save(self, actor_id: str, key: str, binding: str, response: AgentApiResponse) -> None:
+    def save(
+        self, actor_id: str, key: str, binding: str, response: AgentApiResponse
+    ) -> None:
         encoded = _canonical(response.body)
         try:
             self._connection.execute(
@@ -309,11 +319,15 @@ class AgentApplicationService:
             if self._runtime is None or target_session_id is None:
                 raise AgentApiError("runtime API is unavailable")
             if operation == "runtime_start" and body is not None:
-                return 201, self._runtime.start(target_session_id, identity, request, body)
+                return 201, self._runtime.start(
+                    target_session_id, identity, request, body
+                )
             if operation == "runtime_status":
                 return 200, self._runtime.status(target_session_id)
             if operation == "runtime_tick":
-                return 200, await self._runtime.tick(target_session_id, identity, request, body)
+                return 200, await self._runtime.tick(
+                    target_session_id, identity, request, body
+                )
             if operation == "runtime_approval" and body is not None:
                 approval_id = UUID(values["approvalId"])
                 return 200, self._runtime.decide_approval(
@@ -369,7 +383,8 @@ class AgentApplicationService:
             return 200, approved.to_dict()
         if operation == "models":
             return 200, [
-                item.to_dict() for item in self._qualifications.active(at=request.occurred_at)
+                item.to_dict()
+                for item in self._qualifications.active(at=request.occurred_at)
             ]
         raise AgentApiError("operation is not implemented")
 
@@ -391,25 +406,38 @@ class AgentApplication:
         if invalid is not None:
             return invalid
         match = _TOKEN.fullmatch(request.headers.get("Authorization", ""))
-        identity = None if match is None else self._authenticator.authenticate(match.group(1))
+        identity = (
+            None if match is None else self._authenticator.authenticate(match.group(1))
+        )
         if identity is None:
-            return _error(401, "unauthorized", "Authentication is required", request.request_id)
+            return _error(
+                401, "unauthorized", "Authentication is required", request.request_id
+            )
         route, values = self._route(request.method, request.path)
         if route is None:
             return _error(404, "not_found", "Resource not found", request.request_id)
         if route.scope not in identity.scopes:
-            return _error(403, "forbidden", "Request is not authorized", request.request_id)
+            return _error(
+                403, "forbidden", "Request is not authorized", request.request_id
+            )
         try:
             body, digest = _body(request.body)
         except AgentApiError:
-            return _error(400, "invalid_request", "Request body is invalid", request.request_id)
+            return _error(
+                400, "invalid_request", "Request body is invalid", request.request_id
+            )
         if not _valid_operation_body(route.operation, body):
-            return _error(400, "invalid_request", "Request body is invalid", request.request_id)
+            return _error(
+                400, "invalid_request", "Request body is invalid", request.request_id
+            )
         key = request.headers.get("Idempotency-Key") if route.mutation else None
         binding = f"{route.operation}:{request.path}:{digest}"
         if route.mutation and (not isinstance(key, str) or not _KEY.fullmatch(key)):
             return _error(
-                400, "invalid_idempotency_key", "Idempotency-Key is required", request.request_id
+                400,
+                "invalid_idempotency_key",
+                "Idempotency-Key is required",
+                request.request_id,
             )
         if key is not None:
             try:
@@ -427,7 +455,9 @@ class AgentApplication:
             status, output = await self._service.invoke(
                 route.operation, values, body, identity, request
             )
-            response = AgentApiResponse(status, output, {"X-Trace-Id": str(request.trace_id)})
+            response = AgentApiResponse(
+                status, output, {"X-Trace-Id": str(request.trace_id)}
+            )
         except AgentControllerError:
             response = _error(
                 422,
@@ -444,14 +474,22 @@ class AgentApplication:
             )
         except Exception:
             response = _error(
-                500, "internal_error", "Internal service failure", request.request_id, True
+                500,
+                "internal_error",
+                "Internal service failure",
+                request.request_id,
+                True,
             )
         if key is not None and response.status < 500:
             try:
                 self._replays.save(identity.actor_id, key, binding, response)
             except AgentApiError:
                 return _error(
-                    500, "internal_error", "Internal service failure", request.request_id, True
+                    500,
+                    "internal_error",
+                    "Internal service failure",
+                    request.request_id,
+                    True,
                 )
         return response
 
@@ -464,11 +502,19 @@ class AgentApplication:
             or not isinstance(request.request_id, str)
             or not 1 <= len(request.request_id) <= 256
         ):
-            return _error(400, "invalid_request", "Request envelope is invalid", "invalid")
-        if request.occurred_at.tzinfo is None or request.occurred_at.utcoffset() != UTC.utcoffset(
-            request.occurred_at
+            return _error(
+                400, "invalid_request", "Request envelope is invalid", "invalid"
+            )
+        if (
+            request.occurred_at.tzinfo is None
+            or request.occurred_at.utcoffset() != UTC.utcoffset(request.occurred_at)
         ):
-            return _error(400, "invalid_request", "Request envelope is invalid", request.request_id)
+            return _error(
+                400,
+                "invalid_request",
+                "Request envelope is invalid",
+                request.request_id,
+            )
         return None
 
     @staticmethod
@@ -511,7 +557,11 @@ def _valid_operation_body(operation: str, body: dict[str, Any] | None) -> bool:
             and isinstance(body["objective"], str)
         )
     if operation == "clarify":
-        return body is not None and set(body) == {"response"} and isinstance(body["response"], str)
+        return (
+            body is not None
+            and set(body) == {"response"}
+            and isinstance(body["response"], str)
+        )
     if operation == "approve":
         return (
             body is not None
@@ -552,5 +602,11 @@ def _error(
     status: int, code: str, message: str, request_id: str, retryable: bool = False
 ) -> AgentApiResponse:
     return AgentApiResponse(
-        status, {"code": code, "message": message, "request_id": request_id, "retryable": retryable}
+        status,
+        {
+            "code": code,
+            "message": message,
+            "request_id": request_id,
+            "retryable": retryable,
+        },
     )
