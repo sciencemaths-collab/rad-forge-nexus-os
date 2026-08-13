@@ -48,6 +48,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AI. Local OpenAI-compatible adapter | QUALIFIED (FAKE) | Credential-optional loopback adapter, bounded chat normalization, 303 tests, all release/clean-room gates pass |
 | AP. Model qualification registry | QUALIFIED | Exact-binding durable registration, atomic supersession, revocation, read-time integrity checks, and all release/clean-room gates pass |
 | AQ. Agent session store | QUALIFIED | Canonical candidate revisions, append-only events, clarification/review/approval lifecycle, and all release/clean-room gates pass |
+| AR. Agent reasoning controller | QUALIFIED (FAKE) | Qualification-gated proposal generation, strict JSON/candidate validation, bounded repair, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -818,3 +819,27 @@ All 15 portable release gates and independent review passed with zero findings. 
 authenticate identities, call a model, interpret conversation, start runtime runs,
 expose an HTTP/UI service, execute tools, or authorize production release. Owner approval
 remains separate and no capability is production ready.
+
+## Component AR verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Exact Phase AP qualification authorization before every candidate or repair call
+- Bounded objective-only provider request with a fixed proposal-only system contract
+- Controller-owned session/candidate identity, revision, schema version, and digest
+- Strict JSON object, duplicate-key, finite-value, exact-field, secret, and size checks
+- Phase AQ canonical validation and atomic persistence of ready or clarification candidates
+- At most one separately qualified repair call with no invalid-output reflection
+- Unqualified model, stale session, malformed output, tool-call field, secret material,
+  contradictory readiness, repeated invalid output, and provider failure safe handling
+- Focused controller suite: 10 tests; combined Agent suite: 25 tests
+- Full suite: 412 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, and contract validation passed
+
+Component AR is clean-room QUALIFIED using an injected fake adapter and synthetic
+qualification. All 15 portable release gates and independent review passed with zero
+findings. It
+does not open a socket, establish live-model quality, preserve chat transcripts,
+authenticate users, approve candidates, execute tools, start runtime work, expose HTTP/UI,
+or authorize production release. Owner approval remains separate and no capability is
+production ready.
