@@ -28,7 +28,7 @@ _DEFAULT_ENDPOINTS = (
 )
 _SETTINGS = "settings.json"
 _CONFIG = "models.yaml"
-_PASSWORD = "operator-password"
+_PASSWORD_FILE = "operator-password"
 _MIN_PASSWORD = 12
 
 
@@ -76,7 +76,7 @@ def parser() -> argparse.ArgumentParser:
 
 def probe_models(base_url: str, timeout_seconds: int) -> tuple[str, ...]:
     _loopback_url(base_url)
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310 - URL is validated loopback only
         f"{base_url.rstrip('/')}/models",
         headers={"Accept": "application/json"},
         method="GET",
@@ -129,7 +129,7 @@ def setup_local(
     root = values.config_dir.resolve()
     settings_path = root / _SETTINGS
     config_path = root / _CONFIG
-    password_path = root / _PASSWORD
+    password_path = root / _PASSWORD_FILE
     if not 1 <= values.timeout_seconds <= 60:
         raise RadCliError("timeout must be from 1 to 60 seconds")
     if settings_path.exists() and not values.force:
