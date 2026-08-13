@@ -51,6 +51,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AR. Agent reasoning controller | QUALIFIED (FAKE) | Qualification-gated proposal generation, strict JSON/candidate validation, bounded repair, and all release/clean-room gates pass |
 | AS. Agent application API | QUALIFIED (FAKE) | Injected bearer authentication, exact scopes, durable replay, full Agent workflow composition, and all release/clean-room gates pass |
 | AT. Agent runtime handoff | QUALIFIED | Exact approved-digest and capability gates, deterministic graph/run binding, READY-only checkpoint initialization, and all release/clean-room gates pass |
+| AU. Governed scheduler | QUALIFIED | Canonical one-task ticks, policy denial, exact approval parking/consumption, typed-tool dispatch, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -842,6 +843,25 @@ Component AT is clean-room QUALIFIED with synthetic approvals and capability sna
 It does not dispatch tasks, invoke tools, authenticate identities, infer qualification,
 call a model, deploy, publish, or authorize production release. The Agent now reaches a
 governed `READY_NOT_EXECUTED` runtime boundary; controlled scheduling remains next.
+
+## Component AU verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Canonical topological selection and a strict one-task-per-tick execution bound
+- Frozen task-kind to typed-tool bindings with exact effect equality
+- Structured policy evaluation before lease or handler invocation
+- Durable non-retryable task failure on policy denial without a tool call
+- Deterministic exact-action approval request and `WAITING_APPROVAL` checkpoint state
+- Project/run/action/expiry/status preflight and atomic one-use consumption at dispatch
+- Runtime compare-and-swap leasing, dependency unlocking, and sanitized tool failure
+- Immutable task-input canonicalization at the typed-tool JSON boundary
+- Focused scheduler/runtime/tool/security suite: 15 tests
+- Full suite: 425 Python tests and 6 TypeScript tests
+
+Component AU is clean-room QUALIFIED with synthetic policy, approval, and tool handlers.
+It does not implement background workers, distributed leases, retry/repair integration,
+live tools, external communication, deployment, publishing, or production authorization.
 
 ## Component AQ verification
 

@@ -9,13 +9,16 @@ import math
 import re
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from types import MappingProxyType
 from typing import Any
+from uuid import UUID
 
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from nexus_os.domain import ActionEffect
+from nexus_os.approval import ApprovalError, ApprovalStore
+from nexus_os.domain import ActionEffect, RunId
 from nexus_os.policy import (
     ActionRequest,
     DataClass,
@@ -134,9 +137,15 @@ class ToolRegistry:
 
 
 class ToolExecutor:
-    def __init__(self, registry: ToolRegistry, policy: PolicyEngine) -> None:
+    def __init__(
+        self,
+        registry: ToolRegistry,
+        policy: PolicyEngine,
+        approvals: ApprovalStore | None = None,
+    ) -> None:
         self._registry = registry
         self._policy = policy
+        self._approvals = approvals
         self._cache: dict[tuple[str, str, str], tuple[str, ToolResult]] = {}
 
     async def execute(
@@ -146,6 +155,9 @@ class ToolExecutor:
         *,
         actor_id: str,
         project_id: str,
+        run_id: RunId | None = None,
+        approval_id: UUID | None = None,
+        now: datetime | None = None,
     ) -> ToolResult:
         descriptor = self._registry.get(name)
         safe_input, input_digest = _payload(payload)
@@ -164,7 +176,18 @@ class ToolExecutor:
         if decision.kind is PolicyDecisionKind.DENY:
             raise ToolError("tool execution denied by policy")
         if descriptor.approval_required or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL:
-            raise ToolError("tool execution requires approval")
+            if self._approvals is None or run_id is None or approval_id is None or now is None:
+                raise ToolError("tool execution requires approval")
+            try:
+                self._approvals.authorize_and_consume(
+                    approval_id,
+                    project_id=project_id,
+                    run_id=run_id,
+                    action_digest=decision.action_digest,
+                    now=now,
+                )
+            except ApprovalError as exc:
+                raise ToolError("tool approval is invalid") from exc
 
         cache_key = self._cache_key(descriptor, safe_input, input_digest, project_id)
         if cache_key is not None and cache_key in self._cache:
@@ -227,7 +250,9 @@ def _payload(value: Mapping[str, Any]) -> tuple[dict[str, Any], str]:
     if not isinstance(value, Mapping):
         raise ToolError("tool payload must be an object")
     try:
-        encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        encoded = json.dumps(
+            _json_value(value), sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
         decoded = json.loads(encoded)
     except (TypeError, ValueError) as exc:
         raise ToolError("tool payload must contain canonical JSON") from exc
@@ -238,6 +263,19 @@ def _payload(value: Mapping[str, Any]) -> tuple[dict[str, Any], str]:
         raise ToolError("tool payload is invalid")
     digest = f"sha256:{hashlib.sha256(encoded.encode()).hexdigest()}"
     return safe, digest
+
+
+def _json_value(value: Any) -> Any:
+    """Thaw immutable domain mappings without accepting non-JSON value types."""
+    if isinstance(value, Mapping):
+        if not all(isinstance(key, str) for key in value):
+            raise TypeError("JSON object keys must be strings")
+        return {key: _json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_value(item) for item in value]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    raise TypeError("value is not canonical JSON")
 
 
 def _validate(schema: Mapping[str, Any], value: dict[str, Any], boundary: str) -> None:
