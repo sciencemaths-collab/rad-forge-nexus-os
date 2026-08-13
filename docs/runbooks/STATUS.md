@@ -1018,3 +1018,24 @@ was available to the default CI run, so live provider availability and model qua
 unverified until an operator runs the explicit live smoke test and completes exact-model
 qualification. Connecting a key does not enable tools or production authorization.
 
+## RAD Agent Phase 3A governed-tool verification
+
+On 2026-08-13 GitHub Actions run 92 passed all 15 portable release gates for the bundled
+governed reference execution path:
+
+- Side-effect-free typed-tool preview with input/action digests and policy reasons
+- Qualified-mode composition of runtime, scheduler, approval, retry, checkpoint, and evidence
+- One default-deny allowlisted `workspace.write_artifact` tool
+- Approved-workspace binding in every compiled task input
+- Traversal, symlink, workspace escape, oversized content, and conflicting overwrite rejection
+- Deterministic idempotent replay
+- A real approved runtime start and one-task tick creating a contained artifact
+- Evidence append before successful task completion
+- Development mode remains without a runtime API
+- Full Python/TypeScript, type, lint, contract, security, packaging, audit, and evidence gates
+
+This qualifies only the deterministic reference artifact tool and its local composition. It
+does not qualify shell commands, network access, coding engines, research retrieval,
+statistical computation, publishing, deployment, deletion, external communication, or
+production use. Acceptance-verifier composition and browser execution controls remain open.
+
