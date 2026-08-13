@@ -28,7 +28,7 @@ _DEFAULT_ENDPOINTS = (
 )
 _SETTINGS = "settings.json"
 _CONFIG = "models.yaml"
-_PASSWORD_FILE = "operator-password"
+_OPERATOR_CREDENTIAL_FILE = "operator-password"
 _MIN_PASSWORD = 12
 
 
