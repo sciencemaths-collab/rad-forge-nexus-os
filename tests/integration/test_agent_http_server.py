@@ -64,6 +64,38 @@ def test_health_login_and_authenticated_request_over_real_socket(tmp_path) -> No
     assert not worker.is_alive()
 
 
+def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    application = Application()
+    application.authenticator = authenticator
+    server = AgentHttpServer(("127.0.0.1", 0), application, authenticator)
+    worker = threading.Thread(target=server.serve_forever)
+    worker.start()
+    connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+    try:
+        connection.request("GET", "/")
+        response = connection.getresponse()
+        html = response.read().decode()
+        assert response.status == 200
+        assert response.getheader("Content-Security-Policy").startswith("default-src 'none'")
+        assert response.getheader("X-Frame-Options") == "DENY"
+        assert '<html lang="en">' in html
+        assert 'role="status"' in html
+        assert "Nothing is executed or published" in html
+
+        connection.request("GET", "/ui/app.js")
+        response = connection.getresponse()
+        script = response.read().decode()
+        assert response.status == 200 and "candidate_digest" in script
+        assert "localStorage" not in script
+    finally:
+        connection.close()
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)
+        authenticator.close()
+
+
 def test_wrong_host_oversized_body_and_login_rate_limit_fail_closed(tmp_path) -> None:
     authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
     authenticator.bootstrap(PASSWORD)

@@ -14,6 +14,7 @@ from typing import Any
 from uuid import uuid4
 
 from nexus_os.agent_api import AgentApiRequest, AgentApplication
+from nexus_os.agent_web_ui import APP_CSS, APP_JS, INDEX_HTML
 from nexus_os.domain import TraceId
 from nexus_os.operator_auth import OperatorAuthenticator, OperatorAuthError
 
@@ -88,6 +89,14 @@ class AgentHttpRequestHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/readyz" and method == "GET":
             self._write(200, {"status": "ready"})
+            return
+        if method == "GET" and self.path in {"/", "/ui/app.css", "/ui/app.js"}:
+            payload, content_type = {
+                "/": (INDEX_HTML, "text/html; charset=utf-8"),
+                "/ui/app.css": (APP_CSS, "text/css; charset=utf-8"),
+                "/ui/app.js": (APP_JS, "text/javascript; charset=utf-8"),
+            }[self.path]
+            self._write_asset(payload, content_type)
             return
         body = self._body()
         if isinstance(body, tuple):
@@ -175,6 +184,22 @@ class AgentHttpRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         for key, value in (headers or {}).items():
             self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _write_asset(self, payload: bytes, content_type: str) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
+            "img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+        )
         self.end_headers()
         self.wfile.write(payload)
 
