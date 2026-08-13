@@ -32,6 +32,7 @@ from nexus_os.model_registry import (
 )
 from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
+from nexus_os.providers import AgentAdapter
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 
@@ -99,6 +100,7 @@ def create_local_application(
     configuration = load_agent_model_config(config_path)
     selected_profile = configuration.profiles[configuration.selected]
     resolver = SecretResolver(environment=os.environ)
+    adapter: AgentAdapter
     if selected_profile.provider_type in {"openai", "anthropic"}:
         resolved = _resolve_cloud_model(
             selected_profile,
@@ -149,7 +151,7 @@ def create_local_application(
         sessions=sessions,
         qualifications=authorization,
         adapter=adapter,
-        provider_id=resolved.profile.provider_type,
+        provider_id=selected_profile.provider_type,
         model_id=model_id,
         adapter_version=selected_profile.adapter_version,
         ids=ids,
