@@ -49,6 +49,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AP. Model qualification registry | QUALIFIED | Exact-binding durable registration, atomic supersession, revocation, read-time integrity checks, and all release/clean-room gates pass |
 | AQ. Agent session store | QUALIFIED | Canonical candidate revisions, append-only events, clarification/review/approval lifecycle, and all release/clean-room gates pass |
 | AR. Agent reasoning controller | QUALIFIED (FAKE) | Qualification-gated proposal generation, strict JSON/candidate validation, bounded repair, and all release/clean-room gates pass |
+| AS. Agent application API | QUALIFIED (FAKE) | Injected bearer authentication, exact scopes, durable replay, full Agent workflow composition, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -798,6 +799,28 @@ it does not authenticate operators, choose trusted attestors, distribute revocat
 schedule re-evaluation, grant tool authority, implement the NEXUS Agent controller, or
 authorize production release. Owner approval remains separate and no capability is
 production ready.
+
+## Component AS verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Bearer token extraction through an injected authenticator; caller cannot supply context
+- Exact read, write, approval, and model-qualification scopes
+- Authenticated human-principal requirement for candidate approval
+- Strict request envelope, path UUID, canonical body, secret, size, and operation checks
+- Durable actor/key/operation/path/body-bound idempotent response replay
+- Session create through AR, clarification re-entry, candidate/session reads, exact-digest
+  approval, and active model-qualification listing
+- Stable sanitized 400/401/403/404/409/422/500 error envelopes
+- Updated Agent OpenAPI scope and human-principal annotations
+- Focused suite: 6 tests; full suite: 418 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, and contract validation passed
+
+Component AS is clean-room QUALIFIED using an injected fake authenticator, fake provider,
+and synthetic qualification. All 15 portable release gates and independent review passed
+with zero findings. It does not implement token cryptography, issue identities, open a socket,
+call a live model, stream chat, start a runtime run, expose tools, deploy, or authorize
+production release. Owner approval remains separate and no capability is production ready.
 
 ## Component AQ verification
 
