@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import getpass
 import json
 import os
@@ -20,6 +21,8 @@ import yaml
 
 from nexus_os.agent_model_config import AgentModelConfigError, load_agent_model_config
 from nexus_os.agent_server_cli import run as run_server
+from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
+from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 
 _DEFAULT_ENDPOINTS = (
     "http://127.0.0.1:11434/v1",
@@ -58,7 +61,7 @@ def parser() -> argparse.ArgumentParser:
     setup.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     setup.add_argument(
         "--provider",
-        choices=("auto", "ollama", "lm_studio", "local_openai"),
+        choices=("auto", "ollama", "lm_studio", "local_openai", "openai", "anthropic"),
         default="auto",
     )
     setup.add_argument("--base-url")
@@ -148,29 +151,46 @@ def setup_local(
         raise RadCliError("timeout must be from 1 to 60 seconds")
     if settings_path.exists() and not values.force:
         raise RadCliError("configuration already exists; use --force to replace it")
-    endpoints = detect_models(
-        base_url=values.base_url,
-        timeout_seconds=values.timeout_seconds,
-        probe=probe,
-    )
-    if not endpoints:
-        raise RadCliError("no compatible loopback model endpoint was detected")
-    if len(endpoints) != 1:
-        raise RadCliError("multiple model endpoints detected; select one with --base-url")
-    endpoint = endpoints[0]
-    if values.provider != "auto" and values.provider != endpoint.provider:
-        raise RadCliError("selected provider does not match the endpoint")
-    provider = endpoint.provider if values.provider == "auto" else values.provider
-    model = values.model
-    if model is None:
-        if len(endpoint.models) != 1:
-            raise RadCliError("multiple models detected; select one with --model")
-        model = endpoint.models[0]
-    if model not in endpoint.models:
-        raise RadCliError("selected model was not reported by the endpoint")
+    cloud = values.provider in {"openai", "anthropic"}
+    if cloud:
+        if values.model is None:
+            raise RadCliError("cloud setup requires --model")
+        expected_url = (
+            "https://api.openai.com/v1"
+            if values.provider == "openai"
+            else "https://api.anthropic.com/v1"
+        )
+        if values.base_url is not None and values.base_url != expected_url:
+            raise RadCliError("cloud provider endpoint cannot be overridden")
+        endpoint = ModelEndpoint(values.provider, expected_url, (values.model,))
+        provider = values.provider
+        model = values.model
+    else:
+        endpoints = detect_models(
+            base_url=values.base_url,
+            timeout_seconds=values.timeout_seconds,
+            probe=probe,
+        )
+        if not endpoints:
+            raise RadCliError("no compatible loopback model endpoint was detected")
+        if len(endpoints) != 1:
+            raise RadCliError("multiple model endpoints detected; select one with --base-url")
+        endpoint = endpoints[0]
+        if values.provider != "auto" and values.provider != endpoint.provider:
+            raise RadCliError("selected provider does not match the endpoint")
+        provider = endpoint.provider if values.provider == "auto" else values.provider
+        model = values.model
+        if model is None:
+            if len(endpoint.models) != 1:
+                raise RadCliError("multiple models detected; select one with --model")
+            model = endpoint.models[0]
+        if model not in endpoint.models:
+            raise RadCliError("selected model was not reported by the endpoint")
     if values.mode == "qualified" and values.attestation is None:
         raise RadCliError("qualified mode requires --attestation")
     credential = values.credential_ref
+    if cloud and credential is None:
+        raise RadCliError("cloud setup requires --credential-ref")
     if credential is not None and not credential.startswith(("env:", "file:", "keyring:")):
         raise RadCliError("credential must be an opaque env:, file:, or keyring: reference")
 
@@ -254,7 +274,7 @@ def doctor_local(
             "password file is private" if private else "password file must be owner-only",
         )
     )
-    models = probe(profile.base_url, profile.timeout_seconds)
+    models = _discover_profile(profile, probe=probe)
     available = profile.model in models
     checks.append(
         _check(
@@ -301,7 +321,7 @@ def models_local(
     }
     if not test_connection:
         return True, result
-    models = probe(selected.base_url, selected.timeout_seconds)
+    models = _discover_profile(selected, probe=probe)
     connected = selected.model in models
     result["connection"] = {
         "status": "pass" if connected else "fail",
@@ -429,6 +449,25 @@ def _loopback_url(value: str) -> None:
         or endpoint.fragment
     ):
         raise RadCliError("model endpoint must be an explicit loopback /v1 URL")
+
+
+def _discover_profile(profile: Any, *, probe: Probe) -> tuple[str, ...]:
+    if profile.provider_type not in {"openai", "anthropic"}:
+        return probe(profile.base_url, profile.timeout_seconds)
+    if profile.credential is None:
+        raise RadCliError("cloud model credential reference is required")
+    resolver = SecretResolver(environment=os.environ)
+    reference = SecretReference.parse(profile.credential)
+    transport = (
+        OpenAIHTTPTransport(timeout_seconds=profile.timeout_seconds)
+        if profile.provider_type == "openai"
+        else AnthropicHTTPTransport(timeout_seconds=profile.timeout_seconds)
+    )
+    try:
+        with secret_scope(resolver, reference) as secret:
+            return asyncio.run(transport.list_models(secret.reveal()))
+    except Exception as exc:
+        raise RadCliError("cloud model discovery failed safely") from exc
 
 
 def _provider_for(base_url: str) -> str:

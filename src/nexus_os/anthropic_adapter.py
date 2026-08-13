@@ -101,7 +101,8 @@ class AnthropicAdapter:
         request: Mapping[str, object] = {
             "model": self._model,
             "max_tokens": self._max_tokens,
-            "messages": [{"role": "user", "content": dict(task.input)}],
+            "messages": [{"role": "user", "content": _prompt(task.input)}],
+            **_system(task.input),
             "metadata": {"user_id": task.provider_task_id},
         }
         try:
@@ -176,11 +177,21 @@ class AnthropicAdapter:
                 "Anthropic message did not complete successfully",
                 stop_reason in {"max_tokens", "model_context_window_exceeded"},
             )
+        output_text = _output_text(message)
+        if status is TaskStatus.SUCCEEDED and output_text is None:
+            raise AdapterError("invalid provider message output")
+        metadata: dict[str, object] = {
+            "message_id": message_id,
+            "model": self._model,
+            "stop_reason": stop_reason,
+        }
+        if output_text is not None:
+            metadata["output_text"] = output_text
         execution.result = ProviderResult(
             task.provider_task_id,
             status,
             usage=usage,
-            metadata={"message_id": message_id, "model": self._model, "stop_reason": stop_reason},
+            metadata=metadata,
             failure=failure,
         )
         kind = (
@@ -210,3 +221,33 @@ class AnthropicAdapter:
             return self._executions[provider_task_id]
         except KeyError as exc:
             raise AdapterError("unknown provider task") from exc
+
+
+def _prompt(value: Mapping[str, Any]) -> str:
+    prompt = value.get("prompt", value.get("instructions"))
+    if not isinstance(prompt, str) or not 1 <= len(prompt) <= 100_000:
+        raise AdapterError("Anthropic prompt is invalid")
+    return prompt
+
+
+def _system(value: Mapping[str, Any]) -> dict[str, str]:
+    system = value.get("system")
+    if system is None:
+        return {}
+    if not isinstance(system, str) or not 1 <= len(system) <= 100_000:
+        raise AdapterError("Anthropic system message is invalid")
+    return {"system": system}
+
+
+def _output_text(message: Mapping[str, Any]) -> str | None:
+    content = message.get("content")
+    if not isinstance(content, list):
+        return None
+    texts = []
+    for item in content:
+        if isinstance(item, Mapping) and item.get("type") == "text":
+            text = item.get("text")
+            if isinstance(text, str):
+                texts.append(text)
+    combined = "".join(texts)
+    return combined if 1 <= len(combined) <= 100_000 else None

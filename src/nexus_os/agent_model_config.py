@@ -25,7 +25,7 @@ _NAME = re.compile(r"^[a-z][a-z0-9_-]{1,63}$")
 _MODEL = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$")
 _ALLOWED_ROOT = frozenset({"schema_version", "selected", "profiles"})
 _ALLOWED_PROFILE = frozenset(
-    {"type", "base_url", "model", "credential", "adapter_version", "timeout_seconds"}
+    {"type", "base_url", "model", "credential", "adapter_version", "timeout_seconds", "max_tokens"}
 )
 
 
@@ -52,6 +52,7 @@ class LocalModelProfile:
     credential: str | None
     adapter_version: str
     timeout_seconds: int
+    max_tokens: int
 
     def public_dict(self) -> dict[str, object]:
         value: dict[str, object] = {
@@ -61,6 +62,7 @@ class LocalModelProfile:
             "model": self.model,
             "adapter_version": self.adapter_version,
             "timeout_seconds": self.timeout_seconds,
+            "max_tokens": self.max_tokens,
         }
         if self.credential is not None:
             value["credential"] = "<redacted-reference>"
@@ -192,13 +194,14 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
     if not isinstance(value, dict) or set(value) - _ALLOWED_PROFILE:
         raise AgentModelConfigError("model profile is invalid")
     provider_type = value.get("type")
-    if provider_type not in {"local_openai", "ollama", "lm_studio"}:
+    if provider_type not in {"local_openai", "ollama", "lm_studio", "openai", "anthropic"}:
         raise AgentModelConfigError("model profile type is unsupported")
     base_url = value.get("base_url")
     model = value.get("model")
     credential = value.get("credential")
     adapter_version = value.get("adapter_version", "1.0")
     timeout = value.get("timeout_seconds", 5)
+    max_tokens = value.get("max_tokens", 4096)
     if not isinstance(base_url, str) or not 1 <= len(base_url) <= 512:
         raise AgentModelConfigError("model profile base_url is invalid")
     try:
@@ -206,27 +209,51 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
         port = endpoint.port
     except ValueError as exc:
         raise AgentModelConfigError("model profile base_url is invalid") from exc
+    local_provider = provider_type in {"local_openai", "ollama", "lm_studio"}
+    valid_local = (
+        endpoint.scheme in {"http", "https"}
+        and endpoint.hostname in {"127.0.0.1", "localhost", "::1"}
+        and port is not None
+        and endpoint.path.rstrip("/") == "/v1"
+    )
+    cloud_urls = {
+        "openai": ("https", "api.openai.com"),
+        "anthropic": ("https", "api.anthropic.com"),
+    }
+    expected_cloud = cloud_urls.get(provider_type)
+    valid_cloud = (
+        expected_cloud is not None
+        and endpoint.scheme == expected_cloud[0]
+        and endpoint.hostname == expected_cloud[1]
+        and port is None
+        and endpoint.path.rstrip("/") == "/v1"
+    )
     if (
-        endpoint.scheme not in {"http", "https"}
-        or endpoint.hostname not in {"127.0.0.1", "localhost", "::1"}
-        or port is None
-        or endpoint.path.rstrip("/") != "/v1"
+        not (valid_local if local_provider else valid_cloud)
         or endpoint.username is not None
         or endpoint.password is not None
         or endpoint.query
         or endpoint.fragment
     ):
-        raise AgentModelConfigError("model profile must use an explicit loopback /v1 endpoint")
+        raise AgentModelConfigError("model profile endpoint is not authorized for its provider")
     if model is not None and (
         not isinstance(model, str) or not _MODEL.fullmatch(model) or ".." in model
     ):
         raise AgentModelConfigError("model profile model is invalid")
     if credential is not None:
         SecretReference.parse(credential)
+    if not local_provider and credential is None:
+        raise AgentModelConfigError("cloud model profile requires a credential reference")
     if adapter_version != "1.0":
         raise AgentModelConfigError("model profile adapter version is unsupported")
     if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 60:
         raise AgentModelConfigError("model profile timeout is invalid")
+    if (
+        not isinstance(max_tokens, int)
+        or isinstance(max_tokens, bool)
+        or not 1 <= max_tokens <= 200_000
+    ):
+        raise AgentModelConfigError("model profile max_tokens is invalid")
     return LocalModelProfile(
-        name, provider_type, base_url, model, credential, adapter_version, timeout
+        name, provider_type, base_url, model, credential, adapter_version, timeout, max_tokens
     )

@@ -80,7 +80,8 @@ def test_success_maps_responses_api_to_normalized_lifecycle() -> None:
     assert result.status is TaskStatus.SUCCEEDED
     assert result.usage.total_tokens == 19
     assert transport.requests[0]["store"] is False
-    assert transport.requests[0]["background"] is True
+    assert transport.requests[0]["background"] is False
+    assert result.metadata["output_text"] == "done"
     assert transport.requests[0]["model"] == "gpt-5.6"
     assert subject.descriptor().conformance is ConformanceLevel.UNVERIFIED
 
