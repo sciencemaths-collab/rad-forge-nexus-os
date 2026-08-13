@@ -170,9 +170,7 @@ def create_local_application(
         ids=ids,
     )
     runtime_api = (
-        _create_reference_runtime(state_dir, sessions, ids)
-        if mode == "qualified"
-        else None
+        _create_reference_runtime(state_dir, sessions, ids) if mode == "qualified" else None
     )
     service = AgentApplicationService(
         sessions=sessions,
@@ -285,13 +283,9 @@ def _resolve_cloud_model(
 
 
 class ReferenceRuntimeCapabilities:
-    _QUALIFIED = frozenset(
-        {"app_build.planning", "research.planning", "data_analysis.planning"}
-    )
+    _QUALIFIED = frozenset({"app_build.planning", "research.planning", "data_analysis.planning"})
 
-    def qualified_capabilities(
-        self, identity: object, session_id: UUID
-    ) -> frozenset[str]:
+    def qualified_capabilities(self, identity: object, session_id: UUID) -> frozenset[str]:
         del identity, session_id
         return self._QUALIFIED
 
