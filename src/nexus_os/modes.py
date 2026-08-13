@@ -84,6 +84,7 @@ class AppBuildMode:
         if workspace.get("read_only") is True:
             raise ModeCompileError("app_build requires a writable workspace")
         project_id = _string(data.get("project_id"), "project_id")
+        workspace_root = _string(workspace.get("root"), "workspace root")
         goal = _string(data.get("goal"), "goal")
         name = _string(data.get("name"), "name")
         policy = _mapping(data.get("policy"), "policy")
@@ -102,6 +103,7 @@ class AppBuildMode:
             task_input: dict[str, Any] = {
                 "mode_version": APP_BUILD_VERSION,
                 "expected_artifact": stage.artifact,
+                "workspace_root": workspace_root,
             }
             if stage.task_id == "specification":
                 task_input.update(project_name=name, goal=goal)
@@ -138,6 +140,7 @@ class ResearchMode:
         if workspace.get("read_only") is True:
             raise ModeCompileError("research requires a writable workspace")
         project_id = _string(data.get("project_id"), "project_id")
+        workspace_root = _string(workspace.get("root"), "workspace root")
         question = _string(data.get("goal"), "goal")
         policy = _mapping(data.get("policy"), "policy")
         max_attempts = policy.get("max_attempts")
@@ -153,6 +156,7 @@ class ResearchMode:
         for stage in _RESEARCH_STAGES:
             task_id = TaskId(stage.task_id)
             task_input = _research_input(stage, question, acceptance)
+            task_input["workspace_root"] = workspace_root
             tasks.append(
                 TaskDefinition(
                     task_id=task_id,
@@ -184,6 +188,7 @@ class DataAnalysisMode:
         if workspace.get("read_only") is True:
             raise ModeCompileError("data_analysis requires a writable workspace")
         project_id = _string(data.get("project_id"), "project_id")
+        workspace_root = _string(workspace.get("root"), "workspace root")
         goal = _string(data.get("goal"), "goal")
         policy = _mapping(data.get("policy"), "policy")
         max_attempts = policy.get("max_attempts")
@@ -199,6 +204,7 @@ class DataAnalysisMode:
         for stage in _DATA_ANALYSIS_STAGES:
             task_id = TaskId(stage.task_id)
             task_input = _analysis_input(stage, goal, acceptance)
+            task_input["workspace_root"] = workspace_root
             tasks.append(
                 TaskDefinition(
                     task_id=task_id,
