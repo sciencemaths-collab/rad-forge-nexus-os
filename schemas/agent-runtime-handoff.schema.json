@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/agent-runtime-handoff.schema.json",
+  "title": "NEXUS Agent Runtime Handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "session_id", "candidate_id", "candidate_digest", "run_id", "graph_digest", "mode", "required_capabilities", "initialized_at", "state"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "session_id": {"type": "string", "format": "uuid"},
+    "candidate_id": {"type": "string", "format": "uuid"},
+    "candidate_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "graph_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "mode": {"enum": ["app_build", "research", "data_analysis"]},
+    "required_capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"}},
+    "initialized_at": {"type": "string", "format": "date-time"},
+    "state": {"const": "READY_NOT_EXECUTED"}
+  }
+}
