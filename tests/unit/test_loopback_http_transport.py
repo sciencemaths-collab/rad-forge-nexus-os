@@ -91,6 +91,20 @@ def test_localhost_is_pinned_to_ipv4_loopback(tmp_path: Path) -> None:
     assert calls[0][1] == "127.0.0.1"
 
 
+def test_model_discovery_is_bounded_sorted_and_unique(tmp_path: Path) -> None:
+    body = json.dumps({"data": [{"id": "model-b"}, {"id": "model-a"}]}).encode()
+    transport, _ = subject(tmp_path, Connection(Response(body)))
+    assert asyncio.run(transport.list_models("http://127.0.0.1:11434/v1", None, 5)) == (
+        "model-a",
+        "model-b",
+    )
+
+    duplicate = json.dumps({"data": [{"id": "same"}, {"id": "same"}]}).encode()
+    transport, _ = subject(tmp_path, Connection(Response(duplicate)))
+    with pytest.raises(TransportError, match="duplicates"):
+        asyncio.run(transport.list_models("http://127.0.0.1:11434/v1", None, 5))
+
+
 def test_non_success_completion_and_malformed_json_are_safe(tmp_path: Path) -> None:
     for response, message in (
         (Response(b'{"error":"raw secret"}', status=500), "non-success"),

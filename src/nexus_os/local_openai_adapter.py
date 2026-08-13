@@ -41,6 +41,10 @@ class TransportError(RuntimeError):
 class LocalOpenAITransport(Protocol):
     async def health(self, base_url: str, api_key: str | None, timeout_seconds: int) -> bool: ...
 
+    async def list_models(
+        self, base_url: str, api_key: str | None, timeout_seconds: int
+    ) -> tuple[str, ...]: ...
+
     async def create_chat_completion(
         self,
         base_url: str,
