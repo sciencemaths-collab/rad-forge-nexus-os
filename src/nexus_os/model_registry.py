@@ -244,6 +244,17 @@ class ModelQualificationRegistry:
             raise ModelRegistryError("qualification does not permit requested model use")
         return record
 
+    def active(self, *, at: datetime) -> tuple[RegistryRecord, ...]:
+        """Return integrity-verified, unexpired active records in canonical order."""
+        _utc(at, "at")
+        rows = self._connection.execute(
+            """SELECT * FROM model_qualifications WHERE status = ?
+               ORDER BY provider_id, model_id, adapter_version""",
+            (RegistryStatus.ACTIVE.value,),
+        ).fetchall()
+        records = tuple(_record(row) for row in rows)
+        return tuple(item for item in records if at < item.qualification.expires_at)
+
 
 def _record(row: tuple[object, ...]) -> RegistryRecord:
     try:

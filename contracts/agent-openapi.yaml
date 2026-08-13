@@ -1,14 +1,15 @@
 openapi: 3.1.1
 info:
   title: NEXUS Agent API Contract
-  version: 0.1.0
-  description: Contract-only agent product boundary; no server implementation is claimed.
+  version: 0.2.0
+  description: Transport-neutral authenticated Agent application boundary; no network server or execution endpoint is claimed.
 security:
   - bearerAuth: []
 paths:
   /v1/agent/sessions:
     post:
       operationId: createAgentSession
+      x-required-scope: agent:write
       parameters: [$ref: '#/components/parameters/IdempotencyKey']
       requestBody:
         required: true
@@ -27,6 +28,7 @@ paths:
   /v1/agent/sessions/{sessionId}:
     get:
       operationId: getAgentSession
+      x-required-scope: agent:read
       parameters: [$ref: '#/components/parameters/SessionId']
       responses:
         '200': {$ref: '#/components/responses/AgentSessionResponse'}
@@ -34,6 +36,7 @@ paths:
   /v1/agent/sessions/{sessionId}/clarifications:
     post:
       operationId: submitAgentClarification
+      x-required-scope: agent:write
       parameters:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -52,6 +55,7 @@ paths:
   /v1/agent/sessions/{sessionId}/candidate:
     get:
       operationId: getAgentCandidateSpecification
+      x-required-scope: agent:read
       parameters: [$ref: '#/components/parameters/SessionId']
       responses:
         '200':
@@ -60,6 +64,8 @@ paths:
   /v1/agent/sessions/{sessionId}/approve:
     post:
       operationId: approveAgentCandidateSpecification
+      x-required-scope: agent:approve
+      x-human-principal-required: true
       parameters:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -78,6 +84,7 @@ paths:
   /v1/model-qualifications:
     get:
       operationId: listModelQualifications
+      x-required-scope: model-qualifications:read
       responses:
         '200':
           description: Reasoning model qualifications

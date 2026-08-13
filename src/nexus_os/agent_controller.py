@@ -85,22 +85,43 @@ class AgentReasoningController:
         expected_sequence: int,
         trace_id: TraceId,
         allow_repair: bool = True,
+        clarification: str | None = None,
     ) -> AgentSession:
         _utc(at)
+        if clarification is not None and (
+            not isinstance(clarification, str)
+            or not 1 <= len(clarification) <= 8000
+            or redact(clarification) != clarification
+        ):
+            raise AgentControllerError("clarification context is invalid or secret-like")
         session = self._sessions.get(session_id)
         if session.state is not AgentState.DRAFTING or len(session.events) != expected_sequence:
             raise AgentControllerError("session is not at the expected drafting revision")
         self._authorize(ModelUse.CANDIDATE_SPECIFICATION, at)
         objective = self._sessions.objective(session_id)
         revision = self._next_revision(session_id)
-        output = await self._call(session_id, trace_id, objective, revision, repair=False)
+        output = await self._call(
+            session_id,
+            trace_id,
+            objective,
+            revision,
+            repair=False,
+            clarification=clarification,
+        )
         try:
             candidate = self._candidate(output, session_id, revision)
         except AgentControllerError:
             if not allow_repair:
                 raise
             self._authorize(ModelUse.REPAIR_PROPOSAL, at)
-            output = await self._call(session_id, trace_id, objective, revision, repair=True)
+            output = await self._call(
+                session_id,
+                trace_id,
+                objective,
+                revision,
+                repair=True,
+                clarification=clarification,
+            )
             candidate = self._candidate(output, session_id, revision)
         return self._sessions.save_candidate(
             candidate,
@@ -131,9 +152,19 @@ class AgentReasoningController:
             return 1
 
     async def _call(
-        self, session_id: UUID, trace_id: TraceId, objective: str, revision: int, *, repair: bool
+        self,
+        session_id: UUID,
+        trace_id: TraceId,
+        objective: str,
+        revision: int,
+        *,
+        repair: bool,
+        clarification: str | None,
     ) -> str:
-        prompt = f"Objective:\n{objective}\nRevision: {revision}\n" + (
+        prompt = f"Objective:\n{objective}\nRevision: {revision}\n"
+        if clarification is not None:
+            prompt += f"User clarification:\n{clarification}\n"
+        prompt += (
             "Previous response failed schema validation. Return a corrected object."
             if repair
             else "Create the candidate object."
