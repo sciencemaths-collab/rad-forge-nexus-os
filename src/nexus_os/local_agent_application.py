@@ -111,9 +111,7 @@ def create_local_application(
                 model=resolved,
                 credential=_required_credential(selected_profile.credential),
                 resolver=resolver,
-                transport=OpenAIHTTPTransport(
-                    timeout_seconds=selected_profile.timeout_seconds
-                ),
+                transport=OpenAIHTTPTransport(timeout_seconds=selected_profile.timeout_seconds),
             )
         else:
             adapter = AnthropicAdapter(
@@ -121,9 +119,7 @@ def create_local_application(
                 max_tokens=selected_profile.max_tokens,
                 credential=_required_credential(selected_profile.credential),
                 resolver=resolver,
-                transport=AnthropicHTTPTransport(
-                    timeout_seconds=selected_profile.timeout_seconds
-                ),
+                transport=AnthropicHTTPTransport(timeout_seconds=selected_profile.timeout_seconds),
             )
         model_id = resolved
     else:
