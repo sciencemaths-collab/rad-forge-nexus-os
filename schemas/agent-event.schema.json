@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/agent-event.schema.json",
+  "title": "NEXUS Agent Session Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "session_id", "sequence", "occurred_at", "from_state", "to_state", "event_type", "actor_type", "summary"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "event_id": {"type": "string", "format": "uuid"},
+    "session_id": {"type": "string", "format": "uuid"},
+    "sequence": {"type": "integer", "minimum": 1, "maximum": 1000000},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "from_state": {"$ref": "#/$defs/nullable_state"},
+    "to_state": {"$ref": "#/$defs/state"},
+    "event_type": {"enum": ["SESSION_CREATED", "CLARIFICATION_REQUESTED", "CLARIFICATION_RECEIVED", "SPECIFICATION_PREPARED", "REVIEW_STARTED", "SPECIFICATION_REVISED", "SPECIFICATION_APPROVED", "RUN_STARTED", "APPROVAL_REQUESTED", "APPROVAL_RESOLVED", "VERIFICATION_STARTED", "SESSION_COMPLETED", "SESSION_FAILED", "SESSION_CANCELLED"]},
+    "actor_type": {"enum": ["USER", "AGENT", "SYSTEM", "REVIEWER"]},
+    "summary": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "candidate_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "approval_id": {"type": "string", "format": "uuid"}
+  },
+  "$defs": {
+    "state": {"enum": ["DRAFTING", "CLARIFICATION_REQUIRED", "SPECIFICATION_READY", "USER_REVIEW", "APPROVED", "RUNNING", "APPROVAL_REQUIRED", "VERIFYING", "COMPLETED", "FAILED", "CANCELLED"]},
+    "nullable_state": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/state"}]}
+  }
+}

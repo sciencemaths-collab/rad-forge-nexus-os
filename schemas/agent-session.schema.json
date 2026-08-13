@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/agent-session.schema.json",
+  "title": "NEXUS Agent Session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "session_id", "project_id", "state", "created_at", "updated_at", "events"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "session_id": {"type": "string", "format": "uuid"},
+    "project_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,63}$"},
+    "state": {"enum": ["DRAFTING", "CLARIFICATION_REQUIRED", "SPECIFICATION_READY", "USER_REVIEW", "APPROVED", "RUNNING", "APPROVAL_REQUIRED", "VERIFYING", "COMPLETED", "FAILED", "CANCELLED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "candidate_id": {"type": "string", "format": "uuid"},
+    "approved_candidate_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "events": {"type": "array", "minItems": 1, "maxItems": 100000, "items": {"$ref": "agent-event.schema.json"}}
+  }
+}

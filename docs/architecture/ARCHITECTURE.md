@@ -30,3 +30,21 @@ Key flows are validate -> canonicalize -> plan -> policy preview -> execute ->
 verify -> evidence -> qualify. Approval pauses are durable. Recovery reconstructs
 state from the store and resumes only compatible, leased, idempotent work.
 
+## NEXUS Agent boundary
+
+NEXUS Agent is a product layer above the control plane. It converts conversation
+into a candidate specification but cannot directly execute tools or authorize work.
+Reasoning providers remain behind adapters and may be local or hosted.
+
+```mermaid
+flowchart TD
+  U["User"] --> A["NEXUS Agent"]
+  A --> C["Validated candidate specification"]
+  C --> O["NEXUS OS"]
+  O --> P["Policy and approvals"]
+  O --> R["Reasoning-provider adapters"]
+  O --> T["Typed deterministic tools"]
+  O --> E["Evidence and qualification"]
+```
+
+The model-to-tool edge is deliberately absent. ADR-0003 governs this separation.

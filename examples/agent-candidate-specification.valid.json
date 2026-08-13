@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "candidate_id": "10000000-0000-4000-8000-000000000001",
+  "session_id": "10000000-0000-4000-8000-000000000002",
+  "revision": 1,
+  "objective": "Build and verify the accepted reference application.",
+  "mode": "app_build",
+  "inputs": ["artifact:specifications/reference-application.pdf"],
+  "constraints": ["Do not deploy or publish."],
+  "acceptance_criteria": [
+    {"acceptance_id": "AC-BUILD", "statement": "The locked build succeeds.", "verification_method": "Run the declared build gate and retain its evidence record."}
+  ],
+  "required_capabilities": ["app_build.planning"],
+  "risk_summary": {"highest_effect": "WORKSPACE_WRITE", "reasons": ["The run may create source artifacts inside the authorized workspace."]},
+  "unresolved_questions": [],
+  "review_ready": true,
+  "candidate_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

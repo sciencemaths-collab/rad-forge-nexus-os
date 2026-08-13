@@ -31,9 +31,51 @@ def test_openapi_has_required_control_operations_and_local_refs() -> None:
     }
     assert required <= operations
     text = (ROOT / "contracts/openapi.yaml").read_text(encoding="utf-8")
-    for schema_name in ("project", "evidence", "approval", "provider", "capability"):
+    for schema_name in (
+        "project",
+        "evidence",
+        "approval",
+        "provider",
+        "capability",
+        "agent-session",
+        "agent-candidate-specification",
+        "model-qualification",
+    ):
         if f"../schemas/{schema_name}.schema.json" in text:
             assert (ROOT / f"schemas/{schema_name}.schema.json").exists()
+
+
+def test_agent_api_mutations_require_idempotency_keys() -> None:
+    document = yaml.safe_load((ROOT / "contracts/agent-openapi.yaml").read_text(encoding="utf-8"))
+    operations = {
+        operation["operationId"]
+        for methods in document["paths"].values()
+        for operation in methods.values()
+    }
+    assert operations == {
+        "createAgentSession",
+        "getAgentSession",
+        "submitAgentClarification",
+        "getAgentCandidateSpecification",
+        "approveAgentCandidateSpecification",
+        "listModelQualifications",
+    }
+    for path, operations in document["paths"].items():
+        if not path.startswith("/v1/agent/"):
+            continue
+        for method, operation in operations.items():
+            if method != "post":
+                continue
+            parameters = operation.get("parameters", [])
+            assert {"$ref": "#/components/parameters/IdempotencyKey"} in parameters
+    text = (ROOT / "contracts/agent-openapi.yaml").read_text(encoding="utf-8")
+    for schema_name in (
+        "agent-session",
+        "agent-candidate-specification",
+        "model-qualification",
+    ):
+        assert f"../schemas/{schema_name}.schema.json" in text
+        assert (ROOT / f"schemas/{schema_name}.schema.json").exists()
 
 
 def test_mcp_tools_have_valid_typed_boundaries_and_effects() -> None:
