@@ -45,6 +45,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AF. CI/release evidence | TESTED | 285-test suite, 15 fail-fast gates, portable dependency audits, secret scan, SBOM/provenance/report bundle pass |
 | AG. Clean-room qualification | QUALIFIED | Isolated locked install, all automated gates, independent review, and digest-bound reports pass |
 | AH. NEXUS Agent contracts | QUALIFIED (CONTRACT) | Agent/runtime/provider separation, four schemas, lifecycle semantics, separate API contract, 293 tests, all release/clean-room gates pass |
+| AI. Local OpenAI-compatible adapter | QUALIFIED (FAKE) | Credential-optional loopback adapter, bounded chat normalization, 303 tests, all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -626,3 +627,27 @@ model integration, hardware discovery, controller implementation, durable agent
 application services, authentication, streaming, UI, deployment, and live-provider
 qualification remain unimplemented and unclaimed. Component AI is the next eligible
 component: an OpenAI-compatible local reasoning-provider adapter, after AH integration.
+
+## Component AI verification
+
+On 2026-08-13 the following passed:
+
+- Credential-optional local Chat Completions adapter behind an injected transport
+- Explicit loopback-only endpoint validation with port and `/v1` path requirements
+- Remote, wildcard, credential-bearing, query-bearing, malformed, and non-HTTP
+  endpoint rejection
+- Optional opaque credential resolution scoped to each transport call
+- Bounded system/prompt and message normalization that excludes arbitrary task
+  metadata, tool roles, and secret-like fields
+- Strict response identity, assistant content, finish reason, and token usage validation
+- Provider-neutral event/result/failure mapping and truthful non-resumable capability
+- Existing provider conformance harness pass with a deterministic fake transport
+- Focused suite: 10 tests; full suite: 303 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, contracts, online/offline Python builds, and
+  TypeScript package dry-run
+
+Component AI is clean-room QUALIFIED with an injected fake transport, not live-qualified.
+All 15 portable release gates and independent review passed with zero findings. It does
+not contain an HTTP client, open a socket, install or download model weights, discover
+hardware, stream tokens, establish model quality, or authorize network access. A live
+local transport and model-qualification harness remain later components.
