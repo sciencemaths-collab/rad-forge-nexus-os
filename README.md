@@ -143,6 +143,12 @@ New integrations should use `rad` and `RAD_AGENT_*`.
 Approval records the reviewed specification. It does not automatically publish, contact
 external users, or grant arbitrary tool access.
 
+In qualified mode, an approved candidate can now enter the governed reference runtime through
+the authenticated runtime API. The Phase 3A tool writes deterministic task artifacts only
+inside `.rad-agent-artifacts/` under the operator-approved workspace. It provides a real
+execution/evidence path without shell, network, publishing, deployment, or deletion access.
+See **[Governed reference tool execution](docs/specifications/RAD_GOVERNED_TOOL_EXECUTION.md)**.
+
 ## Model configuration
 
 RAD Agent supports local OpenAI-compatible endpoints such as a compatible Ollama, LM Studio,
