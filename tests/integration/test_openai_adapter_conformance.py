@@ -19,7 +19,10 @@ class ConformanceTransport:
         response_id = "resp_" + task_id.replace("-", "_")
         status = "in_progress" if task_id.endswith(("cancel", "resume")) else "completed"
         self.responses[response_id] = status
-        return {"id": response_id, "status": status, "usage": {}}
+        response: dict[str, Any] = {"id": response_id, "status": status, "usage": {}}
+        if status == "completed":
+            response["output_text"] = "done"
+        return response
 
     async def retrieve(self, response_id: str, api_key: str) -> Mapping[str, Any]:
         return {"id": response_id, "status": self.responses[response_id], "usage": {}}
