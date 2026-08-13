@@ -997,3 +997,24 @@ remote arbitrary endpoints, or claim direct OpenAI/Anthropic cloud connections. 
 capabilities require their own transport, network-policy, credential, live-test, and
 qualification evidence.
 
+## RAD Agent Phase 2B cloud-connection verification
+
+On 2026-08-13 GitHub Actions run 86 passed all 15 portable release gates for direct
+official OpenAI and Anthropic model connections:
+
+- Fixed official HTTPS origins and rejection of endpoint overrides
+- Bounded, non-redirecting, JSON-only OpenAI Responses and Anthropic Messages transports
+- Opaque credential references, header-injection rejection, and sanitized failures
+- Authenticated model discovery through the provider-neutral `rad models test` workflow
+- Controller-compatible system/user prompts and bounded normalized proposal output
+- Normalized input/output token accounting without fabricated price estimates
+- Exact provider/model/adapter/use qualification retained
+- Credential-free deterministic CI plus separately opt-in live discovery smoke tests
+- Full Python and TypeScript suites, type checking, linting, contracts, package build,
+  dependency audit, and release evidence passed
+
+This establishes implementation-level cloud connection support. No real provider credential
+was available to the default CI run, so live provider availability and model quality remain
+unverified until an operator runs the explicit live smoke test and completes exact-model
+qualification. Connecting a key does not enable tools or production authorization.
+
