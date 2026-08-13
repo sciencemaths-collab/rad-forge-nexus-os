@@ -16,15 +16,15 @@ from nexus_os.agent_api import (
 )
 from nexus_os.agent_controller import AgentReasoningController
 from nexus_os.agent_handoff import AgentRuntimeHandoffService
-from nexus_os.agent_runtime_api import AgentRuntimeRegistry, GovernedAgentRuntimeApi
 from nexus_os.agent_model_config import (
     load_agent_model_config,
     resolve_agent_model_sync,
 )
+from nexus_os.agent_runtime_api import AgentRuntimeRegistry, GovernedAgentRuntimeApi
 from nexus_os.agent_store import AgentSessionStore
+from nexus_os.anthropic_adapter import AnthropicAdapter
 from nexus_os.approval import ApprovalStore
 from nexus_os.attempt_store import AttemptStore
-from nexus_os.anthropic_adapter import AnthropicAdapter
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
 from nexus_os.evidence import EvidenceLedger
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
@@ -42,8 +42,8 @@ from nexus_os.providers import AgentAdapter
 from nexus_os.retry import RetryEngine, RetryLimits
 from nexus_os.runtime import RuntimeOrchestrator
 from nexus_os.runtime_evidence import AgentCompletionVerifier, RuntimeEvidenceWriter
-from nexus_os.scheduler import GovernedScheduler
 from nexus_os.sandbox import WorkspaceSandbox
+from nexus_os.scheduler import GovernedScheduler
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 from nexus_os.stores import SQLiteCheckpointStore
 from nexus_os.tools import ToolExecutor, ToolRegistry
