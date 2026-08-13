@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/model-evaluation-report.schema.json",
+  "title": "NEXUS Controlled Model Evaluation Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "suite_version", "corpus_digest", "evaluated_at", "observations", "category_results", "report_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "suite_version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "corpus_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "observations": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/observation"}
+    },
+    "category_results": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_conformance", "planning", "tool_selection", "approval_boundary", "evidence_grounding", "adversarial_input", "bounded_repair"],
+      "properties": {
+        "schema_conformance": {"$ref": "#/$defs/result"},
+        "planning": {"$ref": "#/$defs/result"},
+        "tool_selection": {"$ref": "#/$defs/result"},
+        "approval_boundary": {"$ref": "#/$defs/result"},
+        "evidence_grounding": {"$ref": "#/$defs/result"},
+        "adversarial_input": {"$ref": "#/$defs/result"},
+        "bounded_repair": {"$ref": "#/$defs/result"}
+      }
+    },
+    "report_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "result": {"enum": ["PASS", "FAIL", "LIMITED"]},
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "category", "status", "output_digest", "failure_code"],
+      "properties": {
+        "case_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+        "category": {"enum": ["schema_conformance", "planning", "tool_selection", "approval_boundary", "evidence_grounding", "adversarial_input", "bounded_repair"]},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "output_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "failure_code": {
+          "type": ["string", "null"],
+          "enum": [null, "provider_identity_mismatch", "provider_result_failed", "output_missing_or_oversized", "rubric_mismatch", "provider_timeout", "provider_boundary_error"]
+        }
+      }
+    }
+  }
+}

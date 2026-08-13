@@ -671,3 +671,23 @@ benchmark evidence, and grants proposal eligibility rather than execution author
 Live benchmark cases, controlled evaluator execution, model-specific qualification,
 durable revocation, Agent controller integration, owner approval, and production
 release remain later work.
+
+## Component AK verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Complete, versioned, seven-category structured-output evaluation corpus
+- Provider-neutral sequential execution and bounded per-case timeouts
+- Canonical corpus/report digests and raw-output-free observations
+- Strict JSON, duplicate-key, rubric, identity, provider, size, timeout, secret, and
+  model-authored score/evidence rejection
+- PASS/LIMITED/FAIL aggregation and independent evidence binding into Component AJ
+- Public evaluation-report Draft 2020-12 schema
+- Focused suite: 10 tests
+
+Component AK is clean-room QUALIFIED using an injected fake transport. The full
+326-test Python suite, 6-test TypeScript suite, all 15 portable release gates, and
+independent review passed with zero findings. It contains no live benchmark corpus,
+network client, model installation, evidence persistence, provider comparison, or
+production qualification. A controlled live transport and independently maintained
+benchmark corpus remain later components.
