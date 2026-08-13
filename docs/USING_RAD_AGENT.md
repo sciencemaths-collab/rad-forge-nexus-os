@@ -52,82 +52,72 @@ Do not bind an unauthenticated model server to a public network.
 Confirm the exact model identifier reported by the server. Availability alone does not
 qualify the model for RAD Agent reasoning.
 
-### 3. Create the model profile
+### 3. Run guided setup
 
-Copy the example:
-
-```bash
-cp examples/agent-models.local.yaml agent-models.local.yaml
-```
-
-Edit it so the model identifier and loopback endpoint exactly match the running server:
-
-```yaml
-schema_version: "1.0"
-selected: local_default
-profiles:
-  local_default:
-    type: local_openai
-    base_url: http://127.0.0.1:11434/v1
-    model: YOUR_EXACT_MODEL_ID
-    adapter_version: "1.0"
-    timeout_seconds: 5
-```
-
-The bundled local composition intentionally accepts only explicit loopback `/v1`
-endpoints. It will reject direct public cloud URLs.
-
-### 4. Evaluate and qualify the model
-
-Run the public reference evaluation described in the
-[local model evaluation runbook](runbooks/LOCAL_MODEL_EVALUATION.md):
+With the model server running, use the supported setup command:
 
 ```bash
-uv run nexus-model-eval \
+uv run rad setup
+```
+
+RAD Agent probes fixed loopback ports used by common OpenAI-compatible local servers,
+discovers reported model identifiers, asks you to create the local operator password, and
+writes owner-only settings. It does not download a model, contact a cloud service, or invent
+qualification evidence.
+
+If more than one endpoint or model is available, select it explicitly:
+
+```bash
+uv run rad setup \
   --base-url http://127.0.0.1:11434/v1 \
-  --model YOUR_EXACT_MODEL_ID \
-  --corpus benchmarks/model-evaluation/reference-v1.json \
-  --corpus-digest sha256:b9fa09369641225025b78ef3bb73759443b8d9e22e532af7757fffd8c6c55972 \
-  --output local-evaluation.json \
-  --run-id 40000000-0000-4000-8000-000000000001 \
-  --trace-id 44444444444444444444444444444444 \
-  --evaluated-at 2026-08-13T16:00:00Z \
-  --authorize-loopback
+  --model YOUR_EXACT_MODEL_ID
 ```
 
-An evaluation result is not automatically a qualification attestation. The current
-security model requires an independently verified attestation that matches the exact
-`local_openai` provider, model identifier, adapter version, and allowed reasoning uses.
-See the [attestation schema](../schemas/attested-model-qualification.schema.json) and
-[engineering status](runbooks/STATUS.md).
+Setup rejects remote URLs, embedded credentials, ambiguous selection, unsafe credential
+values, and incompatible endpoints. A key-protected loopback gateway may use an opaque
+reference such as `--credential-ref env:LOCAL_MODEL_KEY`.
 
-This gate is deliberate: RAD Agent must not silently treat an available model as suitable
-for governed work.
-
-### 5. Create the operator password
+### 4. Check readiness
 
 ```bash
-install -m 600 /dev/null .rad-agent-password
-printf '%s\n' 'choose-a-long-unique-password' > .rad-agent-password
+uv run rad doctor
 ```
 
-The file must be readable only by its owner. Do not commit it.
+Doctor checks the generated settings, private password permissions, model configuration,
+endpoint availability, selected model, and qualification requirement. It does not invoke
+model inference.
 
-### 6. Configure and start RAD Agent
+### 5. Choose the operating mode
+
+The default is **development mode**. It is deliberately marked unqualified and supports
+local candidate planning, bounded proposal repair, human review, and approval recording
+only. It has no runtime tools and cannot authorize tool selection or sensitive actions.
+
+For qualified mode, supply a current independently verified attestation during setup:
 
 ```bash
-export NEXUS_AGENT_MODEL_CONFIG="$PWD/agent-models.local.yaml"
-export NEXUS_AGENT_MODEL_ATTESTATION="$PWD/path/to/current-attestation.json"
-
-uv run nexus-agent-serve \
-  --state-dir "$PWD/.rad-agent" \
-  --password-file "$PWD/.rad-agent-password"
+uv run rad setup \
+  --mode qualified \
+  --attestation /path/to/current-attestation.json \
+  --force
 ```
 
-The `NEXUS_AGENT_*` variable names are retained for compatibility with the current
-implementation. They do not name a separate product.
+The attestation must match the exact `local_openai` provider, model identifier, adapter
+version, permitted uses, and current time. A public evaluation result alone is not an
+attestation. See the [local model evaluation runbook](runbooks/LOCAL_MODEL_EVALUATION.md)
+and [attestation schema](../schemas/attested-model-qualification.schema.json).
 
-Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/).
+### 6. Start RAD Agent
+
+```bash
+uv run rad serve
+```
+
+Development mode prints a visible unqualified-mode warning at startup. The server remains
+bound to loopback. Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/).
+
+Preferred environment names use `RAD_AGENT_*`. Existing `NEXUS_AGENT_*` variables and
+`nexus-*` commands remain temporary compatibility aliases.
 
 ### 7. Complete the first planning workflow
 
