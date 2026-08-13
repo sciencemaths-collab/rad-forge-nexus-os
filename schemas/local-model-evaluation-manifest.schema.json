@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/local-model-evaluation-manifest.schema.json",
+  "title": "NEXUS Local Model Evaluation Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "trace_id", "provider_id", "adapter_version", "model_id", "endpoint_digest", "report", "qualification_state", "manifest_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "trace_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+    "provider_id": {"const": "local_openai"},
+    "adapter_version": {"const": "1.0"},
+    "model_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "endpoint_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "report": {"$ref": "model-evaluation-report.schema.json"},
+    "qualification_state": {"const": "NOT_QUALIFIED"},
+    "manifest_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  }
+}
