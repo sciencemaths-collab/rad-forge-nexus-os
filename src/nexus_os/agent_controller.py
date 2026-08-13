@@ -105,10 +105,17 @@ class AgentReasoningController:
             or not 1 <= len(clarification) <= 8000
             or redact(clarification) != clarification
         ):
-            raise AgentControllerError("clarification context is invalid or secret-like")
+            raise AgentControllerError(
+                "clarification context is invalid or secret-like"
+            )
         session = self._sessions.get(session_id)
-        if session.state is not AgentState.DRAFTING or len(session.events) != expected_sequence:
-            raise AgentControllerError("session is not at the expected drafting revision")
+        if (
+            session.state is not AgentState.DRAFTING
+            or len(session.events) != expected_sequence
+        ):
+            raise AgentControllerError(
+                "session is not at the expected drafting revision"
+            )
         self._authorize(ModelUse.CANDIDATE_SPECIFICATION, at)
         objective = self._sessions.objective(session_id)
         revision = self._next_revision(session_id)
@@ -194,7 +201,9 @@ class AgentReasoningController:
             key = await self._adapter.run(task)
             result = await self._adapter.result(key)
         except Exception as exc:
-            raise AgentControllerError("reasoning provider request failed safely") from exc
+            raise AgentControllerError(
+                "reasoning provider request failed safely"
+            ) from exc
         output = result.metadata.get("output_text")
         if (
             result.status is not TaskStatus.SUCCEEDED
@@ -206,7 +215,9 @@ class AgentReasoningController:
             )
         return output
 
-    def _candidate(self, output: str, session_id: UUID, revision: int) -> CandidateSpecification:
+    def _candidate(
+        self, output: str, session_id: UUID, revision: int
+    ) -> CandidateSpecification:
         try:
             value = json.loads(
                 output,
@@ -229,7 +240,9 @@ class AgentReasoningController:
             document = {**unsigned, "candidate_digest": candidate_digest(unsigned)}
             return CandidateSpecification.parse(document)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
-            raise AgentControllerError("model proposal failed strict candidate validation") from exc
+            raise AgentControllerError(
+                "model proposal failed strict candidate validation"
+            ) from exc
 
     def _candidate_id(self, session_id: UUID) -> UUID:
         try:
