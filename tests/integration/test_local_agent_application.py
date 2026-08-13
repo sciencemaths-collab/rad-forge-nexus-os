@@ -156,7 +156,9 @@ def test_explicit_development_mode_plans_without_attestation(tmp_path, monkeypat
     authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
     authenticator.bootstrap(PASSWORD)
     issued = authenticator.login(PASSWORD, now=datetime.now(UTC))
-    application = create_local_application(authenticator, tmp_path / "state")
+    state_dir = tmp_path / "state"
+    state_dir.mkdir()
+    application = create_local_application(authenticator, state_dir)
     request = AgentApiRequest(
         "POST",
         "/v1/agent/sessions",
