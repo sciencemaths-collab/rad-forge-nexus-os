@@ -52,6 +52,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AS. Agent application API | QUALIFIED (FAKE) | Injected bearer authentication, exact scopes, durable replay, full Agent workflow composition, and all release/clean-room gates pass |
 | AT. Agent runtime handoff | QUALIFIED | Exact approved-digest and capability gates, deterministic graph/run binding, READY-only checkpoint initialization, and all release/clean-room gates pass |
 | AU. Governed scheduler | QUALIFIED | Canonical one-task ticks, policy denial, exact approval parking/consumption, typed-tool dispatch, and all release/clean-room gates pass |
+| AV. Scheduler retry/repair | QUALIFIED | Immutable attempt evidence, graph/time/cost/repetition bounds, unchanged-input retry/repair states, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -862,6 +863,28 @@ On 2026-08-13 the following focused checks passed:
 Component AU is clean-room QUALIFIED with synthetic policy, approval, and tool handlers.
 It does not implement background workers, distributed leases, retry/repair integration,
 live tools, external communication, deployment, publishing, or production authorization.
+
+## Component AV verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Append-only contiguous per-run/task attempt evidence with restart recovery
+- Sanitized typed-tool failure classification and bounded failure details
+- Absolute graph attempt ceiling plus elapsed, cumulative/next-cost, repetition, and
+  exponential-backoff limits from the deterministic retry engine
+- `RUNNING` to `READY` rescheduling with separately evidenced attempts
+- Transient retry scheduling and contract-output repair-required routing
+- Approved graph and task input digest preservation across every retry/repair decision
+- Non-retryable policy, approval, security, and input-contract failures remain terminal
+- New one-use exact-scope approval identity for each sensitive/destructive attempt
+- Attempt-row immutability and stored-history tamper detection
+- Focused retry/scheduler/runtime/tool/security suite: 31 tests
+- Full suite: 431 Python tests and 6 TypeScript tests
+
+Component AV is clean-room QUALIFIED with synthetic failures, costs, elapsed durations,
+approvals, and tool handlers. It does not sleep or run background workers, mutate approved
+inputs, generate repair code, invoke a model, auto-meter provider cost, execute live tools,
+deploy, publish, or authorize production release.
 
 ## Component AQ verification
 

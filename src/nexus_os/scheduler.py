@@ -10,6 +10,7 @@ from types import MappingProxyType
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from nexus_os.approval import ApprovalError, ApprovalRecord, ApprovalStatus, ApprovalStore
+from nexus_os.attempt_store import AttemptStore
 from nexus_os.domain import (
     Failure,
     FailureClass,
@@ -26,6 +27,7 @@ from nexus_os.policy import (
     PolicyDecisionKind,
     PolicyEngine,
 )
+from nexus_os.retry import RetryAction, RetryDecision, RetryEngine
 from nexus_os.runtime import RuntimeOrchestrator, RuntimeSnapshot
 from nexus_os.tools import ToolError, ToolExecutor, ToolRegistry, ToolResult
 
@@ -39,6 +41,8 @@ class SchedulerOutcome(StrEnum):
     APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
+    RETRY_SCHEDULED = "RETRY_SCHEDULED"
+    REPAIR_REQUIRED = "REPAIR_REQUIRED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +53,7 @@ class SchedulerTickResult:
     approval: ApprovalRecord | None = None
     tool_result: ToolResult | None = None
     failure: Failure | None = None
+    retry_decision: RetryDecision | None = None
 
 
 class GovernedScheduler:
@@ -62,6 +67,8 @@ class GovernedScheduler:
         executor: ToolExecutor,
         policy: PolicyEngine,
         approvals: ApprovalStore,
+        attempts: AttemptStore,
+        retry: RetryEngine,
         tool_bindings: Mapping[str, str],
         approval_ttl: timedelta = timedelta(hours=1),
     ) -> None:
@@ -80,6 +87,8 @@ class GovernedScheduler:
         self._executor = executor
         self._policy = policy
         self._approvals = approvals
+        self._attempts = attempts
+        self._retry = retry
         self._bindings = MappingProxyType(bindings)
         self._approval_ttl = approval_ttl
 
@@ -92,6 +101,9 @@ class GovernedScheduler:
         now: datetime,
         approval_id: UUID | None = None,
         task_id: TaskId | None = None,
+        attempt_cost: float = 0.0,
+        attempt_elapsed: timedelta = timedelta(),
+        next_estimated_cost: float = 0.0,
     ) -> SchedulerTickResult:
         if now.tzinfo is None or now.utcoffset() != UTC.utcoffset(now):
             raise SchedulerError("now must be timezone-aware UTC")
@@ -170,13 +182,42 @@ class GovernedScheduler:
                 approval_id=approval_id,
                 now=now,
             )
-        except ToolError:
-            failure = Failure(
-                FailureClass.CONTRACT_MISMATCH,
-                "tool.execution_failed",
-                "Typed tool execution failed.",
-                False,
+        except ToolError as exc:
+            failure = exc.failure
+            self._attempts.append(
+                snapshot.run_id,
+                task.task_id,
+                failure,
+                cost=attempt_cost,
+                elapsed=attempt_elapsed,
             )
+            history = self._attempts.history(snapshot.run_id, task.task_id)
+            retry_decision = (
+                RetryDecision(RetryAction.STOP, "task attempt limit reached")
+                if len(history) >= task.max_attempts
+                else self._retry.decide(
+                    history=history,
+                    next_estimated_cost=next_estimated_cost,
+                )
+            )
+            if retry_decision.action is not RetryAction.STOP:
+                repair = retry_decision.action is RetryAction.REPAIR
+                ready = self._runtime.reschedule_task(
+                    running,
+                    task.task_id,
+                    trace_id=trace_id,
+                    now=now,
+                    reason_code="repair.required" if repair else "retry.scheduled",
+                )
+                return SchedulerTickResult(
+                    SchedulerOutcome.REPAIR_REQUIRED
+                    if repair
+                    else SchedulerOutcome.RETRY_SCHEDULED,
+                    ready,
+                    task.task_id,
+                    failure=failure,
+                    retry_decision=retry_decision,
+                )
             failed = self._runtime.complete_task(
                 running,
                 task.task_id,
@@ -186,7 +227,11 @@ class GovernedScheduler:
                 failure=failure,
             )
             return SchedulerTickResult(
-                SchedulerOutcome.FAILED, failed, task.task_id, failure=failure
+                SchedulerOutcome.FAILED,
+                failed,
+                task.task_id,
+                failure=failure,
+                retry_decision=retry_decision,
             )
         completed = self._runtime.complete_task(
             running, task.task_id, TaskStatus.SUCCEEDED, trace_id=trace_id, now=now
@@ -237,7 +282,9 @@ class GovernedScheduler:
     ) -> ApprovalRecord:
         approval_id = uuid5(
             NAMESPACE_URL,
-            f"nexus:approval:{snapshot.run_id}:{task.task_id}:{decision.action_digest}",
+            f"nexus:approval:{snapshot.run_id}:{task.task_id}:"
+            f"{len(self._attempts.history(snapshot.run_id, task.task_id)) + 1}:"
+            f"{decision.action_digest}",
         )
         try:
             return self._approvals.get(approval_id)
