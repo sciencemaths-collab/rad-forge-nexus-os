@@ -31,9 +31,7 @@ def test_setup_identifies_supported_local_provider(tmp_path, port, provider) -> 
     )
     result = setup_local(
         values,
-        probe=lambda base_url, _timeout: (
-            ("reference-model",) if base_url == url else ()
-        ),
+        probe=lambda base_url, _timeout: ("reference-model",) if base_url == url else (),
         password_reader=passwords(),
     )
     assert result["provider"] == provider
