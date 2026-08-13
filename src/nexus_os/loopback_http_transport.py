@@ -69,6 +69,30 @@ class LoopbackHTTPTransport:
             return False
         return status == 200
 
+    async def list_models(
+        self, base_url: str, api_key: str | None, timeout_seconds: int
+    ) -> tuple[str, ...]:
+        status, body = await asyncio.to_thread(
+            self._request, base_url, "GET", "/v1/models", None, api_key, timeout_seconds
+        )
+        if status != 200:
+            raise TransportError("local provider model discovery returned a non-success status")
+        value = _decode_json_object(body)
+        models = value.get("data")
+        if not isinstance(models, list) or len(models) > 1024:
+            raise TransportError("local provider model discovery response is invalid")
+        identifiers: list[str] = []
+        for item in models:
+            if not isinstance(item, Mapping) or set(item) - {"id", "object", "created", "owned_by"}:
+                raise TransportError("local provider model discovery response is invalid")
+            identifier = item.get("id")
+            if not isinstance(identifier, str) or not 1 <= len(identifier) <= 200:
+                raise TransportError("local provider model discovery response is invalid")
+            identifiers.append(identifier)
+        if len(identifiers) != len(set(identifiers)):
+            raise TransportError("local provider model discovery contains duplicates")
+        return tuple(sorted(identifiers))
+
     async def create_chat_completion(
         self,
         base_url: str,

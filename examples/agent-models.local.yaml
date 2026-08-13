@@ -1,0 +1,9 @@
+schema_version: "1.0"
+selected: local_default
+profiles:
+  local_default:
+    type: local_openai
+    base_url: http://127.0.0.1:11434/v1
+    model: replace-with-qualified-model-id
+    adapter_version: "1.0"
+    timeout_seconds: 5

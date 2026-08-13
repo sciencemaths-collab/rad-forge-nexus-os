@@ -56,6 +56,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AW. Agent completion evidence | QUALIFIED | Digest-bound task outcomes, intact-chain and exact acceptance verification, completion gating, and all release/clean-room gates pass |
 | AX. Authenticated runtime API | QUALIFIED (NON-LIVE) | Scoped start/status/tick/approval/verification, server-derived capabilities, durable graph recovery, and all release/clean-room gates pass |
 | AY. Local Agent HTTP server | QUALIFIED (LOCAL, NON-LIVE) | Loopback transport, password-derived operator sessions, executable bootstrap, bounded HTTP handling, real-socket security/failure tests, 445-test full suite, and installed-wheel smoke pass |
+| AZ. Agent model configuration | QUALIFIED (LOCAL, NON-LIVE) | Local OpenAI-compatible profiles, bounded discovery, opaque credential scoping, exact qualification and health gates, 454-test full suite, release evidence, and installed-wheel smoke pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
