@@ -15,13 +15,18 @@ from nexus_os.agent_api import (
     DurableReplayStore,
 )
 from nexus_os.agent_controller import AgentReasoningController
+from nexus_os.agent_handoff import AgentRuntimeHandoffService
+from nexus_os.agent_runtime_api import AgentRuntimeRegistry, GovernedAgentRuntimeApi
 from nexus_os.agent_model_config import (
     load_agent_model_config,
     resolve_agent_model_sync,
 )
 from nexus_os.agent_store import AgentSessionStore
+from nexus_os.approval import ApprovalStore
+from nexus_os.attempt_store import AttemptStore
 from nexus_os.anthropic_adapter import AnthropicAdapter
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
+from nexus_os.evidence import EvidenceLedger
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
 from nexus_os.model_qualification import ModelUse
@@ -32,9 +37,17 @@ from nexus_os.model_registry import (
 )
 from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
+from nexus_os.policy import PolicyEngine, PolicyRules
 from nexus_os.providers import AgentAdapter
+from nexus_os.retry import RetryEngine, RetryLimits
+from nexus_os.runtime import RuntimeOrchestrator
+from nexus_os.runtime_evidence import AgentCompletionVerifier, RuntimeEvidenceWriter
+from nexus_os.scheduler import GovernedScheduler
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
+from nexus_os.stores import SQLiteCheckpointStore
+from nexus_os.tools import ToolExecutor, ToolRegistry
+from nexus_os.workspace_tools import register_workspace_artifact_tool
 
 MODEL_CONFIG_ENV = "RAD_AGENT_MODEL_CONFIG"
 MODEL_ATTESTATION_ENV = "RAD_AGENT_MODEL_ATTESTATION"
@@ -156,11 +169,17 @@ def create_local_application(
         adapter_version=selected_profile.adapter_version,
         ids=ids,
     )
+    runtime_api = (
+        _create_reference_runtime(state_dir, sessions, ids)
+        if mode == "qualified"
+        else None
+    )
     service = AgentApplicationService(
         sessions=sessions,
         controller=controller,
         qualifications=authorization,
         ids=ids,
+        runtime=runtime_api,
     )
     return AgentApplication(
         authenticator=authenticator,
@@ -263,3 +282,91 @@ def _resolve_cloud_model(
                 "selected cloud model lacks current qualification"
             ) from exc
     return model
+
+
+class ReferenceRuntimeCapabilities:
+    _QUALIFIED = frozenset(
+        {"app_build.planning", "research.planning", "data_analysis.planning"}
+    )
+
+    def qualified_capabilities(
+        self, identity: object, session_id: UUID
+    ) -> frozenset[str]:
+        del identity, session_id
+        return self._QUALIFIED
+
+
+def _create_reference_runtime(
+    state_dir: Path,
+    sessions: AgentSessionStore,
+    ids: RandomIds,
+) -> GovernedAgentRuntimeApi:
+    checkpoints = SQLiteCheckpointStore(state_dir / "runtime-checkpoints.sqlite")
+    runtime = RuntimeOrchestrator(checkpoints)
+    approvals = ApprovalStore(state_dir / "runtime-approvals.sqlite")
+    registry = ToolRegistry()
+    register_workspace_artifact_tool(registry)
+    allowed = frozenset({"workspace.write_artifact"})
+    policy = PolicyEngine(PolicyRules(allowed_operations=allowed))
+    ledger = EvidenceLedger(state_dir / "runtime-evidence.sqlite")
+    writer = RuntimeEvidenceWriter(ledger)
+    bindings = {
+        kind: "workspace.write_artifact"
+        for kind in (
+            "mode.app_build.specification",
+            "mode.app_build.design",
+            "mode.app_build.contract_test",
+            "mode.app_build.implementation",
+            "mode.app_build.unit_test",
+            "mode.app_build.integration_test",
+            "mode.app_build.security_test",
+            "mode.app_build.failure_test",
+            "mode.app_build.evidence",
+            "mode.research.protocol",
+            "mode.research.source_acquisition",
+            "mode.research.source_extraction",
+            "mode.research.claim_construction",
+            "mode.research.compute",
+            "mode.research.synthesis",
+            "mode.research.conflict_review",
+            "mode.research.citation_verification",
+            "mode.research.reproducibility",
+            "mode.research.evidence",
+            "mode.data_analysis.ingestion",
+            "mode.data_analysis.schema",
+            "mode.data_analysis.quality",
+            "mode.data_analysis.statistics",
+            "mode.data_analysis.chart_spec",
+            "mode.data_analysis.explanation",
+            "mode.data_analysis.persistence",
+            "mode.data_analysis.reopen_verify",
+            "mode.data_analysis.evidence",
+        )
+    }
+    scheduler = GovernedScheduler(
+        runtime=runtime,
+        registry=registry,
+        executor=ToolExecutor(registry, policy, approvals),
+        policy=policy,
+        approvals=approvals,
+        attempts=AttemptStore(state_dir / "runtime-attempts.sqlite"),
+        retry=RetryEngine(RetryLimits()),
+        evidence=writer,
+        tool_bindings=bindings,
+    )
+    return GovernedAgentRuntimeApi(
+        sessions=sessions,
+        handoff=AgentRuntimeHandoffService(sessions, checkpoints),
+        registry=AgentRuntimeRegistry(state_dir / "agent-runtime.sqlite"),
+        runtime=runtime,
+        scheduler=scheduler,
+        approvals=approvals,
+        completion=AgentCompletionVerifier(
+            sessions=sessions,
+            ledger=ledger,
+            writer=writer,
+            verifiers={},
+        ),
+        capabilities=ReferenceRuntimeCapabilities(),
+        ids=ids,
+    )
