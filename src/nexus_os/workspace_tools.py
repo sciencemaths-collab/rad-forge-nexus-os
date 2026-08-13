@@ -33,7 +33,12 @@ def register_workspace_artifact_tool(registry: ToolRegistry) -> None:
             "required": ["workspace_root", "expected_artifact"],
             "properties": {
                 "workspace_root": {"type": "string", "minLength": 1, "maxLength": 4096},
-                "expected_artifact": {"type": "string", "minLength": 1, "maxLength": 240},
+                "expected_artifact": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 240,
+                    "pattern": r"^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9][A-Za-z0-9._/-]{0,239}$",
+                },
             },
             "additionalProperties": True,
         },
