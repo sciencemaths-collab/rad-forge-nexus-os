@@ -190,8 +190,7 @@ class ToolExecutor:
             input_digest,
             decision.action_digest,
             decision.kind,
-            descriptor.approval_required
-            or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL,
+            descriptor.approval_required or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL,
             decision.reason_codes,
         )
 
