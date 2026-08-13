@@ -96,8 +96,8 @@ class OpenAIAdapter:
             raise AdapterError("provider task already exists")
         request: Mapping[str, object] = {
             "model": self._model,
-            "input": dict(task.input),
-            "background": True,
+            "input": _input(task.input),
+            "background": False,
             "store": False,
             "metadata": {"nexus_task_id": task.provider_task_id},
         }
@@ -197,11 +197,20 @@ class OpenAIAdapter:
                 "OpenAI response did not complete successfully",
                 status == "incomplete",
             )
+        output_text = _output_text(response)
+        if normalized is TaskStatus.SUCCEEDED and output_text is None:
+            raise AdapterError("invalid provider response output")
+        metadata: dict[str, object] = {
+            "response_id": execution.response_id,
+            "model": self._model,
+        }
+        if output_text is not None:
+            metadata["output_text"] = output_text
         execution.result = ProviderResult(
             execution.task.provider_task_id,
             normalized,
             usage=usage,
-            metadata={"response_id": execution.response_id, "model": self._model},
+            metadata=metadata,
             failure=failure,
         )
         self._append(execution, event_kind, {"status": normalized.value})
@@ -225,3 +234,37 @@ class OpenAIAdapter:
             return self._executions[provider_task_id]
         except KeyError as exc:
             raise AdapterError("unknown provider task") from exc
+
+
+def _input(value: Mapping[str, Any]) -> list[dict[str, str]]:
+    prompt = value.get("prompt", value.get("instructions"))
+    system = value.get("system")
+    if not isinstance(prompt, str) or not 1 <= len(prompt) <= 100_000:
+        raise AdapterError("OpenAI prompt is invalid")
+    items = []
+    if system is not None:
+        if not isinstance(system, str) or not 1 <= len(system) <= 100_000:
+            raise AdapterError("OpenAI system message is invalid")
+        items.append({"role": "system", "content": system})
+    items.append({"role": "user", "content": prompt})
+    return items
+
+
+def _output_text(response: Mapping[str, Any]) -> str | None:
+    direct = response.get("output_text")
+    if isinstance(direct, str) and 1 <= len(direct) <= 100_000:
+        return direct
+    output = response.get("output")
+    if not isinstance(output, list):
+        return None
+    texts: list[str] = []
+    for item in output:
+        content = item.get("content") if isinstance(item, Mapping) else None
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            text = part.get("text") if isinstance(part, Mapping) else None
+            if isinstance(text, str):
+                texts.append(text)
+    combined = "".join(texts)
+    return combined if 1 <= len(combined) <= 100_000 else None
