@@ -25,7 +25,16 @@ _KEY = re.compile(r"^[\x21-\x7e]{16,128}$")
 _ACTOR = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$")
 _PATH = re.compile(r"^/v1/[A-Za-z0-9/_-]*$")
 _MAX_BODY = 1024 * 1024
-_SCOPES = frozenset({"agent:read", "agent:write", "agent:approve", "model-qualifications:read"})
+_SCOPES = frozenset(
+    {
+        "agent:read",
+        "agent:write",
+        "agent:approve",
+        "agent:execute",
+        "agent:verify",
+        "model-qualifications:read",
+    }
+)
 
 
 class AgentApiError(ValueError):
@@ -52,6 +61,35 @@ class BearerAuthenticator(Protocol):
 class ApplicationIds(Protocol):
     def session_id(self) -> UUID: ...
     def event_id(self) -> UUID: ...
+
+
+class AgentRuntimeApi(Protocol):
+    def start(
+        self,
+        session_id: UUID,
+        identity: AgentIdentity,
+        request: AgentApiRequest,
+        body: dict[str, Any],
+    ) -> Mapping[str, Any]: ...
+    def status(self, session_id: UUID) -> Mapping[str, Any]: ...
+    async def tick(
+        self,
+        session_id: UUID,
+        identity: AgentIdentity,
+        request: AgentApiRequest,
+        body: dict[str, Any] | None,
+    ) -> Mapping[str, Any]: ...
+    def decide_approval(
+        self,
+        session_id: UUID,
+        approval_id: UUID,
+        identity: AgentIdentity,
+        request: AgentApiRequest,
+        body: dict[str, Any],
+    ) -> Mapping[str, Any]: ...
+    def verify(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, Any]: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +126,43 @@ _ROUTES = (
     _Route("POST", re.compile(r"^/v1/agent/sessions$"), "create", "agent:write", True),
     _Route(
         "GET", re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"), "get", "agent:read", False
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime$"),
+        "runtime_start",
+        "agent:execute",
+        True,
+    ),
+    _Route(
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime$"),
+        "runtime_status",
+        "agent:read",
+        False,
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/ticks$"),
+        "runtime_tick",
+        "agent:execute",
+        True,
+    ),
+    _Route(
+        "POST",
+        re.compile(
+            r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/approvals/(?P<approvalId>[^/]+)$"
+        ),
+        "runtime_approval",
+        "agent:approve",
+        True,
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/verify$"),
+        "runtime_verify",
+        "agent:verify",
+        True,
     ),
     _Route(
         "POST",
@@ -181,11 +256,13 @@ class AgentApplicationService:
         controller: AgentReasoningController,
         qualifications: ModelQualificationRegistry,
         ids: ApplicationIds,
+        runtime: AgentRuntimeApi | None = None,
     ) -> None:
         self._sessions = sessions
         self._controller = controller
         self._qualifications = qualifications
         self._ids = ids
+        self._runtime = runtime
 
     async def invoke(
         self,
@@ -224,6 +301,23 @@ class AgentApplicationService:
                 )
             return 201, prepared.to_dict()
         target_session_id = UUID(values["sessionId"]) if "sessionId" in values else None
+        if operation.startswith("runtime_"):
+            if self._runtime is None or target_session_id is None:
+                raise AgentApiError("runtime API is unavailable")
+            if operation == "runtime_start" and body is not None:
+                return 201, self._runtime.start(target_session_id, identity, request, body)
+            if operation == "runtime_status":
+                return 200, self._runtime.status(target_session_id)
+            if operation == "runtime_tick":
+                return 200, await self._runtime.tick(target_session_id, identity, request, body)
+            if operation == "runtime_approval" and body is not None:
+                approval_id = UUID(values["approvalId"])
+                return 200, self._runtime.decide_approval(
+                    target_session_id, approval_id, identity, request, body
+                )
+            if operation == "runtime_verify":
+                return 200, self._runtime.verify(target_session_id, identity, request)
+            raise AgentApiError("runtime request body is invalid")
         if operation == "get" and target_session_id is not None:
             return 200, self._sessions.get(target_session_id).to_dict()
         if operation == "candidate" and target_session_id is not None:
@@ -380,8 +474,9 @@ class AgentApplication:
             if route.method == method and match is not None:
                 values = match.groupdict()
                 try:
-                    if "sessionId" in values:
-                        UUID(values["sessionId"])
+                    for key in ("sessionId", "approvalId"):
+                        if key in values:
+                            UUID(values[key])
                 except ValueError:
                     return None, {}
                 return route, values
@@ -419,6 +514,27 @@ def _valid_operation_body(operation: str, body: dict[str, Any] | None) -> bool:
             and set(body) == {"candidate_digest"}
             and isinstance(body["candidate_digest"], str)
         )
+    if operation == "runtime_start":
+        return (
+            body is not None
+            and set(body) == {"workspace_root"}
+            and isinstance(body["workspace_root"], str)
+        )
+    if operation == "runtime_tick":
+        return body is None or (
+            set(body) <= {"approval_id", "task_id"}
+            and all(isinstance(value, str) for value in body.values())
+        )
+    if operation == "runtime_approval":
+        return (
+            body is not None
+            and set(body) <= {"status", "reason"}
+            and set(body) >= {"status"}
+            and body["status"] in {"APPROVED", "DENIED"}
+            and ("reason" not in body or isinstance(body["reason"], str))
+        )
+    if operation == "runtime_verify":
+        return body is None
     return body is None
 
 

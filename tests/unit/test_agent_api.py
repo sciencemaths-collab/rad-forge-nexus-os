@@ -24,6 +24,7 @@ class Auth:
                 "owner-user",
                 frozenset(
                     {"agent:read", "agent:write", "agent:approve", "model-qualifications:read"}
+                    | {"agent:execute", "agent:verify"}
                 ),
                 True,
             )
@@ -44,7 +45,7 @@ class AppIds:
         return uid(self.number)
 
 
-def app(tmp_path, outputs):
+def app(tmp_path, outputs, runtime=None):
     sessions = AgentSessionStore(tmp_path / "sessions.sqlite")
     registry = ModelQualificationRegistry(tmp_path / "models.sqlite")
     registry.register(
@@ -60,7 +61,11 @@ def app(tmp_path, outputs):
         ids=Ids(),
     )
     service = AgentApplicationService(
-        sessions=sessions, controller=controller, qualifications=registry, ids=AppIds()
+        sessions=sessions,
+        controller=controller,
+        qualifications=registry,
+        ids=AppIds(),
+        runtime=runtime,
     )
     return AgentApplication(
         authenticator=Auth(),
