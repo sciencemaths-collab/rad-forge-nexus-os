@@ -20,9 +20,10 @@ controlled structured-output evaluation runner, and an explicitly authorized loo
 HTTP transport, a digest-anchored 14-case reference reasoning corpus, an explicit
 local-model evaluation command, an independently anchored evidence-to-qualification
 bridge, and a durable qualification registry with exact-binding lookup and revocation.
-The current repository has 387 Python tests plus the TypeScript suite; live attestation,
-model installation, hidden/rotating certification suites, operator authentication, and
-a user interface are not yet implemented.
+The Agent layer now also has durable candidate revisions, append-only session history,
+clarification/review transitions, and exact-digest human approval. The current repository
+has 402 Python tests plus the TypeScript suite; conversational inference, live attestation,
+model installation, operator authentication, and a user interface are not yet implemented.
 
 No capability is currently promoted to production. Live provider access, production
 hosting, package-registry publication, and operational deployment remain explicitly
@@ -42,6 +43,7 @@ outside the verified boundary. Exact component states and limitations are mainta
 - Opaque secret references with bounded resolution and recursive redaction
 - Tamper-evident evidence chains and evidence-derived capability qualification
 - Durable exact-model qualification registration, atomic supersession, and revocation
+- Durable Agent sessions with immutable candidate revisions and digest-bound approval
 - Bounded retry and repair constrained by attempt, elapsed-time, repetition, and cost limits
 - Python and TypeScript control clients with caller-injected transports
 
