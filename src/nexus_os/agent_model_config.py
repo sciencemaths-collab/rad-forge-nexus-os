@@ -36,10 +36,14 @@ class AgentModelConfigError(ValueError):
 class _NoAliasLoader(yaml.SafeLoader):
     def compose_node(self, parent: yaml.Node | None, index: int) -> yaml.Node:
         if self.check_event(yaml.AliasEvent):  # type: ignore[no-untyped-call]
-            raise AgentModelConfigError("YAML aliases are not allowed in model configuration")
+            raise AgentModelConfigError(
+                "YAML aliases are not allowed in model configuration"
+            )
         event = self.peek_event()  # type: ignore[no-untyped-call]
         if getattr(event, "anchor", None) is not None:
-            raise AgentModelConfigError("YAML anchors are not allowed in model configuration")
+            raise AgentModelConfigError(
+                "YAML anchors are not allowed in model configuration"
+            )
         return cast(yaml.Node, super().compose_node(parent, index))
 
 
@@ -81,7 +85,9 @@ class ResolvedAgentModel:
 def load_agent_model_config(path: Path) -> AgentModelConfiguration:
     try:
         if not path.is_file() or path.stat().st_size > MAX_MODEL_CONFIG_BYTES:
-            raise AgentModelConfigError("model configuration file is invalid or oversized")
+            raise AgentModelConfigError(
+                "model configuration file is invalid or oversized"
+            )
         raw = path.read_text(encoding="utf-8")
         if path.suffix.lower() == ".json":
             value = json.loads(raw)
@@ -134,7 +140,9 @@ async def resolve_agent_model(
     try:
         models: tuple[str, ...] = ()
         if model is None:
-            models = await transport.list_models(profile.base_url, key, profile.timeout_seconds)
+            models = await transport.list_models(
+                profile.base_url, key, profile.timeout_seconds
+            )
         healthy = await transport.health(profile.base_url, key, profile.timeout_seconds)
     finally:
         if scope is not None:
@@ -191,7 +199,9 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
     if not isinstance(value, dict) or set(value) - _ALLOWED_PROFILE:
         raise AgentModelConfigError("model profile is invalid")
     if value.get("type") != "local_openai":
-        raise AgentModelConfigError("only local OpenAI-compatible profiles are supported in AZ")
+        raise AgentModelConfigError(
+            "only local OpenAI-compatible profiles are supported in AZ"
+        )
     base_url = value.get("base_url")
     model = value.get("model")
     credential = value.get("credential")
@@ -214,7 +224,9 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
         or endpoint.query
         or endpoint.fragment
     ):
-        raise AgentModelConfigError("model profile must use an explicit loopback /v1 endpoint")
+        raise AgentModelConfigError(
+            "model profile must use an explicit loopback /v1 endpoint"
+        )
     if model is not None and (
         not isinstance(model, str) or not _MODEL.fullmatch(model) or ".." in model
     ):
@@ -223,6 +235,12 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
         SecretReference.parse(credential)
     if adapter_version != "1.0":
         raise AgentModelConfigError("model profile adapter version is unsupported")
-    if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 60:
+    if (
+        not isinstance(timeout, int)
+        or isinstance(timeout, bool)
+        or not 1 <= timeout <= 60
+    ):
         raise AgentModelConfigError("model profile timeout is invalid")
-    return LocalModelProfile(name, base_url, model, credential, adapter_version, timeout)
+    return LocalModelProfile(
+        name, base_url, model, credential, adapter_version, timeout
+    )
