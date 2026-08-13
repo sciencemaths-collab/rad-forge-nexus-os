@@ -55,9 +55,7 @@ def test_workspace_tool_is_contained_idempotent_and_conflict_safe(tmp_path) -> N
     register_workspace_artifact_tool(registry)
     executor = ToolExecutor(
         registry,
-        PolicyEngine(
-            PolicyRules(allowed_operations=frozenset({"workspace.write_artifact"}))
-        ),
+        PolicyEngine(PolicyRules(allowed_operations=frozenset({"workspace.write_artifact"}))),
     )
     payload = {
         "workspace_root": str(workspace),
