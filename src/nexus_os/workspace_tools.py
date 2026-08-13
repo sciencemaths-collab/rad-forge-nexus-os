@@ -37,7 +37,10 @@ def register_workspace_artifact_tool(registry: ToolRegistry) -> None:
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 240,
-                    "pattern": r"^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9][A-Za-z0-9._/-]{0,239}$",
+                    "pattern": (
+                        r"^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))"
+                        r"[A-Za-z0-9][A-Za-z0-9._/-]{0,239}$"
+                    ),
                 },
             },
             "additionalProperties": True,
