@@ -107,9 +107,7 @@ def test_openai_transport_uses_only_official_host_and_bearer_header() -> None:
 def test_anthropic_transport_sets_version_and_rejects_error_body() -> None:
     connection = Connection(Response({"data": [{"id": "claude-sonnet-4"}]}))
     subject = AnthropicHTTPTransport(connection_factory=lambda host, timeout: connection)
-    assert __import__("asyncio").run(subject.list_models("secret-key")) == (
-        "claude-sonnet-4",
-    )
+    assert __import__("asyncio").run(subject.list_models("secret-key")) == ("claude-sonnet-4",)
     headers = connection.requests[0][3]
     assert headers["x-api-key"] == "secret-key"
     assert headers["anthropic-version"] == "2023-06-01"
