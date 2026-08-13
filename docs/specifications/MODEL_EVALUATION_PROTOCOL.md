@@ -44,3 +44,7 @@ does not bypass NEXUS OS policy or approval.
 Phase AK does not ship a benchmark corpus for a named model, judge open-ended prose,
 compare model quality, run a live provider in CI, install weights, implement a network
 transport, persist evidence, or qualify a model for production.
+
+The source-controlled Phase AM `reference-v1` corpus is the first conforming public
+suite. Its public and exact-match limitations are defined in
+`REFERENCE_MODEL_BENCHMARK_CORPUS.md`.

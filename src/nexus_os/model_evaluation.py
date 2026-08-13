@@ -10,6 +10,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from pathlib import Path
 from types import MappingProxyType
 from typing import Any
 from uuid import UUID
@@ -28,6 +29,8 @@ _SUITE_VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _MAX_CASES = 256
 _MAX_PROMPT = 20_000
 _MAX_OUTPUT = 100_000
+_MAX_CORPUS_BYTES = 1_000_000
+_DIGEST = re.compile(r"^sha256:[a-f0-9]{64}$")
 
 
 class ModelEvaluationError(ValueError):
@@ -103,6 +106,59 @@ class ModelEvaluationSuite:
         }
         digest = _digest(payload)
         return cls(suite_version, ordered, digest)
+
+
+def load_benchmark_suite(path: str | Path, *, expected_digest: str) -> ModelEvaluationSuite:
+    """Load a reviewable corpus only when it matches an independently trusted anchor."""
+    if not isinstance(expected_digest, str) or not _DIGEST.fullmatch(expected_digest):
+        raise ModelEvaluationError("expected corpus digest is invalid")
+    corpus_path = Path(path)
+    try:
+        if not corpus_path.is_file() or corpus_path.stat().st_size > _MAX_CORPUS_BYTES:
+            raise ModelEvaluationError("benchmark corpus is missing or oversized")
+        raw = corpus_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        raise ModelEvaluationError("benchmark corpus could not be read") from exc
+    document = _strict_json_document(raw)
+    if set(document) != {"schema_version", "suite_version", "cases"}:
+        raise ModelEvaluationError("benchmark corpus fields are invalid")
+    if document["schema_version"] != "1.0" or not isinstance(document["cases"], list):
+        raise ModelEvaluationError("benchmark corpus structure is invalid")
+    cases: list[ModelEvaluationCase] = []
+    for item in document["cases"]:
+        if not isinstance(item, dict) or set(item) != {
+            "case_id",
+            "category",
+            "prompt",
+            "expected_output",
+            "timeout_seconds",
+        }:
+            raise ModelEvaluationError("benchmark case fields are invalid")
+        try:
+            category = EvaluationCategory(item["category"])
+        except (TypeError, ValueError) as exc:
+            raise ModelEvaluationError("benchmark case category is invalid") from exc
+        cases.append(
+            ModelEvaluationCase(
+                item["case_id"],
+                category,
+                item["prompt"],
+                item["expected_output"],
+                item["timeout_seconds"],
+            )
+        )
+    suite_version = document["suite_version"]
+    if not isinstance(suite_version, str):
+        raise ModelEvaluationError("benchmark suite version is invalid")
+    suite = ModelEvaluationSuite.create(suite_version, tuple(cases))
+    counts = {category: 0 for category in EvaluationCategory}
+    for case in suite.cases:
+        counts[case.category] += 1
+    if any(count < 2 for count in counts.values()):
+        raise ModelEvaluationError("benchmark corpus requires at least two cases per category")
+    if suite.corpus_digest != expected_digest:
+        raise ModelEvaluationError("benchmark corpus digest does not match trusted anchor")
+    return suite
 
 
 @dataclass(frozen=True, slots=True)
@@ -280,6 +336,11 @@ def _failed(case: ModelEvaluationCase, code: str) -> CaseObservation:
 
 
 def _strict_json_object(value: str) -> dict[str, Any]:
+    parsed = _strict_json_document(value)
+    return _canonical_object(parsed, "model output")
+
+
+def _strict_json_document(value: str) -> dict[str, Any]:
     def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
         for key, item in items:
@@ -288,8 +349,17 @@ def _strict_json_object(value: str) -> dict[str, Any]:
             result[key] = item
         return result
 
-    parsed = json.loads(value, object_pairs_hook=pairs)
-    return _canonical_object(parsed, "model output")
+    try:
+        parsed = json.loads(value, object_pairs_hook=pairs, parse_constant=_reject_constant)
+    except json.JSONDecodeError as exc:
+        raise ModelEvaluationError("JSON document is malformed") from exc
+    if not isinstance(parsed, dict):
+        raise ModelEvaluationError("JSON document must be an object")
+    return parsed
+
+
+def _reject_constant(value: str) -> None:
+    raise ModelEvaluationError("JSON document contains a non-finite value")
 
 
 def _canonical_object(value: object, field: str) -> dict[str, Any]:

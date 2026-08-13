@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/model-evaluation-suite.schema.json",
+  "title": "NEXUS Independent Model Evaluation Suite",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "suite_version", "cases"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "suite_version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "cases": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "category", "prompt", "expected_output", "timeout_seconds"],
+      "properties": {
+        "case_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+        "category": {"enum": ["schema_conformance", "planning", "tool_selection", "approval_boundary", "evidence_grounding", "adversarial_input", "bounded_repair"]},
+        "prompt": {"type": "string", "minLength": 1, "maxLength": 20000},
+        "expected_output": {"type": "object"},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 300}
+      }
+    }
+  }
+}

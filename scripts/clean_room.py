@@ -17,6 +17,7 @@ from typing import Final
 
 COPY_PATHS: Final = (
     ".github",
+    "benchmarks",
     "contracts",
     "docs",
     "examples",
