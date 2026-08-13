@@ -977,3 +977,23 @@ does not open a socket, establish live-model quality, preserve chat transcripts,
 authenticate users, approve candidates, execute tools, start runtime work, expose HTTP/UI,
 or authorize production release. Owner approval remains separate and no capability is
 production ready.
+
+## RAD Agent Phase 2 model-connection verification
+
+On 2026-08-13 GitHub Actions run 77 passed all 15 portable release gates for the
+provider-aware local model-connection slice:
+
+- Explicit Ollama, LM Studio, and generic loopback OpenAI-compatible profile identities
+- Automatic conventional-port identification and explicit provider mismatch rejection
+- Credential-reference-redacted `rad models list`
+- Discovery-only `rad models test` with unavailable-model failure closed
+- Exact provider identity included in model qualification authorization
+- Unsupported profile types, remote endpoints, and literal credentials remain rejected
+- Six focused model-connection test cases, plus the complete Python and TypeScript suites
+
+This slice establishes verified local connection management. It does not perform a live
+model inference in CI, qualify a model merely because it is reachable, enable tools, support
+remote arbitrary endpoints, or claim direct OpenAI/Anthropic cloud connections. Those
+capabilities require their own transport, network-policy, credential, live-test, and
+qualification evidence.
+
