@@ -82,6 +82,17 @@ class ToolDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class ToolPreview:
+    tool_name: str
+    effect: ActionEffect
+    input_digest: str
+    action_digest: str
+    decision: PolicyDecisionKind
+    approval_required: bool
+    reason_codes: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ToolResult:
     tool_name: str
     output: Mapping[str, Any]
@@ -159,6 +170,30 @@ class ToolExecutor:
         self._approvals = approvals
         self._cache: dict[tuple[str, str, str], tuple[str, ToolResult]] = {}
 
+    def preview(
+        self,
+        name: str,
+        payload: Mapping[str, Any],
+        *,
+        actor_id: str,
+        project_id: str,
+    ) -> ToolPreview:
+        """Validate and authorize an action without resolving a handler or causing side effects."""
+        descriptor = self._registry.get(name)
+        safe_input, input_digest = _payload(payload)
+        _validate(descriptor.input_schema, safe_input, "input")
+        decision = self._decision(descriptor, actor_id, project_id)
+        return ToolPreview(
+            descriptor.name,
+            descriptor.effect,
+            input_digest,
+            decision.action_digest,
+            decision.kind,
+            descriptor.approval_required
+            or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL,
+            decision.reason_codes,
+        )
+
     async def execute(
         self,
         name: str,
@@ -173,17 +208,7 @@ class ToolExecutor:
         descriptor = self._registry.get(name)
         safe_input, input_digest = _payload(payload)
         _validate(descriptor.input_schema, safe_input, "input")
-        decision = self._policy.evaluate(
-            ActionRequest(
-                actor_id=actor_id,
-                project_id=project_id,
-                operation=descriptor.name,
-                effect=descriptor.effect,
-                environment=Environment.LOCAL,
-                data_class=DataClass.INTERNAL,
-                estimated_cost=0.0,
-            )
-        )
+        decision = self._decision(descriptor, actor_id, project_id)
         if decision.kind is PolicyDecisionKind.DENY:
             raise ToolError("tool execution denied by policy")
         if descriptor.approval_required or decision.kind is PolicyDecisionKind.REQUIRE_APPROVAL:
@@ -236,6 +261,21 @@ class ToolExecutor:
         if cache_key is not None:
             self._cache[cache_key] = (input_digest, result)
         return result
+
+    def _decision(
+        self, descriptor: ToolDescriptor, actor_id: str, project_id: str
+    ) -> Any:
+        return self._policy.evaluate(
+            ActionRequest(
+                actor_id=actor_id,
+                project_id=project_id,
+                operation=descriptor.name,
+                effect=descriptor.effect,
+                environment=Environment.LOCAL,
+                data_class=DataClass.INTERNAL,
+                estimated_cost=0.0,
+            )
+        )
 
     @staticmethod
     def _cache_key(
