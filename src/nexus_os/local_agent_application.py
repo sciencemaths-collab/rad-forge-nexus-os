@@ -14,12 +14,19 @@ from nexus_os.agent_api import (
     DurableReplayStore,
 )
 from nexus_os.agent_controller import AgentReasoningController
-from nexus_os.agent_model_config import load_agent_model_config, resolve_agent_model_sync
+from nexus_os.agent_model_config import (
+    load_agent_model_config,
+    resolve_agent_model_sync,
+)
 from nexus_os.agent_store import AgentSessionStore
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
 from nexus_os.model_qualification import ModelUse
-from nexus_os.model_registry import ModelQualificationRegistry, ModelRegistryError, RegistryRecord
+from nexus_os.model_registry import (
+    ModelQualificationRegistry,
+    ModelRegistryError,
+    RegistryRecord,
+)
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretResolver
@@ -51,7 +58,9 @@ class DevelopmentModelAuthorization:
     ) -> object:
         del provider_id, model_id, adapter_version
         if at.tzinfo is None or use not in self._ALLOWED:
-            raise ModelRegistryError("development mode does not authorize this model use")
+            raise ModelRegistryError(
+                "development mode does not authorize this model use"
+            )
         return object()
 
     def active(self, *, at: datetime) -> tuple[RegistryRecord, ...]:
@@ -77,11 +86,17 @@ def create_local_application(
     mode = os.environ.get(MODE_ENV, "qualified")
     if mode not in {"development", "qualified"}:
         raise LocalAgentApplicationError(f"{MODE_ENV} must be development or qualified")
-    config_value = os.environ.get(MODEL_CONFIG_ENV) or os.environ.get(_LEGACY_MODEL_CONFIG_ENV)
+    config_value = os.environ.get(MODEL_CONFIG_ENV) or os.environ.get(
+        _LEGACY_MODEL_CONFIG_ENV
+    )
     if config_value is None:
-        raise LocalAgentApplicationError(f"{MODEL_CONFIG_ENV} must name a model configuration")
+        raise LocalAgentApplicationError(
+            f"{MODEL_CONFIG_ENV} must name a model configuration"
+        )
     config_path = Path(config_value)
-    qualifications = ModelQualificationRegistry(state_dir / "model-qualifications.sqlite")
+    qualifications = ModelQualificationRegistry(
+        state_dir / "model-qualifications.sqlite"
+    )
     if mode == "qualified":
         _bootstrap_qualification(qualifications)
     authorization = (
@@ -157,7 +172,9 @@ def _bootstrap_qualification(registry: ModelQualificationRegistry) -> None:
                 registered_by="local-application-bootstrap",
             )
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
-        raise LocalAgentApplicationError("model attestation could not be registered") from exc
+        raise LocalAgentApplicationError(
+            "model attestation could not be registered"
+        ) from exc
 
 
 def _network_host(base_url: str) -> str:
