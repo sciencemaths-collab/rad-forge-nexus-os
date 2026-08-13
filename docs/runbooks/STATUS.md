@@ -47,6 +47,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AH. NEXUS Agent contracts | QUALIFIED (CONTRACT) | Agent/runtime/provider separation, four schemas, lifecycle semantics, separate API contract, 293 tests, all release/clean-room gates pass |
 | AI. Local OpenAI-compatible adapter | QUALIFIED (FAKE) | Credential-optional loopback adapter, bounded chat normalization, 303 tests, all release/clean-room gates pass |
 | AP. Model qualification registry | QUALIFIED | Exact-binding durable registration, atomic supersession, revocation, read-time integrity checks, and all release/clean-room gates pass |
+| AQ. Agent session store | QUALIFIED | Canonical candidate revisions, append-only events, clarification/review/approval lifecycle, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -796,3 +797,24 @@ it does not authenticate operators, choose trusted attestors, distribute revocat
 schedule re-evaluation, grant tool authority, implement the NEXUS Agent controller, or
 authorize production release. Owner approval remains separate and no capability is
 production ready.
+
+## Component AQ verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Canonical candidate digest recomputation and exact Phase AH field validation
+- Stable candidate identity and monotonically increasing immutable revisions
+- Atomic drafting, clarification, specification-ready, review, and approval transitions
+- Exact current-candidate digest binding and externally established human principal gate
+- Contiguous append-only events, chronology enforcement, and optimistic sequence control
+- Restart recovery, stale-writer rollback, stored-event tamper detection, and history
+  deletion prevention
+- Public candidate and session schema conformance
+- Focused suite: 15 tests; full suite: 402 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, and contract validation passed
+
+Component AQ is clean-room QUALIFIED using synthetic sessions and reviewer principals.
+All 15 portable release gates and independent review passed with zero findings. It does not
+authenticate identities, call a model, interpret conversation, start runtime runs,
+expose an HTTP/UI service, execute tools, or authorize production release. Owner approval
+remains separate and no capability is production ready.
