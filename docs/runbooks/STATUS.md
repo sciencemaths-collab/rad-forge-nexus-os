@@ -753,3 +753,23 @@ Python suite, 6-test TypeScript suite, all 15 portable release gates, and indepe
 review passed with zero findings. Automated tests open no socket. No live server/model
 compatibility, benchmark score, evidence UUID, Agent permission, model qualification,
 owner approval, or production release is claimed.
+
+## Component AO verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Canonical Phase AN manifest and report digest verification
+- Seven-record category attestation chain with external count and head anchors
+- Producer allowlist, BENCHMARK/PASS attestation, run/trace/digest/time/category binding
+- Persisted SQLite ledger verification through Phase AJ qualification
+- Preservation of observed LIMITED/FAIL outcomes rather than attestation promotion
+- Public attested-model-qualification schema and canonical attestation digest
+- Manifest/report tamper, wrong chain/head/count, untrusted producer, wrong kind/outcome,
+  mismatched digest/result, future time, missing category, and empty trust rejection
+- Focused suite: 15 tests
+
+Component AO is clean-room QUALIFIED using synthetic attestations. The full 371-test
+Python suite, 6-test TypeScript suite, all 15 portable release gates, and independent
+review passed with zero findings. Tests do not assert a real attestor identity, call a
+live model, create external evidence, persist qualification, implement revocation,
+grant Agent execution authority, or authorize production release.

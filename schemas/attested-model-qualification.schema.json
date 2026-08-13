@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/attested-model-qualification.schema.json",
+  "title": "NEXUS Attested Model Qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_digest", "evidence_count", "evidence_head", "attested_at", "attestor_producers", "qualification", "attestation_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "manifest_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "evidence_count": {"const": 7},
+    "evidence_head": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "attested_at": {"type": "string", "format": "date-time"},
+    "attestor_producers": {
+      "type": "array", "minItems": 1, "maxItems": 7, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"}
+    },
+    "qualification": {"$ref": "model-qualification.schema.json"},
+    "attestation_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  }
+}
