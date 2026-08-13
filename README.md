@@ -12,7 +12,7 @@ should not be trusted to decide its own permissions or declare its own success.
 ## Why RAD Agent exists
 
 Most agent frameworks begin with a model and a loop: prompt, choose a tool, observe the
-result, and repeat. NEXUS separates those responsibilities.
+result, and repeat. RAD Agent separates reasoning, governed decisions, and execution.
 
 - The **language model** interprets goals and proposes structured plans.
 - **RAD Agent** manages conversation, clarification, review, and approval.
@@ -102,6 +102,9 @@ Configure the model and its attestation:
 export NEXUS_AGENT_MODEL_CONFIG="$PWD/examples/agent-models.local.yaml"
 export NEXUS_AGENT_MODEL_ATTESTATION="$PWD/path/to/current-attestation.json"
 ```
+
+The `NEXUS_AGENT_*` environment-variable names are retained for compatibility with the
+current implementation; they do not represent a separate product.
 
 Start the local application:
 
