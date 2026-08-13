@@ -4,7 +4,10 @@ from datetime import UTC, datetime
 
 import pytest
 
-from nexus_os.agent_model_config import load_agent_model_config, resolve_agent_model_sync
+from nexus_os.agent_model_config import (
+    load_agent_model_config,
+    resolve_agent_model_sync,
+)
 from nexus_os.local_agent_application import DevelopmentModelAuthorization
 from nexus_os.model_qualification import ModelUse
 from nexus_os.model_registry import ModelQualificationRegistry, ModelRegistryError
@@ -119,7 +122,9 @@ def test_doctor_detects_unsafe_password_and_unavailable_model(tmp_path) -> None:
     assert failures == {"password_file", "model_endpoint"}
 
 
-def test_development_authorization_is_visibly_unqualified_and_proposal_only(tmp_path) -> None:
+def test_development_authorization_is_visibly_unqualified_and_proposal_only(
+    tmp_path,
+) -> None:
     subject = DevelopmentModelAuthorization()
     now = datetime.now(UTC)
     assert subject.active(at=now) == ()
@@ -158,7 +163,9 @@ def test_development_authorization_is_visibly_unqualified_and_proposal_only(tmp_
     assert resolved.model == "local-model"
 
 
-@pytest.mark.parametrize("arguments", [[], ["setup", "--help"], ["doctor", "--help"], ["serve", "--help"]])
+@pytest.mark.parametrize(
+    "arguments", [[], ["setup", "--help"], ["doctor", "--help"], ["serve", "--help"]]
+)
 def test_help_surfaces_do_not_require_a_control_client(arguments) -> None:
     with pytest.raises(SystemExit) as raised:
         parser().parse_args(arguments or ["--help"])
