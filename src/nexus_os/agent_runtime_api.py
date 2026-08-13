@@ -14,6 +14,7 @@ from nexus_os.agent_handoff import AgentRuntimeHandoffService
 from nexus_os.agent_store import AgentSessionStore
 from nexus_os.approval import ApprovalRecord, ApprovalStatus, ApprovalStore
 from nexus_os.domain import TaskId
+from nexus_os.evidence import EvidenceLedger
 from nexus_os.graph import ValidatedTaskGraph, compile_task_graph, validate_task_graph
 from nexus_os.runtime import RuntimeOrchestrator, RuntimeSnapshot
 from nexus_os.runtime_evidence import AgentCompletionVerifier
@@ -97,6 +98,7 @@ class GovernedAgentRuntimeApi:
         runtime: RuntimeOrchestrator,
         scheduler: GovernedScheduler,
         approvals: ApprovalStore,
+        evidence: EvidenceLedger,
         completion: AgentCompletionVerifier,
         capabilities: CapabilityAuthorizer,
         ids: ApplicationIds,
@@ -107,6 +109,7 @@ class GovernedAgentRuntimeApi:
         self._runtime = runtime
         self._scheduler = scheduler
         self._approvals = approvals
+        self._evidence = evidence
         self._completion = completion
         self._capabilities = capabilities
         self._ids = ids
@@ -133,6 +136,36 @@ class GovernedAgentRuntimeApi:
 
     def status(self, session_id: UUID) -> Mapping[str, object]:
         return _snapshot(self._snapshot(session_id))
+
+    def preview(
+        self, session_id: UUID, identity: AgentIdentity, task_id: str | None = None
+    ) -> Mapping[str, object]:
+        task, preview = self._scheduler.preview(
+            self._snapshot(session_id),
+            actor_id=identity.actor_id,
+            task_id=None if task_id is None else TaskId(task_id),
+        )
+        return {
+            "task_id": str(task.task_id),
+            "task_kind": task.kind,
+            "tool_name": preview.tool_name,
+            "effect": preview.effect.value,
+            "input": dict(task.input),
+            "input_digest": preview.input_digest,
+            "action_digest": preview.action_digest,
+            "decision": preview.decision.value,
+            "approval_required": preview.approval_required,
+            "reason_codes": list(preview.reason_codes),
+        }
+
+    def evidence(self, session_id: UUID) -> Mapping[str, object]:
+        snapshot = self._snapshot(session_id)
+        records = self._evidence.records(snapshot.graph.graph.project_id, snapshot.run_id)
+        return {
+            "run_id": str(snapshot.run_id),
+            "record_count": len(records),
+            "records": [record.to_dict() for record in records],
+        }
 
     async def tick(
         self,

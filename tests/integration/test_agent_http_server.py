@@ -82,11 +82,15 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert '<html lang="en">' in html
         assert 'role="status"' in html
         assert "Nothing is executed or published" in html
+        assert "Resume an existing run" in html
+        assert "Exact next action" in html
 
         connection.request("GET", "/ui/app.js")
         response = connection.getresponse()
         script = response.read().decode()
         assert response.status == 200 and "candidate_digest" in script
+        assert "/runtime/preview" in script
+        assert "/runtime/evidence" in script
         assert "localStorage" not in script
     finally:
         connection.close()

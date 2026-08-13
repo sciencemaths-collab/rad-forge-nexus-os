@@ -15,6 +15,10 @@ evidence, and acceptance verification.
   supplies only a bounded workspace root. Required capabilities are derived by an injected
   trusted authorizer; request clients cannot assert them.
 - `GET .../runtime` (`agent:read`) returns the durable run/graph/task snapshot.
+- `GET .../runtime/preview` (`agent:read`) returns the exact next typed-tool input,
+  effect, policy decision, and digests without resolving a handler or changing state.
+- `GET .../runtime/evidence` (`agent:read`) returns the ordered, append-only evidence
+  records for the exact run after ledger binding and durable runtime recovery.
 - `POST .../runtime/ticks` (`agent:execute`) advances at most one governed task and returns
   `IDLE`, approval, retry, repair, success, or failure state.
 - `POST .../runtime/approvals/{approvalId}` (`agent:approve`, authenticated human required)

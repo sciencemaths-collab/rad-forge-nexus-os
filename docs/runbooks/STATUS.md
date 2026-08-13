@@ -1039,3 +1039,22 @@ does not qualify shell commands, network access, coding engines, research retrie
 statistical computation, publishing, deployment, deletion, external communication, or
 production use. Acceptance-verifier composition and browser execution controls remain open.
 
+## RAD Agent Phase 3B browser-runtime verification
+
+On 2026-08-13 GitHub Actions run 95 passed all 15 portable release gates for the
+governed browser operator slice:
+
+- Side-effect-free exact-action preview with typed input, effect, policy decision, and digests
+- Authenticated runtime progress and append-only evidence-chain views
+- One-step browser execution through the existing governed scheduler only
+- Exact-run, single-use approve/deny controls for approval-required actions
+- Durable session-ID checkpoint recovery and explicit refresh controls
+- Deterministic `runtime_task_evidence` acceptance verification bound to successful task records
+- Strict controller enforcement of the supported verifier for newly proposed candidates
+- Full Python/TypeScript, type, lint, contract, security, packaging, audit, and evidence gates
+
+This makes the Phase 3A reference runtime operable from the loopback browser without adding
+an alternate execution path. It remains limited to deterministic JSON artifacts under the
+approved workspace. It does not enable shell commands, arbitrary filesystem access, network
+access, publishing, deployment, deletion, external communication, background execution, or
+production use.

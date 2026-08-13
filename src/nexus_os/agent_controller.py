@@ -35,7 +35,9 @@ _PROPOSAL_FIELDS = {
 }
 _SYSTEM = (
     "Return one JSON object only. Produce a candidate specification, never execute work, "
-    "never claim approval or completion, never include credentials, and never add fields."
+    "never claim approval or completion, never include credentials, and never add fields. "
+    "Every acceptance criterion must use verification_method runtime_task_evidence so the "
+    "deterministic runtime can verify governed task evidence without trusting model claims."
 )
 
 
@@ -217,6 +219,13 @@ class AgentReasoningController:
                 not isinstance(value, dict)
                 or set(value) != _PROPOSAL_FIELDS
                 or redact(value) != value
+            ):
+                raise ValueError
+            criteria = value.get("acceptance_criteria")
+            if not isinstance(criteria, list) or any(
+                not isinstance(item, dict)
+                or item.get("verification_method") != "runtime_task_evidence"
+                for item in criteria
             ):
                 raise ValueError
             unsigned: dict[str, Any] = {

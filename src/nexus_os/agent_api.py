@@ -76,6 +76,10 @@ class AgentRuntimeApi(Protocol):
         body: dict[str, Any],
     ) -> Mapping[str, Any]: ...
     def status(self, session_id: UUID) -> Mapping[str, Any]: ...
+    def preview(
+        self, session_id: UUID, identity: AgentIdentity, task_id: str | None = None
+    ) -> Mapping[str, Any]: ...
+    def evidence(self, session_id: UUID) -> Mapping[str, Any]: ...
     async def tick(
         self,
         session_id: UUID,
@@ -146,6 +150,20 @@ _ROUTES = (
         "GET",
         re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime$"),
         "runtime_status",
+        "agent:read",
+        False,
+    ),
+    _Route(
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/preview$"),
+        "runtime_preview",
+        "agent:read",
+        False,
+    ),
+    _Route(
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/evidence$"),
+        "runtime_evidence",
         "agent:read",
         False,
     ),
@@ -316,6 +334,10 @@ class AgentApplicationService:
                 return 201, self._runtime.start(target_session_id, identity, request, body)
             if operation == "runtime_status":
                 return 200, self._runtime.status(target_session_id)
+            if operation == "runtime_preview":
+                return 200, self._runtime.preview(target_session_id, identity)
+            if operation == "runtime_evidence":
+                return 200, self._runtime.evidence(target_session_id)
             if operation == "runtime_tick":
                 return 200, await self._runtime.tick(target_session_id, identity, request, body)
             if operation == "runtime_approval" and body is not None:
