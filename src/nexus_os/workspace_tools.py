@@ -79,7 +79,10 @@ async def write_workspace_artifact(payload: dict[str, Any]) -> dict[str, Any]:
     target = artifact_root / artifact_value
     target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     resolved_parent = target.parent.resolve()
-    if resolved_parent != artifact_root.resolve() and artifact_root.resolve() not in resolved_parent.parents:
+    if (
+        resolved_parent != artifact_root.resolve()
+        and artifact_root.resolve() not in resolved_parent.parents
+    ):
         raise ToolError("workspace artifact escapes the approved root")
     if target.is_symlink():
         raise ToolError("workspace artifact target is unsafe")
