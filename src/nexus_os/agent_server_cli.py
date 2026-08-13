@@ -22,7 +22,9 @@ class AgentServerCliError(ValueError):
 
 
 def parser() -> argparse.ArgumentParser:
-    result = argparse.ArgumentParser(description="Run RAD Agent on a local loopback address")
+    result = argparse.ArgumentParser(
+        description="Run RAD Agent on a local loopback address"
+    )
     result.add_argument("--state-dir", required=True, type=Path)
     result.add_argument("--password-file", type=Path)
     result.add_argument(
@@ -56,7 +58,9 @@ def read_bootstrap_password(path: Path) -> str:
         if details.st_size > 4096:
             raise AgentServerCliError("password file is too large")
         if details.st_mode & 0o077:
-            raise AgentServerCliError("password file must not be accessible by group or others")
+            raise AgentServerCliError(
+                "password file must not be accessible by group or others"
+            )
         password = path.read_text(encoding="utf-8").rstrip("\r\n")
     except OSError as exc:
         raise AgentServerCliError("password file could not be read") from exc
@@ -75,9 +79,13 @@ def run(arguments: Sequence[str] | None = None) -> int:
     try:
         if not authenticator.is_bootstrapped():
             if values.password_file is None:
-                raise AgentServerCliError("password file is required for first bootstrap")
+                raise AgentServerCliError(
+                    "password file is required for first bootstrap"
+                )
             authenticator.bootstrap(read_bootstrap_password(values.password_file))
-        application = load_factory(values.application_factory)(authenticator, values.state_dir)
+        application = load_factory(values.application_factory)(
+            authenticator, values.state_dir
+        )
         server = AgentHttpServer((values.host, values.port), application, authenticator)
         print(f"RAD Agent listening on http://{values.host}:{values.port}", flush=True)
         server.serve_forever()
