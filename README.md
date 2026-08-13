@@ -72,7 +72,30 @@ evaluate acceptance criteria. Evidence records what actually occurred.
 - Python and TypeScript SDK surfaces
 - Local browser interface for login, goal entry, review, and approval
 
+## Ways to use RAD Agent
+
+| Path | Best for | What is available now |
+|---|---|---|
+| Local browser application | Individual operators | Governed planning, candidate review, and exact-digest approval |
+| Local authenticated API | Applications on the same computer | Loopback-only access to the planning and review workflow |
+| Local OpenAI-compatible model | Private or no-subscription model use | Qualified Ollama-, LM Studio-, or self-hosted compatible endpoints |
+| Python or TypeScript integration | Developers embedding the control plane | Typed SDK contracts with application-supplied transport and authentication |
+| Custom provider adapter | Teams adding another model backend | Provider-neutral adapter and conformance boundaries |
+| Domain-specific agent | Laboratories, engineering teams, and organizations | Runtime components for registered tools, policy, recovery, approvals, and evidence |
+
+The bundled application currently supports local governed planning and human review.
+Direct cloud-model setup and domain-specific execution require an explicit qualified
+integration; they are not enabled merely by adding an API key.
+
+For the complete walkthrough—including local setup, authenticated API examples, safe
+credential references, SDK integration, provider porting, execution requirements, and
+troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
+
 ## Local quick start
+
+This abbreviated setup is for experienced operators. New users should follow the
+[complete usage guide](docs/USING_RAD_AGENT.md), including the required model-qualification
+step.
 
 ### Requirements
 
