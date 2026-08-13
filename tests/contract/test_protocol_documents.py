@@ -58,6 +58,11 @@ def test_agent_api_mutations_require_idempotency_keys() -> None:
         "submitAgentClarification",
         "getAgentCandidateSpecification",
         "approveAgentCandidateSpecification",
+        "startAgentRuntime",
+        "getAgentRuntime",
+        "tickAgentRuntime",
+        "decideAgentRuntimeApproval",
+        "verifyAgentRuntimeCompletion",
         "listModelQualifications",
     }
     for path, operations in document["paths"].items():

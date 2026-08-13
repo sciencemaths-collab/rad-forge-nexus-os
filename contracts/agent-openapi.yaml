@@ -1,8 +1,8 @@
 openapi: 3.1.1
 info:
   title: NEXUS Agent API Contract
-  version: 0.2.0
-  description: Transport-neutral authenticated Agent application boundary; no network server or execution endpoint is claimed.
+  version: 0.3.0
+  description: Transport-neutral authenticated Agent and governed runtime application boundary; no network server or live tool is claimed.
 security:
   - bearerAuth: []
 paths:
@@ -81,6 +81,46 @@ paths:
       responses:
         '200': {$ref: '#/components/responses/AgentSessionResponse'}
         '409': {$ref: '#/components/responses/ErrorResponse'}
+  /v1/agent/sessions/{sessionId}/runtime:
+    post:
+      operationId: startAgentRuntime
+      x-required-scope: agent:execute
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, additionalProperties: false, required: [workspace_root], properties: {workspace_root: {type: string, minLength: 1, maxLength: 4096}}}}}
+      responses:
+        '201': {$ref: '#/components/responses/RuntimeResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+    get:
+      operationId: getAgentRuntime
+      x-required-scope: agent:read
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses: {'200': {$ref: '#/components/responses/RuntimeResponse'}}
+  /v1/agent/sessions/{sessionId}/runtime/ticks:
+    post:
+      operationId: tickAgentRuntime
+      x-required-scope: agent:execute
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      requestBody:
+        content: {application/json: {schema: {type: object, additionalProperties: false, properties: {approval_id: {type: string, format: uuid}, task_id: {type: string}}}}}
+      responses: {'200': {description: Governed scheduler tick}}
+  /v1/agent/sessions/{sessionId}/runtime/approvals/{approvalId}:
+    post:
+      operationId: decideAgentRuntimeApproval
+      x-required-scope: agent:approve
+      x-human-principal-required: true
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/ApprovalId', $ref: '#/components/parameters/IdempotencyKey']
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, additionalProperties: false, required: [status], properties: {status: {enum: [APPROVED, DENIED]}, reason: {type: string, maxLength: 2000}}}}}
+      responses: {'200': {description: Approval decision}}
+  /v1/agent/sessions/{sessionId}/runtime/verify:
+    post:
+      operationId: verifyAgentRuntimeCompletion
+      x-required-scope: agent:verify
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      responses: {'200': {description: Verified Agent completion result}}
   /v1/model-qualifications:
     get:
       operationId: listModelQualifications
@@ -96,6 +136,7 @@ components:
     bearerAuth: {type: http, scheme: bearer}
   parameters:
     SessionId: {name: sessionId, in: path, required: true, schema: {type: string, format: uuid}}
+    ApprovalId: {name: approvalId, in: path, required: true, schema: {type: string, format: uuid}}
     IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 16, maxLength: 128}}
   schemas:
     Error:
@@ -114,3 +155,17 @@ components:
     ErrorResponse:
       description: Error
       content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    RuntimeResponse:
+      description: Durable runtime snapshot
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [run_id, graph_digest, run_state, task_states, revision]
+            properties:
+              run_id: {type: string, format: uuid}
+              graph_digest: {type: string, pattern: '^sha256:[a-f0-9]{64}$'}
+              run_state: {enum: [READY, RUNNING, PAUSED, SUCCEEDED, FAILED, CANCELLED]}
+              task_states: {type: object, additionalProperties: {type: string}}
+              revision: {type: integer, minimum: 1}

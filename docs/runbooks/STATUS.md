@@ -54,6 +54,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AU. Governed scheduler | QUALIFIED | Canonical one-task ticks, policy denial, exact approval parking/consumption, typed-tool dispatch, and all release/clean-room gates pass |
 | AV. Scheduler retry/repair | QUALIFIED | Immutable attempt evidence, graph/time/cost/repetition bounds, unchanged-input retry/repair states, and all release/clean-room gates pass |
 | AW. Agent completion evidence | QUALIFIED | Digest-bound task outcomes, intact-chain and exact acceptance verification, completion gating, and all release/clean-room gates pass |
+| AX. Authenticated runtime API | QUALIFIED (NON-LIVE) | Scoped start/status/tick/approval/verification, server-derived capabilities, durable graph recovery, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -906,6 +907,26 @@ On 2026-08-13 the following focused checks passed:
 Component AW is clean-room QUALIFIED with synthetic task outputs and deterministic verifier
 fixtures. It does not infer truth from model output, discover verifiers, execute live external
 tests, generate a UI/report, promote capabilities, deploy, publish, or authorize production.
+
+## Component AX verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Five authenticated runtime operations with exact read/execute/approve/verify scopes
+- Durable actor/path/operation/body-bound idempotency on every runtime mutation
+- Server-derived capability authorization; request bodies cannot assert qualification
+- Approved-candidate handoff and canonical graph/run/digest registry persistence
+- Restart-safe graph reconstruction, semantic revalidation, digest check, and checkpoint resume
+- One governed scheduler tick per request with approval/retry/repair outcome exposure
+- Human-principal and exact Agent-run ownership checks for approval decisions
+- Phase AW evidence-gated completion invoked without an alternate execution path
+- Strict UUID/body/path validation and sanitized stable application errors
+- Focused API/contract/facade suite: 9 tests
+- Full suite: 437 Python tests and 6 TypeScript tests
+
+Component AX is clean-room QUALIFIED using injected fake authentication, capability
+authorization, tools, and verifiers. It does not open a socket, implement token cryptography,
+connect live tools/providers, auto-run workers, deploy, publish, or authorize production.
 
 ## Component AQ verification
 
