@@ -5,7 +5,7 @@ import pytest
 
 from nexus_os.agent_api import AgentApiRequest, AgentIdentity
 from nexus_os.agent_store import AgentSessionStore
-from nexus_os.domain import ActionEffect, RunId
+from nexus_os.domain import ActionEffect
 from nexus_os.local_agent_application import RandomIds, _create_reference_runtime
 from nexus_os.policy import PolicyEngine, PolicyRules
 from nexus_os.tools import ToolDescriptor, ToolError, ToolExecutor, ToolRegistry
