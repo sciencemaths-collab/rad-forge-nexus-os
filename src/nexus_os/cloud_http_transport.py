@@ -127,9 +127,7 @@ class AnthropicHTTPTransport:
             raise AnthropicTransportError("Anthropic model discovery returned a non-success status")
         return _models(_decode(body, AnthropicTransportError), AnthropicTransportError)
 
-    async def create(
-        self, request: Mapping[str, object], api_key: str
-    ) -> Mapping[str, Any]:
+    async def create(self, request: Mapping[str, object], api_key: str) -> Mapping[str, Any]:
         body = _encode(request, AnthropicTransportError)
         status, response = await asyncio.to_thread(
             self._request, "POST", "/v1/messages", body, api_key
