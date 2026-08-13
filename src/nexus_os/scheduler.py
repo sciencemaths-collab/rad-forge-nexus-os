@@ -29,6 +29,7 @@ from nexus_os.policy import (
 )
 from nexus_os.retry import RetryAction, RetryDecision, RetryEngine
 from nexus_os.runtime import RuntimeOrchestrator, RuntimeSnapshot
+from nexus_os.runtime_evidence import RuntimeEvidenceWriter
 from nexus_os.tools import ToolError, ToolExecutor, ToolRegistry, ToolResult
 
 
@@ -69,6 +70,7 @@ class GovernedScheduler:
         approvals: ApprovalStore,
         attempts: AttemptStore,
         retry: RetryEngine,
+        evidence: RuntimeEvidenceWriter,
         tool_bindings: Mapping[str, str],
         approval_ttl: timedelta = timedelta(hours=1),
     ) -> None:
@@ -89,6 +91,7 @@ class GovernedScheduler:
         self._approvals = approvals
         self._attempts = attempts
         self._retry = retry
+        self._evidence = evidence
         self._bindings = MappingProxyType(bindings)
         self._approval_ttl = approval_ttl
 
@@ -233,6 +236,14 @@ class GovernedScheduler:
                 failure=failure,
                 retry_decision=retry_decision,
             )
+        self._evidence.task_success(
+            running,
+            task,
+            result,
+            actor=actor_id,
+            trace_id=trace_id,
+            now=now,
+        )
         completed = self._runtime.complete_task(
             running, task.task_id, TaskStatus.SUCCEEDED, trace_id=trace_id, now=now
         )
