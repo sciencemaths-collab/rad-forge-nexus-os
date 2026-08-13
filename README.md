@@ -24,9 +24,10 @@ The Agent layer now also has durable candidate revisions, append-only session hi
 clarification/review transitions, exact-digest human approval, and a proposal-only
 reasoning controller with strict output validation and bounded repair. The current
 Agent workflow is now exposed through a transport-neutral authenticated API with scoped
-authorization and durable idempotent replay. The current repository has 418 Python tests
-plus the TypeScript suite; a network server, live-model qualification, runtime handoff,
-and a user interface are not yet implemented.
+authorization and durable idempotent replay. The local product now includes a loopback
+server, password-derived operator sessions, qualified local-model configuration, durable
+planning/review, and a browser interface. Governed execution requires real, explicitly
+registered typed tools and acceptance verifiers for the intended work.
 
 No capability is currently promoted to production. Live provider access, production
 hosting, package-registry publication, and operational deployment remain explicitly
@@ -81,6 +82,25 @@ npm ci --prefix sdk/typescript --ignore-scripts
 
 Editable source is installed into the locked `uv` environment. Live provider calls do
 not run during installation or during the default test suite.
+
+## Run NEXUS Agent locally
+
+NEXUS Agent is local software, not a hosted public service. First evaluate and
+independently attest the exact model/adapter binding using the model-evaluation runbook.
+Create a private password file and start the server:
+
+```bash
+install -m 600 /dev/null .nexus-password
+printf '%s\n' 'choose-a-long-unique-password' > .nexus-password
+export NEXUS_AGENT_MODEL_CONFIG="$PWD/examples/agent-models.local.yaml"
+export NEXUS_AGENT_MODEL_ATTESTATION="$PWD/path/to/current-attestation.json"
+nexus-agent-serve --state-dir "$PWD/.nexus-agent" --password-file .nexus-password
+```
+
+Open `http://127.0.0.1:8765/` on the same computer. Log in, describe the goal,
+review the candidate specification, and approve its exact digest. The interface does not
+execute or publish work. Never commit the password, resolved provider keys, state
+directory, or private attestations.
 
 ## Validate a project configuration
 
