@@ -65,18 +65,14 @@ class OpenAIHTTPTransport:
             raise OpenAITransportError("OpenAI model discovery returned a non-success status")
         return _models(_decode(body, OpenAITransportError), OpenAITransportError)
 
-    async def create(
-        self, request: Mapping[str, object], api_key: str
-    ) -> Mapping[str, Any]:
+    async def create(self, request: Mapping[str, object], api_key: str) -> Mapping[str, Any]:
         return await self._json_request("POST", "/v1/responses", request, api_key)
 
     async def retrieve(self, response_id: str, api_key: str) -> Mapping[str, Any]:
         return await self._json_request("GET", f"/v1/responses/{response_id}", None, api_key)
 
     async def cancel_response(self, response_id: str, api_key: str) -> Mapping[str, Any]:
-        return await self._json_request(
-            "POST", f"/v1/responses/{response_id}/cancel", {}, api_key
-        )
+        return await self._json_request("POST", f"/v1/responses/{response_id}/cancel", {}, api_key)
 
     async def _json_request(
         self,
@@ -86,9 +82,7 @@ class OpenAIHTTPTransport:
         api_key: str,
     ) -> Mapping[str, Any]:
         body = _encode(request, OpenAITransportError) if request is not None else None
-        status, response = await asyncio.to_thread(
-            self._request, method, path, body, api_key
-        )
+        status, response = await asyncio.to_thread(self._request, method, path, body, api_key)
         if status != 200:
             raise OpenAITransportError("OpenAI returned a non-success status")
         return _decode(response, OpenAITransportError)
