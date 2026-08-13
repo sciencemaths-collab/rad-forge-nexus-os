@@ -46,6 +46,7 @@ Overall state: **QUALIFIED NEXUS OS BASELINE — NEXUS AGENT UPGRADE IN PROGRESS
 | AG. Clean-room qualification | QUALIFIED | Isolated locked install, all automated gates, independent review, and digest-bound reports pass |
 | AH. NEXUS Agent contracts | QUALIFIED (CONTRACT) | Agent/runtime/provider separation, four schemas, lifecycle semantics, separate API contract, 293 tests, all release/clean-room gates pass |
 | AI. Local OpenAI-compatible adapter | QUALIFIED (FAKE) | Credential-optional loopback adapter, bounded chat normalization, 303 tests, all release/clean-room gates pass |
+| AP. Model qualification registry | QUALIFIED | Exact-binding durable registration, atomic supersession, revocation, read-time integrity checks, and all release/clean-room gates pass |
 | Provider adapters | TESTED (NON-LIVE) | P-T contracts, mock, harness, OpenAI and Anthropic fake transports pass; live remains unverified |
 | Release qualification | APPROVED FOR REPOSITORY INTEGRATION | Clean-room and independent review pass; final public-readiness commit still requires current local and hosted verification |
 
@@ -773,3 +774,25 @@ Python suite, 6-test TypeScript suite, all 15 portable release gates, and indepe
 review passed with zero findings. Tests do not assert a real attestor identity, call a
 live model, create external evidence, persist qualification, implement revocation,
 grant Agent execution authority, or authorize production release.
+
+## Component AP verification
+
+On 2026-08-13 the following focused checks passed:
+
+- Canonical Phase AO and Phase AJ digest re-verification at registration and read
+- Durable exact provider/model/adapter qualification records with immutable content
+- Atomic replacement that preserves and marks the prior record as superseded
+- Irreversible active-record revocation with bounded non-secret audit fields
+- Exact-use and exact-time lookup with expiry and qualification limitations enforced
+- Restart persistence, duplicate rollback, database-owner tamper detection, and
+  append-preserving deletion protection
+- Public model-qualification registry-record Draft 2020-12 schema
+- Focused suite: 16 tests; full suite: 387 Python tests and 6 TypeScript tests
+- Ruff formatting/lint, strict mypy, and contract validation passed
+
+Component AP is clean-room QUALIFIED with synthetic attestations. All 15 portable
+release gates and independent review passed with zero findings. It provides proposal-use lookup only;
+it does not authenticate operators, choose trusted attestors, distribute revocations,
+schedule re-evaluation, grant tool authority, implement the NEXUS Agent controller, or
+authorize production release. Owner approval remains separate and no capability is
+production ready.

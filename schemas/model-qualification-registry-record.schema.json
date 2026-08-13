@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/model-qualification-registry-record.schema.json",
+  "title": "NEXUS Model Qualification Registry Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "attestation", "registered_at", "registered_by", "status"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "attestation": {"$ref": "attested-model-qualification.schema.json"},
+    "registered_at": {"type": "string", "format": "date-time"},
+    "registered_by": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"},
+    "status": {"enum": ["ACTIVE", "SUPERSEDED", "REVOKED"]},
+    "status_at": {"type": "string", "format": "date-time"},
+    "status_by": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "ACTIVE"}}},
+      "then": {"not": {"anyOf": [{"required": ["status_at"]}, {"required": ["status_by"]}, {"required": ["reason"]}]}}
+    },
+    {
+      "if": {"properties": {"status": {"enum": ["SUPERSEDED", "REVOKED"]}}},
+      "then": {"required": ["status_at", "status_by", "reason"]}
+    }
+  ]
+}

@@ -17,10 +17,11 @@ recorded Component AG boundary. The subsequent NEXUS Agent upgrade now includes 
 contract boundary, a fake-transport-tested credential-optional local
 OpenAI-compatible adapter, an evidence-derived model-qualification harness, and a
 controlled structured-output evaluation runner, and an explicitly authorized loopback
-HTTP transport, a digest-anchored 14-case reference reasoning corpus, and an explicit
-local-model evaluation command, and an independently anchored evidence-to-qualification
-bridge. The current repository has 371 Python tests plus the TypeScript suite; live
-attestation, model installation, hidden/rotating certification suites, revocation, and
+HTTP transport, a digest-anchored 14-case reference reasoning corpus, an explicit
+local-model evaluation command, an independently anchored evidence-to-qualification
+bridge, and a durable qualification registry with exact-binding lookup and revocation.
+The current repository has 387 Python tests plus the TypeScript suite; live attestation,
+model installation, hidden/rotating certification suites, operator authentication, and
 a user interface are not yet implemented.
 
 No capability is currently promoted to production. Live provider access, production
@@ -40,6 +41,7 @@ outside the verified boundary. Exact component states and limitations are mainta
 - Workspace and network access denied by default and enabled only through policy scopes
 - Opaque secret references with bounded resolution and recursive redaction
 - Tamper-evident evidence chains and evidence-derived capability qualification
+- Durable exact-model qualification registration, atomic supersession, and revocation
 - Bounded retry and repair constrained by attempt, elapsed-time, repetition, and cost limits
 - Python and TypeScript control clients with caller-injected transports
 
