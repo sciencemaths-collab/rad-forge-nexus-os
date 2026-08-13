@@ -112,6 +112,8 @@ configuration:
 
 ```bash
 uv run rad setup
+uv run rad models list
+uv run rad models test
 uv run rad doctor
 uv run rad serve
 ```
@@ -150,12 +152,19 @@ schema_version: "1.0"
 selected: local_default
 profiles:
   local_default:
-    type: local_openai
+    type: ollama
     base_url: http://127.0.0.1:11434/v1
     model: your-qualified-model-id
     adapter_version: "1.0"
     timeout_seconds: 5
 ```
+
+Use `type: lm_studio` for the conventional LM Studio endpoint on port 1234, or
+`type: local_openai` for another explicit loopback `/v1` server. `rad setup` identifies
+these automatically; `--provider` can make the choice explicit and rejects mismatches.
+
+`rad models test` performs model discovery only. A successful connection does not qualify
+the model or enable tool execution.
 
 If the local server requires a credential, use an opaque reference:
 

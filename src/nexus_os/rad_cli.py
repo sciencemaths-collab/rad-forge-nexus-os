@@ -38,6 +38,7 @@ class RadCliError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class ModelEndpoint:
+    provider: str
     base_url: str
     models: tuple[str, ...]
 
@@ -55,6 +56,11 @@ def parser() -> argparse.ArgumentParser:
 
     setup = commands.add_parser("setup", help="Create local RAD Agent configuration")
     setup.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    setup.add_argument(
+        "--provider",
+        choices=("auto", "ollama", "lm_studio", "local_openai"),
+        default="auto",
+    )
     setup.add_argument("--base-url")
     setup.add_argument("--model")
     setup.add_argument("--mode", choices=("development", "qualified"), default="development")
@@ -66,6 +72,14 @@ def parser() -> argparse.ArgumentParser:
     doctor = commands.add_parser("doctor", help="Check local RAD Agent readiness")
     doctor.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     doctor.add_argument("--json", action="store_true", dest="as_json")
+
+    models = commands.add_parser("models", help="Inspect or test configured model connections")
+    model_commands = models.add_subparsers(dest="models_command", required=True)
+    models_list = model_commands.add_parser("list", help="List configured model profiles")
+    models_list.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    models_test = model_commands.add_parser("test", help="Test the selected model connection")
+    models_test.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    models_test.add_argument("--json", action="store_true", dest="as_json")
 
     serve = commands.add_parser("serve", help="Start the local RAD Agent application")
     serve.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
@@ -116,7 +130,7 @@ def detect_models(
         _loopback_url(candidate)
         models = probe(candidate, timeout_seconds)
         if models:
-            found.append(ModelEndpoint(candidate, models))
+            found.append(ModelEndpoint(_provider_for(candidate), candidate, models))
     return tuple(found)
 
 
@@ -144,6 +158,9 @@ def setup_local(
     if len(endpoints) != 1:
         raise RadCliError("multiple model endpoints detected; select one with --base-url")
     endpoint = endpoints[0]
+    if values.provider != "auto" and values.provider != endpoint.provider:
+        raise RadCliError("selected provider does not match the endpoint")
+    provider = endpoint.provider if values.provider == "auto" else values.provider
     model = values.model
     if model is None:
         if len(endpoint.models) != 1:
@@ -165,7 +182,7 @@ def setup_local(
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(root, 0o700)
     profile: dict[str, Any] = {
-        "type": "local_openai",
+        "type": provider,
         "base_url": endpoint.base_url,
         "model": model,
         "adapter_version": "1.0",
@@ -201,6 +218,7 @@ def setup_local(
         "status": "configured",
         "mode": values.mode,
         "model": model,
+        "provider": provider,
         "base_url": endpoint.base_url,
         "config_dir": str(root),
         "qualified": values.mode == "qualified",
@@ -266,6 +284,40 @@ def doctor_local(
     return all(item["status"] != "fail" for item in checks), checks
 
 
+def models_local(
+    config_dir: Path,
+    *,
+    test_connection: bool,
+    probe: Probe = probe_models,
+) -> tuple[bool, dict[str, Any]]:
+    settings = _load_settings(config_dir)
+    configuration = load_agent_model_config(Path(settings["model_config"]))
+    profiles = [profile.public_dict() for profile in configuration.profiles.values()]
+    selected = configuration.profiles[configuration.selected]
+    result: dict[str, Any] = {
+        "selected": configuration.selected,
+        "profiles": profiles,
+        "mode": settings["mode"],
+    }
+    if not test_connection:
+        return True, result
+    models = probe(selected.base_url, selected.timeout_seconds)
+    connected = selected.model in models
+    result["connection"] = {
+        "status": "pass" if connected else "fail",
+        "provider": selected.provider_type,
+        "base_url": selected.base_url,
+        "model": selected.model,
+        "discovered_models": list(models),
+        "message": (
+            "selected model is reachable"
+            if connected
+            else "selected model was not reported by the provider"
+        ),
+    }
+    return connected, result
+
+
 def serve_local(values: argparse.Namespace) -> int:
     settings = _load_settings(values.config_dir)
     mode = settings["mode"]
@@ -314,6 +366,14 @@ def run(
                 for item in checks:
                     print(f"[{item['status'].upper()}] {item['name']}: {item['message']}")
             return 0 if healthy else 2
+        if values.command == "models":
+            connected, result = models_local(
+                values.config_dir,
+                test_connection=values.models_command == "test",
+                probe=probe,
+            )
+            _emit(result)
+            return 0 if connected else 2
         if values.command == "serve":
             return serve_local(values)
         raise RadCliError("unsupported RAD command")
@@ -369,6 +429,15 @@ def _loopback_url(value: str) -> None:
         or endpoint.fragment
     ):
         raise RadCliError("model endpoint must be an explicit loopback /v1 URL")
+
+
+def _provider_for(base_url: str) -> str:
+    port = urlsplit(base_url).port
+    if port == 11434:
+        return "ollama"
+    if port == 1234:
+        return "lm_studio"
+    return "local_openai"
 
 
 def _private_regular(path: Path) -> bool:

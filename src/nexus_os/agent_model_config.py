@@ -46,6 +46,7 @@ class _NoAliasLoader(yaml.SafeLoader):
 @dataclass(frozen=True, slots=True)
 class LocalModelProfile:
     name: str
+    provider_type: str
     base_url: str
     model: str | None
     credential: str | None
@@ -55,7 +56,7 @@ class LocalModelProfile:
     def public_dict(self) -> dict[str, object]:
         value: dict[str, object] = {
             "name": self.name,
-            "type": "local_openai",
+            "type": self.provider_type,
             "base_url": self.base_url,
             "model": self.model,
             "adapter_version": self.adapter_version,
@@ -149,7 +150,7 @@ async def resolve_agent_model(
         try:
             for use in (ModelUse.CANDIDATE_SPECIFICATION, ModelUse.REPAIR_PROPOSAL):
                 qualifications.authorize(
-                    provider_id="local_openai",
+                    provider_id=profile.provider_type,
                     model_id=model,
                     adapter_version=profile.adapter_version,
                     use=use,
@@ -190,8 +191,9 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
         raise AgentModelConfigError("model profile name is invalid")
     if not isinstance(value, dict) or set(value) - _ALLOWED_PROFILE:
         raise AgentModelConfigError("model profile is invalid")
-    if value.get("type") != "local_openai":
-        raise AgentModelConfigError("only local OpenAI-compatible profiles are supported in AZ")
+    provider_type = value.get("type")
+    if provider_type not in {"local_openai", "ollama", "lm_studio"}:
+        raise AgentModelConfigError("model profile type is unsupported")
     base_url = value.get("base_url")
     model = value.get("model")
     credential = value.get("credential")
@@ -225,4 +227,6 @@ def _profile(name: object, value: Any) -> LocalModelProfile:
         raise AgentModelConfigError("model profile adapter version is unsupported")
     if not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 60:
         raise AgentModelConfigError("model profile timeout is invalid")
-    return LocalModelProfile(name, base_url, model, credential, adapter_version, timeout)
+    return LocalModelProfile(
+        name, provider_type, base_url, model, credential, adapter_version, timeout
+    )

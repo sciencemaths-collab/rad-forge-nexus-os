@@ -120,7 +120,7 @@ def create_local_application(
         sessions=sessions,
         qualifications=authorization,
         adapter=adapter,
-        provider_id="local_openai",
+        provider_id=resolved.profile.provider_type,
         model_id=resolved.model,
         adapter_version=resolved.profile.adapter_version,
         ids=ids,
