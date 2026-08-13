@@ -197,7 +197,7 @@ def _request(
             try:
                 connection.close()
             except Exception:
-                pass
+                connection = None
 
 
 def _encode(value: Mapping[str, object], error_type: type[RuntimeError]) -> bytes:
