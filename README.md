@@ -84,8 +84,9 @@ evaluate acceptance criteria. Evidence records what actually occurred.
 | Domain-specific agent | Laboratories, engineering teams, and organizations | Runtime components for registered tools, policy, recovery, approvals, and evidence |
 
 The bundled application currently supports local governed planning and human review.
-Direct cloud-model setup and domain-specific execution require an explicit qualified
-integration; they are not enabled merely by adding an API key.
+Direct OpenAI and Anthropic setup is available with opaque credential references. Cloud
+model use still requires explicit qualification in qualified mode, and domain-specific
+execution is not enabled merely by adding an API key.
 
 For the complete walkthrough—including local setup, authenticated API examples, safe
 credential references, SDK integration, provider porting, execution requirements, and
@@ -165,6 +166,19 @@ these automatically; `--provider` can make the choice explicit and rejects misma
 
 `rad models test` performs model discovery only. A successful connection does not qualify
 the model or enable tool execution.
+
+Direct official cloud connections are also available with opaque credential references:
+
+```bash
+uv run rad setup --provider openai --model YOUR_MODEL \
+  --credential-ref env:OPENAI_API_KEY
+# or: --provider anthropic --credential-ref env:ANTHROPIC_API_KEY
+uv run rad models test
+```
+
+Cloud endpoints are fixed to the providers' official HTTPS hosts. See
+**[Cloud model connections](docs/specifications/RAD_CLOUD_MODEL_CONNECTIONS.md)** for the
+security, qualification, and opt-in live-test contract.
 
 If the local server requires a credential, use an opaque reference:
 
