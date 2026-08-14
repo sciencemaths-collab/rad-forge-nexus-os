@@ -54,6 +54,12 @@ separate authenticated human decision. Browser automation is not a background wo
 in-flight tick finishes atomically, while closing the UI or stopping prevents the next tick;
 durable checkpoints provide later resume.
 
+The packaged loopback HTTP server processes operator requests serially on its owning server
+thread. This preserves SQLite connection ownership and deterministic mutation ordering across
+the composed session, replay, approval, checkpoint, registry, and evidence stores. Parallel
+request-handler threads are outside the qualified local-runtime boundary; future concurrency
+requires an explicit connection-per-request or serialized store design and separate evidence.
+
 When automatic verification is enabled, the browser may invoke the existing verification
 operation only after the durable runtime reports `SUCCEEDED`. The resulting completion report
 must bind the session, run, Agent state, verification outcome, evidence count, verified chain

@@ -9,7 +9,7 @@ import socket
 import threading
 from collections import defaultdict, deque
 from datetime import UTC, datetime, timedelta
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 from uuid import uuid4
 
@@ -46,8 +46,8 @@ class LoginLimiter:
             return True
 
 
-class AgentHttpServer(ThreadingHTTPServer):
-    daemon_threads = True
+class AgentHttpServer(HTTPServer):
+    """Serialized loopback server preserving application-store thread ownership."""
 
     def __init__(
         self,

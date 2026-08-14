@@ -1,6 +1,7 @@
 import http.client
 import json
 import threading
+from socketserver import ThreadingMixIn
 
 import pytest
 
@@ -155,3 +156,13 @@ def test_non_loopback_bind_is_rejected_before_socket_creation(tmp_path) -> None:
     with pytest.raises(AgentHttpServerError, match="loopback"):
         AgentHttpServer(("0.0.0.0", 8765), Application(), authenticator)  # noqa: S104
     authenticator.close()
+
+
+def test_server_serializes_requests_for_sqlite_thread_ownership(tmp_path) -> None:
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    server = AgentHttpServer(("127.0.0.1", 0), Application(), authenticator)
+    try:
+        assert not isinstance(server, ThreadingMixIn)
+    finally:
+        server.server_close()
+        authenticator.close()

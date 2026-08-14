@@ -1162,6 +1162,8 @@ The final Phase 3E slice exercises the supported application rather than mocked 
   select a workspace, initialize the governed runtime, execute the task graph, verify acceptance,
   and display a `VERIFIED` evidence chain with `LOCAL_VERIFIED_NOT_PRODUCTION` qualification.
 - Confirm generated artifacts remain confined to the approved `.rad-agent-artifacts` directory.
+- Serialize packaged loopback request handling so all composed SQLite stores remain on their
+  owning server thread; the full packaged journey detected and closed this composition defect.
 
 This qualifies the deterministic test-provider path and packaged ordinary-user composition. It
 does not claim that Ollama, LM Studio, OpenAI, or Anthropic live services passed this run, and it
