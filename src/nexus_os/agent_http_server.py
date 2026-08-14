@@ -8,8 +8,9 @@ import re
 import socket
 import threading
 from collections import defaultdict, deque
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 from uuid import uuid4
 
@@ -46,8 +47,8 @@ class LoginLimiter:
             return True
 
 
-class AgentHttpServer(ThreadingHTTPServer):
-    daemon_threads = True
+class AgentHttpServer(HTTPServer):
+    """Serialized loopback server preserving application-store thread ownership."""
 
     def __init__(
         self,
@@ -68,7 +69,7 @@ class AgentHttpServer(ThreadingHTTPServer):
 
 class AgentHttpRequestHandler(BaseHTTPRequestHandler):
     server: AgentHttpServer
-    protocol_version = "HTTP/1.1"
+    protocol_version = "HTTP/1.0"
 
     def do_GET(self) -> None:
         self._dispatch("GET")
@@ -176,12 +177,15 @@ class AgentHttpRequestHandler(BaseHTTPRequestHandler):
         body: Any,
         headers: dict[str, str] | None = None,
     ) -> None:
-        payload = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+        payload = json.dumps(
+            body, sort_keys=True, separators=(",", ":"), default=_json_mapping
+        ).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "close")
         for key, value in (headers or {}).items():
             self.send_header(key, value)
         self.end_headers()
@@ -193,6 +197,7 @@ class AgentHttpRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "close")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header(
@@ -215,3 +220,9 @@ def _valid_host(value: str | None) -> bool:
     else:
         host = value.rsplit(":", 1)[0] if value.count(":") == 1 else value
     return host.lower() in {"127.0.0.1", "localhost", "[::1]"}
+
+
+def _json_mapping(value: object) -> dict[object, object]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")

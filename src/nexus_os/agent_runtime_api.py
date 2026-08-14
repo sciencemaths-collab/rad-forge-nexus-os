@@ -235,7 +235,7 @@ class GovernedAgentRuntimeApi:
         graph = self._registry.load(session_id)
         from nexus_os.domain import RunId
 
-        return self._runtime.resume(
+        return self._runtime.inspect(
             run_id=RunId.parse(self._registry.run_id(session_id)), graph=graph
         )
 

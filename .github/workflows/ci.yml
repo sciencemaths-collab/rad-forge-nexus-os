@@ -37,7 +37,10 @@ jobs:
         if: failure()
         with:
           name: browser-acceptance-failures
-          path: artifacts/browser-acceptance
+          path: |
+            artifacts/browser-acceptance
+            artifacts/qualified-browser
+            artifacts/qualified-browser-diagnostics
           if-no-files-found: warn
           retention-days: 14
       - uses: actions/upload-artifact@v7

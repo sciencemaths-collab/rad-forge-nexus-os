@@ -1148,3 +1148,36 @@ The second Phase 3E slice adds ordinary-user failure and accessibility evidence:
 
 This still does not establish full qualified-provider composition, assistive-technology
 certification, background execution after browser closure, or production qualification.
+
+## RAD Agent Phase 3E packaged qualified-provider acceptance (accepted)
+
+The final Phase 3E slice exercises the supported application rather than mocked browser APIs:
+
+- Build and install the RAD Agent wheel into an isolated Python environment.
+- Start a deterministic loopback OpenAI-compatible provider through the real HTTP transport.
+- Register a current, independently evidenced qualification bound to the exact provider, model,
+  adapter version, evaluation manifest, and evidence-chain head.
+- Start the packaged `rad serve` entry point with owner-only operator credentials.
+- Use Chromium and Firefox to log in, create a goal, review and approve the exact candidate,
+  select a workspace, initialize the governed runtime, execute the task graph, verify acceptance,
+  and display a `VERIFIED` evidence chain with `LOCAL_VERIFIED_NOT_PRODUCTION` qualification.
+- Confirm generated artifacts remain confined to the approved `.rad-agent-artifacts` directory.
+- Serialize packaged loopback request handling so all composed SQLite stores remain on their
+  owning server thread; the full packaged journey detected and closed this composition defect.
+- Close every serialized loopback response connection; the browser gate exposed that HTTP/1.1
+  keep-alive otherwise lets an idle browser connection starve subsequent requests.
+- Encode immutable nested runtime mappings at the HTTP wire boundary; the full automatic journey
+  detected the failure when evidence grew beyond the first two task records.
+- Separate read-only terminal checkpoint inspection from executable resume so completed runs can
+  expose evidence and enter acceptance verification without weakening terminal-state guards.
+- Keep the browser verification mutation bodyless, matching the strict authenticated API schema.
+
+This qualifies the deterministic test-provider path and packaged ordinary-user composition. It
+does not claim that Ollama, LM Studio, OpenAI, or Anthropic live services passed this run, and it
+does not establish background execution or production qualification.
+
+GitHub Actions run 119 passed all 18 automated gates on 2026-08-14. The qualified-browser
+gate digest is `sha256:5f421431215ed66ae25231582db1788ab906ee6a49676a90bce6dd8c063fe489`.
+The release evidence remains `AUTOMATED_GATES_PASS`, not a production release candidate:
+clean-room qualification, independent review, owner approval, and production authorization are
+still pending.

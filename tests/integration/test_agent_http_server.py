@@ -1,6 +1,8 @@
 import http.client
 import json
 import threading
+from socketserver import ThreadingMixIn
+from types import MappingProxyType
 
 import pytest
 
@@ -17,7 +19,9 @@ class Application:
         token = authorization.removeprefix("Bearer ")
         if self.authenticator.authenticate(token) is None:
             return AgentApiResponse(401, {"code": "unauthorized"})
-        return AgentApiResponse(200, [{"model_id": "local-test"}])
+        return AgentApiResponse(
+            200, [{"model_id": "local-test", "metadata": MappingProxyType({"safe": True})}]
+        )
 
 
 def request(connection, method, path, body=None, headers=None):
@@ -54,7 +58,7 @@ def test_health_login_and_authenticated_request_over_real_socket(tmp_path) -> No
             "/v1/model-qualifications",
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert status == 200 and body == [{"model_id": "local-test"}]
+        assert status == 200 and body == [{"model_id": "local-test", "metadata": {"safe": True}}]
     finally:
         connection.close()
         server.shutdown()
@@ -104,6 +108,7 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "body.runtime.run_state==='SUCCEEDED'&&q('#auto-verify').checked" in script
         assert "q('#completion').classList.add('hidden')" in script
         assert "await verifyCompletion()" in script
+        assert "runtime/verify`,{method:'POST',headers:{'Idempotency-Key':key('verify')}}" in script
         assert "evidence_chain" in script
         assert "localStorage" not in script
     finally:
@@ -155,3 +160,35 @@ def test_non_loopback_bind_is_rejected_before_socket_creation(tmp_path) -> None:
     with pytest.raises(AgentHttpServerError, match="loopback"):
         AgentHttpServer(("0.0.0.0", 8765), Application(), authenticator)  # noqa: S104
     authenticator.close()
+
+
+def test_server_serializes_requests_for_sqlite_thread_ownership(tmp_path) -> None:
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    server = AgentHttpServer(("127.0.0.1", 0), Application(), authenticator)
+    try:
+        assert not isinstance(server, ThreadingMixIn)
+    finally:
+        server.server_close()
+        authenticator.close()
+
+
+def test_serialized_server_closes_each_http_connection(tmp_path) -> None:
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    server = AgentHttpServer(("127.0.0.1", 0), Application(), authenticator)
+    worker = threading.Thread(target=server.serve_forever)
+    worker.start()
+    try:
+        for _ in range(2):
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("GET", "/healthz")
+            response = connection.getresponse()
+            assert response.status == 200
+            assert response.getheader("Connection") == "close"
+            assert response.will_close
+            response.read()
+            connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)
+        authenticator.close()

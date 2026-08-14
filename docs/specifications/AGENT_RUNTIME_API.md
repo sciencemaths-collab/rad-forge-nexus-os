@@ -35,7 +35,9 @@ bodies, scopes, state, and ownership are validated before mutation.
 
 The API persists the canonical validated graph, run binding, and graph digest. Status and
 later mutations reconstruct and revalidate the graph, verify its digest, then resume the
-compatible runtime checkpoint. Conflicting session/run/graph reuse fails closed.
+compatible runtime checkpoint. Terminal checkpoints may be inspected for status, evidence,
+and verification but remain ineligible for executable resume. Conflicting session/run/graph
+reuse fails closed.
 
 ## Phase AX non-goals
 
@@ -53,6 +55,15 @@ idle, retry, repair, failure, or any outcome other than task success. Approval r
 separate authenticated human decision. Browser automation is not a background worker: an
 in-flight tick finishes atomically, while closing the UI or stopping prevents the next tick;
 durable checkpoints provide later resume.
+
+The packaged loopback HTTP server processes operator requests serially on its owning server
+thread. This preserves SQLite connection ownership and deterministic mutation ordering across
+the composed session, replay, approval, checkpoint, registry, and evidence stores. Every
+response closes its HTTP connection because an idle persistent browser connection could starve
+other requests on the serialized server. Immutable application mappings are converted to JSON
+objects only at this wire boundary. Parallel handlers and persistent connections are outside
+the qualified local-runtime boundary; future concurrency requires an explicit connection-per-
+request or serialized store design and separate evidence.
 
 When automatic verification is enabled, the browser may invoke the existing verification
 operation only after the durable runtime reports `SUCCEEDED`. The resulting completion report
