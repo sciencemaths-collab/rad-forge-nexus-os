@@ -18,10 +18,12 @@ def test_release_gate_contract_has_required_order_and_version() -> None:
         "contract",
         "integration",
         "security",
+        "browser_acceptance",
         "provider_conformance",
         "rw_100k",
         "typescript",
         "build",
+        "clean_wheel",
     )
 
 

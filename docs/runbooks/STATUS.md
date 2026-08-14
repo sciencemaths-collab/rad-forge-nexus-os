@@ -1113,3 +1113,21 @@ This is a fake-provider-qualified proposal boundary. It does not compose the rea
 runtime execution, register or invoke a tool, write files, read workspace inputs, promote
 capabilities, claim task success, publish, deploy, delete, or establish live-model or
 production qualification. Governed composition of validated content remains the next phase.
+
+## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
+
+This slice closes browser behavior gaps without adding a new execution path:
+
+- Real Chromium and Firefox interaction tests exercise the served operator interface.
+- A final task completed with **Run one governed step** now honors automatic verification.
+- A final task completed after an exact human approval now honors automatic verification.
+- Failed resumed runs use explicit failure language and never receive the local-success
+  qualification label.
+- Evidence integrity failures hide completion qualification and surface an `INVALID` chain.
+- CI installs both acceptance browsers and records the browser suite as a release-evidence gate.
+- A clean-environment gate installs the built wheel outside the source tree and verifies the
+  packaged `rad`, `rad setup`, `rad doctor`, and `rad serve` entry points plus browser assets.
+
+The slice remains local-only and is not production qualification. Full qualified provider
+composition, interruption recovery, accessibility scanning, and browser trace artifact capture
+remain required before Phase 3E can be marked fully accepted.

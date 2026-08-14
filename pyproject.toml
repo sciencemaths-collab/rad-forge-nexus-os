@@ -37,6 +37,8 @@ dev = [
   "types-jsonschema>=4.26",
   "types-PyYAML>=6.0.12",
   "pip-audit==2.10.1",
+  "playwright>=1.54,<2",
+  "pytest-playwright>=0.7,<1",
 ]
 
 [tool.hatch.build.targets.wheel]
