@@ -7,6 +7,7 @@ import threading
 import time
 import traceback
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -115,18 +116,8 @@ def _write_configuration(root: Path) -> Path:
     password = config / "operator-password"
     password.write_text(PASSWORD + "\n", encoding="utf-8")
     os.chmod(password, 0o600)
-    evaluation = manifest()
-    evidence = records(evaluation)
-    attestation = attest_and_qualify(
-        evaluation,
-        evidence,
-        expected_count=7,
-        expected_head=evidence[-1].record_hash,
-        trusted_producers=frozenset({"independent-evaluator"}),
-        qualification_id=QUALIFICATION_ID,
-        attested_at=datetime.now(UTC),
-        validity_seconds=3600,
-    ).to_dict()
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        attestation = executor.submit(_current_attestation).result(timeout=30)
     attestation_path = config / "attestation.json"
     attestation_path.write_text(json.dumps(attestation), encoding="utf-8")
     settings = {
@@ -139,6 +130,21 @@ def _write_configuration(root: Path) -> Path:
     }
     (config / "settings.json").write_text(json.dumps(settings), encoding="utf-8")
     return config
+
+
+def _current_attestation() -> dict[str, object]:
+    evaluation = manifest()
+    evidence = records(evaluation)
+    return attest_and_qualify(
+        evaluation,
+        evidence,
+        expected_count=7,
+        expected_head=evidence[-1].record_hash,
+        trusted_producers=frozenset({"independent-evaluator"}),
+        qualification_id=QUALIFICATION_ID,
+        attested_at=datetime.now(UTC),
+        validity_seconds=3600,
+    ).to_dict()
 
 
 def _install_wheel(root: Path) -> Path:
