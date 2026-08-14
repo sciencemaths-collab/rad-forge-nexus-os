@@ -1,11 +1,11 @@
 import json
 import os
+import shutil
 import socket
 import subprocess
 import threading
 import time
 import urllib.request
-import venv
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -144,10 +144,17 @@ def _install_wheel(root: Path) -> Path:
     wheels = tuple((Path(__file__).resolve().parents[2] / "dist").glob("nexus_os-*.whl"))
     assert len(wheels) == 1, "qualified browser acceptance requires exactly one built wheel"
     environment = root / "environment"
-    venv.EnvBuilder(with_pip=True).create(environment)
+    uv = shutil.which("uv")
+    assert uv is not None, "qualified browser acceptance requires the locked uv runtime"
+    subprocess.run(  # noqa: S603 - resolved trusted uv executable
+        (uv, "venv", "--seed", str(environment)),
+        check=True,
+        cwd=root,
+        timeout=180,
+    )
     python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     subprocess.run(  # noqa: S603 - fixed interpreter and repository wheel
-        (str(python), "-m", "pip", "install", str(wheels[0])),
+        (uv, "pip", "install", "--python", str(python), str(wheels[0])),
         check=True,
         cwd=root,
         timeout=180,
