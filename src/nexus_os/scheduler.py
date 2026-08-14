@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from types import MappingProxyType
+from typing import Protocol
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from nexus_os.approval import ApprovalError, ApprovalRecord, ApprovalStatus, ApprovalStore
@@ -14,6 +15,7 @@ from nexus_os.attempt_store import AttemptStore
 from nexus_os.domain import (
     Failure,
     FailureClass,
+    RunId,
     TaskDefinition,
     TaskId,
     TaskStatus,
@@ -35,6 +37,12 @@ from nexus_os.tools import ToolError, ToolExecutor, ToolPreview, ToolRegistry, T
 
 class SchedulerError(ValueError):
     """Safe scheduler validation, binding, or lifecycle failure."""
+
+
+class TaskPayloadResolver(Protocol):
+    """Resolve the exact deterministic payload used by preview and execution."""
+
+    def resolve(self, run_id: RunId, task: TaskDefinition) -> Mapping[str, object]: ...
 
 
 class SchedulerOutcome(StrEnum):
@@ -72,6 +80,7 @@ class GovernedScheduler:
         retry: RetryEngine,
         evidence: RuntimeEvidenceWriter,
         tool_bindings: Mapping[str, str],
+        payload_resolver: TaskPayloadResolver | None = None,
         approval_ttl: timedelta = timedelta(hours=1),
     ) -> None:
         if not timedelta(seconds=1) <= approval_ttl <= timedelta(days=7):
@@ -93,6 +102,7 @@ class GovernedScheduler:
         self._retry = retry
         self._evidence = evidence
         self._bindings = MappingProxyType(bindings)
+        self._payload_resolver = payload_resolver
         self._approval_ttl = approval_ttl
 
     def preview(
@@ -112,9 +122,10 @@ class GovernedScheduler:
         descriptor = self._registry.get(tool_name)
         if descriptor.effect is not task.effect:
             raise SchedulerError("task and tool effects do not match")
+        payload = self._payload(snapshot, task)
         return task, self._executor.preview(
             tool_name,
-            task.input,
+            payload,
             actor_id=actor_id,
             project_id=snapshot.graph.graph.project_id,
         )
@@ -159,6 +170,7 @@ class GovernedScheduler:
                 "Task and tool effects do not match.",
                 FailureClass.SECURITY_POLICY,
             )
+        payload = self._payload(snapshot, task)
         decision = self._decision(actor_id, snapshot, task, tool_name)
         if decision.kind is PolicyDecisionKind.DENY:
             return self._fail(
@@ -202,7 +214,7 @@ class GovernedScheduler:
         try:
             result = await self._executor.execute(
                 tool_name,
-                task.input,
+                payload,
                 actor_id=actor_id,
                 project_id=snapshot.graph.graph.project_id,
                 run_id=snapshot.run_id,
@@ -274,6 +286,14 @@ class GovernedScheduler:
         return SchedulerTickResult(
             SchedulerOutcome.SUCCEEDED, completed, task.task_id, tool_result=result
         )
+
+    def _payload(self, snapshot: RuntimeSnapshot, task: TaskDefinition) -> Mapping[str, object]:
+        if self._payload_resolver is None:
+            return task.input
+        try:
+            return self._payload_resolver.resolve(snapshot.run_id, task)
+        except ValueError as exc:
+            raise SchedulerError("task payload could not be resolved safely") from exc
 
     def _select(
         self, snapshot: RuntimeSnapshot, *, approval_id: UUID | None, task_id: TaskId | None

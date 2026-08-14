@@ -65,6 +65,8 @@ def _registry(effect: ActionEffect, calls: list[dict[str, Any]]) -> ToolRegistry
                 "properties": {
                     "value": {"type": "string"},
                     "idempotency_key": {"type": "string", "minLength": 16},
+                    "reasoned_artifact": {"type": "object"},
+                    "reasoned_artifact_digest": {"type": "string"},
                 },
             },
             {
@@ -84,7 +86,9 @@ def _registry(effect: ActionEffect, calls: list[dict[str, Any]]) -> ToolRegistry
     return registry
 
 
-def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None, max_attempts=1):
+def _subject(
+    tmp_path, effect=ActionEffect.READ_ONLY, rules=None, max_attempts=1, payload_resolver=None
+):
     calls: list[dict[str, Any]] = []
     store = SQLiteCheckpointStore(tmp_path / "runtime.db")
     runtime = RuntimeOrchestrator(store)
@@ -101,6 +105,7 @@ def _subject(tmp_path, effect=ActionEffect.READ_ONLY, rules=None, max_attempts=1
         retry=RetryEngine(RetryLimits()),
         evidence=RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "evidence.db")),
         tool_bindings={"mode.test.execute": "nexus.test.execute"},
+        payload_resolver=payload_resolver,
     )
     snapshot = runtime.create(
         run_id=RunId.parse("82000000-0000-4000-8000-000000000002"),
@@ -178,3 +183,29 @@ def test_policy_denial_is_durable_failure_without_tool_call(tmp_path) -> None:
     assert result.outcome is SchedulerOutcome.FAILED
     assert result.failure is not None and result.failure.code == "policy.denied"
     assert calls == []
+
+
+def test_preview_and_execution_use_same_deterministically_resolved_payload(tmp_path) -> None:
+    class Resolver:
+        def __init__(self) -> None:
+            self.payloads = []
+
+        def resolve(self, run_id, task):  # type: ignore[no-untyped-def]
+            payload = {
+                **dict(task.input),
+                "reasoned_artifact": {"title": "Bound proposal"},
+                "reasoned_artifact_digest": "sha256:" + "a" * 64,
+            }
+            self.payloads.append(payload)
+            return payload
+
+    resolver = Resolver()
+    scheduler, snapshot, _, calls = _subject(tmp_path, payload_resolver=resolver)
+    _, preview = scheduler.preview(snapshot, actor_id="runtime-scheduler")
+    result = asyncio.run(
+        scheduler.tick(snapshot, actor_id="runtime-scheduler", trace_id=TRACE, now=NOW)
+    )
+    assert result.outcome is SchedulerOutcome.SUCCEEDED
+    assert preview.input_digest.startswith("sha256:")
+    assert calls == [resolver.payloads[0]]
+    assert resolver.payloads[0] == resolver.payloads[1]
