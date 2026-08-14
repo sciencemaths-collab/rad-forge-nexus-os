@@ -90,6 +90,13 @@ class RuntimeOrchestrator:
         return self._persist(snapshot, expected_revision=None, now=now)
 
     def resume(self, *, run_id: RunId, graph: ValidatedTaskGraph) -> RuntimeSnapshot:
+        snapshot = self.inspect(run_id=run_id, graph=graph)
+        if snapshot.run_state.is_terminal:
+            raise RuntimeOrchestratorError("terminal runtime checkpoint cannot be resumed")
+        return snapshot
+
+    def inspect(self, *, run_id: RunId, graph: ValidatedTaskGraph) -> RuntimeSnapshot:
+        """Rehydrate any durable checkpoint without authorizing further execution."""
         checkpoint = self._store.load(
             run_id,
             graph_digest=graph.graph.digest,
@@ -109,8 +116,6 @@ class RuntimeOrchestrator:
             task_states = {TaskId(key): TaskStatus(value) for key, value in raw_states.items()}
         except (KeyError, TypeError, ValueError) as exc:
             raise RuntimeOrchestratorError("runtime checkpoint payload is invalid") from exc
-        if run_state.is_terminal:
-            raise RuntimeOrchestratorError("terminal runtime checkpoint cannot be resumed")
         return RuntimeSnapshot(
             run_id=run_id,
             graph=graph,

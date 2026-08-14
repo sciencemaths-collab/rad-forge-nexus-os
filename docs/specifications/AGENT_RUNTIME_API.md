@@ -35,7 +35,9 @@ bodies, scopes, state, and ownership are validated before mutation.
 
 The API persists the canonical validated graph, run binding, and graph digest. Status and
 later mutations reconstruct and revalidate the graph, verify its digest, then resume the
-compatible runtime checkpoint. Conflicting session/run/graph reuse fails closed.
+compatible runtime checkpoint. Terminal checkpoints may be inspected for status, evidence,
+and verification but remain ineligible for executable resume. Conflicting session/run/graph
+reuse fails closed.
 
 ## Phase AX non-goals
 

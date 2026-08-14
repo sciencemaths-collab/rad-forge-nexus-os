@@ -1168,6 +1168,8 @@ The final Phase 3E slice exercises the supported application rather than mocked 
   keep-alive otherwise lets an idle browser connection starve subsequent requests.
 - Encode immutable nested runtime mappings at the HTTP wire boundary; the full automatic journey
   detected the failure when evidence grew beyond the first two task records.
+- Separate read-only terminal checkpoint inspection from executable resume so completed runs can
+  expose evidence and enter acceptance verification without weakening terminal-state guards.
 
 This qualifies the deterministic test-provider path and packaged ordinary-user composition. It
 does not claim that Ollama, LM Studio, OpenAI, or Anthropic live services passed this run, and it

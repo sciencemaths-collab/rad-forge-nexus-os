@@ -111,3 +111,4 @@ def test_resume_rejects_missing_or_terminal_checkpoint(tmp_path) -> None:  # typ
         terminal = runtime.cancel(snapshot, trace_id=TRACE, now=NOW)
         with pytest.raises(RuntimeOrchestratorError, match="terminal"):
             runtime.resume(run_id=terminal.run_id, graph=_graph())
+        assert runtime.inspect(run_id=terminal.run_id, graph=_graph()) == terminal
