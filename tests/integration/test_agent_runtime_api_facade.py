@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 
 from nexus_os.agent_api import AgentApiRequest, AgentIdentity
@@ -14,6 +15,8 @@ from nexus_os.runtime import RuntimeOrchestrator
 from nexus_os.runtime_evidence import AgentCompletionVerifier, RuntimeEvidenceWriter
 from nexus_os.scheduler import GovernedScheduler
 from nexus_os.stores import SQLiteCheckpointStore
+from nexus_os.task_composition import ReasonedTaskCompositionStore
+from nexus_os.task_reasoning import ReasonedTaskArtifact
 from nexus_os.tools import ToolDescriptor, ToolExecutor, ToolRegistry
 from tests.contract.test_agent_handoff_contract import NOW, SESSION, TRACE, _approved
 from tests.unit.test_agent_store import uid
@@ -33,6 +36,17 @@ class Ids:
     def event_id(self):
         self.number += 1
         return uid(self.number)
+
+
+class TaskReasoner:
+    async def propose(self, task, **kwargs):  # type: ignore[no-untyped-def]
+        return ReasonedTaskArtifact(
+            "Prepared task",
+            "Bound to the exact approved runtime task.",
+            (("Scope", "Use the approved input."),),
+            ("Verify typed-tool evidence.",),
+            (),
+        )
 
 
 def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None:
@@ -57,6 +71,9 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
     policy = PolicyEngine(PolicyRules())
     evidence = EvidenceLedger(tmp_path / "evidence.db")
     writer = RuntimeEvidenceWriter(evidence)
+    composition = ReasonedTaskCompositionStore(  # type: ignore[arg-type]
+        tmp_path / "composition.db", TaskReasoner()
+    )
     scheduler = GovernedScheduler(
         runtime=runtime,
         registry=tools,
@@ -80,6 +97,7 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
                 "mode.app_build.evidence",
             )
         },
+        payload_resolver=composition,
     )
     facade = GovernedAgentRuntimeApi(
         sessions=sessions,
@@ -94,6 +112,7 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
         ),
         capabilities=Capabilities(),
         ids=Ids(),
+        composition=composition,
     )
     identity = AgentIdentity("owner-user", frozenset({"agent:execute", "agent:read"}), True)
     request = AgentApiRequest(
@@ -101,10 +120,13 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
     )
     started = facade.start(SESSION, identity, request, {"workspace_root": "/workspace/project"})
     recovered = facade.status(SESSION)
+    prepared = asyncio.run(facade.prepare(SESSION, identity, request, None))
     preview = facade.preview(SESSION, identity)
     evidence_view = facade.evidence(SESSION)
     assert started["run_state"] == "READY"
     assert recovered == started
+    assert prepared["status"] == "PROPOSED"
+    assert prepared["artifact_digest"].startswith("sha256:")
     assert preview["task_id"] == "specification"
     assert preview["decision"] == "ALLOW"
     assert evidence_view["records"] == []

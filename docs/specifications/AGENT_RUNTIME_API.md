@@ -15,6 +15,9 @@ evidence, and acceptance verification.
   supplies only a bounded workspace root. Required capabilities are derived by an injected
   trusted authorizer; request clients cannot assert them.
 - `GET .../runtime` (`agent:read`) returns the durable run/graph/task snapshot.
+- `POST .../runtime/preparations` (`agent:execute`) invokes the exactly qualified task
+  reasoner at most once for an exact ready task, or recovers its immutable prior artifact.
+  It returns the `PROPOSED` artifact and digest for operator review before preview/execution.
 - `GET .../runtime/preview` (`agent:read`) returns the exact next typed-tool input,
   effect, policy decision, and digests without resolving a handler or changing state.
 - `GET .../runtime/evidence` (`agent:read`) returns the ordered, append-only evidence

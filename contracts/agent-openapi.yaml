@@ -105,6 +105,15 @@ paths:
       requestBody:
         content: {application/json: {schema: {type: object, additionalProperties: false, properties: {approval_id: {type: string, format: uuid}, task_id: {type: string}}}}}
       responses: {'200': {description: Governed scheduler tick}}
+  /v1/agent/sessions/{sessionId}/runtime/preparations:
+    post:
+      operationId: prepareAgentRuntimeTask
+      x-required-scope: agent:execute
+      description: Prepare or recover the qualified artifact bound to one exact ready task.
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      requestBody:
+        content: {application/json: {schema: {type: object, additionalProperties: false, properties: {task_id: {type: string}}}}}
+      responses: {'200': {description: Exact proposed artifact, digest, task binding, and PROPOSED status}}
   /v1/agent/sessions/{sessionId}/runtime/preview:
     get:
       operationId: previewAgentRuntimeAction

@@ -44,6 +44,17 @@ def proposal() -> dict[str, object]:
     }
 
 
+def task_proposal() -> dict[str, object]:
+    return {
+        "schema_version": "1.0",
+        "title": "Qualified task artifact",
+        "summary": "Create the exact approved local artifact.",
+        "sections": [{"heading": "Scope", "content": "Use the approved task input."}],
+        "evidence_notes": ["Verify the typed-tool outcome."],
+        "unresolved_questions": [],
+    }
+
+
 class QualifiedProvider(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path != "/v1/models":
@@ -56,7 +67,9 @@ class QualifiedProvider(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         length = int(self.headers.get("Content-Length", "0"))
-        json.loads(self.rfile.read(length))
+        request = json.loads(self.rfile.read(length))
+        messages = json.dumps(request.get("messages", []))
+        output = task_proposal() if "Approved task" in messages else proposal()
         self._json(
             {
                 "id": "qualified-browser-completion",
@@ -65,7 +78,7 @@ class QualifiedProvider(BaseHTTPRequestHandler):
                     {
                         "index": 0,
                         "finish_reason": "stop",
-                        "message": {"role": "assistant", "content": json.dumps(proposal())},
+                        "message": {"role": "assistant", "content": json.dumps(output)},
                     }
                 ],
                 "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
@@ -226,6 +239,8 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             page.locator("#workspace-root").fill(str(workspace))
             page.locator("#runtime-form button").click()
             expect(page.locator("#auto-run")).to_be_enabled(timeout=15_000)
+            expect(page.locator("#task-artifact")).to_contain_text("Qualified task artifact")
+            expect(page.locator("#task-artifact-digest")).to_contain_text("sha256:")
             page.locator("#auto-run").click()
             expect(page.locator("#completion-status")).to_have_text(
                 "Verification complete", timeout=30_000
