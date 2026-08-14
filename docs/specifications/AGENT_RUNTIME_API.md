@@ -40,3 +40,14 @@ compatible runtime checkpoint. Conflicting session/run/graph reuse fails closed.
 Phase AX does not open a network socket, implement token cryptography or user management,
 connect live tools/providers, auto-run background ticks, alter approved inputs, deploy,
 publish, or grant production status.
+
+## Bounded browser automation
+
+The loopback operator UI may advance a run automatically only by issuing the existing
+one-task tick request sequentially. It must preview before dispatch, use a fresh idempotency
+key for every tick, and cap each automatic request sequence at 100 completed steps. It must
+stop before another tick when the operator requests stop or when a tick returns approval,
+idle, retry, repair, failure, or any outcome other than task success. Approval remains a
+separate authenticated human decision. Browser automation is not a background worker: an
+in-flight tick finishes atomically, while closing the UI or stopping prevents the next tick;
+durable checkpoints provide later resume.
