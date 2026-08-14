@@ -1077,3 +1077,21 @@ background worker or alternate execution path. Automatic mode remains browser-sc
 stops when the UI closes. It does not enable shell commands, arbitrary filesystem access,
 network access, publishing, deployment, deletion, external communication, unrestricted
 autonomy, or production use.
+
+## RAD Agent Phase 3D verified-completion verification
+
+On 2026-08-13 GitHub Actions run 101 passed all 15 portable release gates for the
+evidence-bound completion and reporting slice:
+
+- Full hash-chain verification before any non-empty runtime evidence response
+- Explicit `EMPTY` versus `VERIFIED` chain status and verified evidence head hash
+- Automatic acceptance verification only after durable runtime success
+- Task progress plus session/run/outcome/evidence-bound completion reporting
+- Explicit `LOCAL_VERIFIED_NOT_PRODUCTION` qualification state and limitations
+- Terminal-session report reconstruction from durable reads without replaying verification
+- Full Python/TypeScript, type, lint, contract, security, packaging, audit, and evidence gates
+
+This completes the bounded unattended operator flow from exact preview through verified local
+completion. It does not transform local evidence into production qualification or add shell,
+arbitrary filesystem, network, publishing, deployment, deletion, external communication, or
+production capabilities.
