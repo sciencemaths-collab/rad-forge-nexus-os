@@ -108,6 +108,7 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "body.runtime.run_state==='SUCCEEDED'&&q('#auto-verify').checked" in script
         assert "q('#completion').classList.add('hidden')" in script
         assert "await verifyCompletion()" in script
+        assert "runtime/verify`,{method:'POST',headers:{'Idempotency-Key':key('verify')}}" in script
         assert "evidence_chain" in script
         assert "localStorage" not in script
     finally:
