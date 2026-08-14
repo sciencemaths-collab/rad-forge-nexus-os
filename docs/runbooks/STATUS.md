@@ -1132,7 +1132,7 @@ The slice does not yet expose preparation through HTTP or the browser and does n
 live-provider or production qualification. Phase 4C will add the authenticated preparation and
 review surface without creating an alternate execution path.
 
-## RAD Agent Phase 4C authenticated task preparation (in progress)
+## RAD Agent Phase 4C authenticated task preparation (accepted)
 
 This slice exposes the immutable Phase 4B binding through the existing authenticated runtime:
 
@@ -1142,8 +1142,11 @@ This slice exposes the immutable Phase 4B binding through the existing authentic
 - The browser displays the complete `PROPOSED` artifact and digest before enabling execution.
 - Preview and execution remain on the existing policy, approval, typed-tool, and evidence path.
 
-Local focused gates pass. Real Chromium/Firefox and packaged-provider acceptance remain hosted
-CI responsibilities; no live-provider or production qualification is claimed.
+GitHub Actions run 125 passed all 18 portable release gates on 2026-08-14, including Chromium,
+Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
+`sha256:3b3ff9f621a8da21cc1691ad45dc8bae7f521d8ee39f0ed09ea7a2be8b0dc482`.
+
+No live-provider quality or production qualification is claimed.
 
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
