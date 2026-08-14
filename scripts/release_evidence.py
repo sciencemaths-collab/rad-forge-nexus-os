@@ -83,6 +83,8 @@ GATES: Final = (
     Gate("contract", ("uv", "run", "pytest", "-q", "tests/contract")),
     Gate("integration", ("uv", "run", "pytest", "-q", "tests/integration")),
     Gate("security", ("uv", "run", "pytest", "-q", "tests/security")),
+    Gate("build", ("uv", "build", "--offline")),
+    Gate("clean_wheel", ("uv", "run", "python", "scripts/clean_wheel_acceptance.py")),
     Gate(
         "browser_acceptance",
         (
@@ -114,8 +116,26 @@ GATES: Final = (
         ("uv", "run", "pytest", "-q", "tests/integration/test_reference_workflow_e2e.py"),
     ),
     Gate("typescript", ("npm", "test", "--prefix", "sdk/typescript")),
-    Gate("build", ("uv", "build", "--offline")),
-    Gate("clean_wheel", ("uv", "run", "python", "scripts/clean_wheel_acceptance.py")),
+    Gate(
+        "qualified_browser",
+        (
+            "uv",
+            "run",
+            "pytest",
+            "-q",
+            "tests/acceptance/test_packaged_qualified_browser.py",
+            "--browser",
+            "chromium",
+            "--browser",
+            "firefox",
+            "--tracing",
+            "retain-on-failure",
+            "--screenshot",
+            "only-on-failure",
+            "--output",
+            "artifacts/qualified-browser",
+        ),
+    ),
 )
 
 type Runner = Callable[[Sequence[str], Path], subprocess.CompletedProcess[bytes]]

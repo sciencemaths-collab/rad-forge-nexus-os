@@ -1148,3 +1148,21 @@ The second Phase 3E slice adds ordinary-user failure and accessibility evidence:
 
 This still does not establish full qualified-provider composition, assistive-technology
 certification, background execution after browser closure, or production qualification.
+
+## RAD Agent Phase 3E packaged qualified-provider acceptance (in progress)
+
+The final Phase 3E slice exercises the supported application rather than mocked browser APIs:
+
+- Build and install the RAD Agent wheel into an isolated Python environment.
+- Start a deterministic loopback OpenAI-compatible provider through the real HTTP transport.
+- Register a current, independently evidenced qualification bound to the exact provider, model,
+  adapter version, evaluation manifest, and evidence-chain head.
+- Start the packaged `rad serve` entry point with owner-only operator credentials.
+- Use Chromium and Firefox to log in, create a goal, review and approve the exact candidate,
+  select a workspace, initialize the governed runtime, execute the task graph, verify acceptance,
+  and display a `VERIFIED` evidence chain with `LOCAL_VERIFIED_NOT_PRODUCTION` qualification.
+- Confirm generated artifacts remain confined to the approved `.rad-agent-artifacts` directory.
+
+This qualifies the deterministic test-provider path and packaged ordinary-user composition. It
+does not claim that Ollama, LM Studio, OpenAI, or Anthropic live services passed this run, and it
+does not establish background execution or production qualification.
