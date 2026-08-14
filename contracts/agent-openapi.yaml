@@ -118,7 +118,9 @@ paths:
       x-required-scope: agent:read
       description: Ordered append-only evidence records for the exact Agent run.
       parameters: [$ref: '#/components/parameters/SessionId']
-      responses: {'200': {description: Runtime evidence chain}}
+      responses:
+        '200':
+          description: Runtime evidence chain with EMPTY or cryptographically VERIFIED status and head hash
   /v1/agent/sessions/{sessionId}/runtime/approvals/{approvalId}:
     post:
       operationId: decideAgentRuntimeApproval

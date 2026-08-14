@@ -86,6 +86,8 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "Exact next action" in html
         assert "Run safe steps automatically" in html
         assert "Stop after current step" in html
+        assert "Verify automatically after success" in html
+        assert "Completion report" in html
 
         connection.request("GET", "/ui/app.js")
         response = connection.getresponse()
@@ -94,8 +96,11 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "/runtime/preview" in script
         assert "/runtime/evidence" in script
         assert "limit>100" in script
-        assert "body.outcome!=='SUCCEEDED'" in script
+        assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script
+        assert "LOCAL_VERIFIED_NOT_PRODUCTION" in script
+        assert "await verifyCompletion()" in script
+        assert "evidence_chain" in script
         assert "localStorage" not in script
     finally:
         connection.close()

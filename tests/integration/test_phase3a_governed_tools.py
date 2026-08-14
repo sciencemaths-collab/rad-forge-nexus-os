@@ -139,3 +139,7 @@ def test_reference_runtime_executes_one_approved_workspace_task_with_evidence(
     )
     assert ticked["outcome"] == "SUCCEEDED"
     assert (workspace / ".rad-agent-artifacts/specification.md").is_file()
+    evidence = facade.evidence(SESSION)
+    assert evidence["chain_status"] == "VERIFIED"
+    assert str(evidence["head_hash"]).startswith("sha256:")
+    assert evidence["record_count"] == 1

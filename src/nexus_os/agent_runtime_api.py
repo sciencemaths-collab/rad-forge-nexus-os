@@ -161,9 +161,16 @@ class GovernedAgentRuntimeApi:
     def evidence(self, session_id: UUID) -> Mapping[str, object]:
         snapshot = self._snapshot(session_id)
         records = self._evidence.records(snapshot.graph.graph.project_id, snapshot.run_id)
+        verification = (
+            None
+            if not records
+            else self._evidence.verify(snapshot.graph.graph.project_id, snapshot.run_id)
+        )
         return {
             "run_id": str(snapshot.run_id),
             "record_count": len(records),
+            "chain_status": "EMPTY" if verification is None else "VERIFIED",
+            "head_hash": None if verification is None else verification.head_hash,
             "records": [record.to_dict() for record in records],
         }
 
