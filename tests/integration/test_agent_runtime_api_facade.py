@@ -108,4 +108,6 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
     assert preview["task_id"] == "specification"
     assert preview["decision"] == "ALLOW"
     assert evidence_view["records"] == []
+    assert evidence_view["chain_status"] == "EMPTY"
+    assert evidence_view["head_hash"] is None
     assert sessions.get(SESSION).state.value == "RUNNING"

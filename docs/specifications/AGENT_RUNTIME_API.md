@@ -18,7 +18,9 @@ evidence, and acceptance verification.
 - `GET .../runtime/preview` (`agent:read`) returns the exact next typed-tool input,
   effect, policy decision, and digests without resolving a handler or changing state.
 - `GET .../runtime/evidence` (`agent:read`) returns the ordered, append-only evidence
-  records for the exact run after ledger binding and durable runtime recovery.
+  records for the exact run after ledger binding and durable runtime recovery. An empty
+  ledger is explicitly `EMPTY`; a non-empty response is returned only after full hash-chain
+  verification and includes the verified head hash.
 - `POST .../runtime/ticks` (`agent:execute`) advances at most one governed task and returns
   `IDLE`, approval, retry, repair, success, or failure state.
 - `POST .../runtime/approvals/{approvalId}` (`agent:approve`, authenticated human required)
@@ -51,3 +53,10 @@ idle, retry, repair, failure, or any outcome other than task success. Approval r
 separate authenticated human decision. Browser automation is not a background worker: an
 in-flight tick finishes atomically, while closing the UI or stopping prevents the next tick;
 durable checkpoints provide later resume.
+
+When automatic verification is enabled, the browser may invoke the existing verification
+operation only after the durable runtime reports `SUCCEEDED`. The resulting completion report
+must bind the session, run, Agent state, verification outcome, evidence count, verified chain
+head, and an explicit qualification label. Local evidence verification must never be labeled
+production qualification. Resuming a terminal session reconstructs this report from durable
+session and verified evidence reads without repeating the verification mutation.
