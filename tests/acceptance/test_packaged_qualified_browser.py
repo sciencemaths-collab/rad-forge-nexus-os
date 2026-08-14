@@ -5,6 +5,7 @@ import socket
 import subprocess
 import threading
 import time
+import traceback
 import urllib.request
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -163,18 +164,27 @@ def _install_wheel(root: Path) -> Path:
 
 
 def test_packaged_qualified_provider_completes_verified_browser_journey(
-    page: Page, tmp_path: Path
+    page: Page, tmp_path: Path, browser_name: str
 ) -> None:
-    provider = ThreadingHTTPServer(("127.0.0.1", 11434), QualifiedProvider)
-    provider_worker = threading.Thread(target=provider.serve_forever)
-    provider_worker.start()
+    diagnostic_root = Path("artifacts/qualified-browser-diagnostics")
+    diagnostic_root.mkdir(parents=True, exist_ok=True)
+    diagnostic = diagnostic_root / f"{browser_name}.log"
+    diagnostic.write_text("stage=start\n", encoding="utf-8")
+    provider: ThreadingHTTPServer | None = None
+    provider_worker: threading.Thread | None = None
     process: subprocess.Popen[bytes] | None = None
     log_root = Path("artifacts/qualified-browser")
     log_root.mkdir(parents=True, exist_ok=True)
     log_path = log_root / "server.log"
     try:
+        provider = ThreadingHTTPServer(("127.0.0.1", 11434), QualifiedProvider)
+        provider_worker = threading.Thread(target=provider.serve_forever)
+        provider_worker.start()
+        diagnostic.write_text("stage=provider-started\n", encoding="utf-8")
         executable = _install_wheel(tmp_path)
+        diagnostic.write_text("stage=wheel-installed\n", encoding="utf-8")
         config = _write_configuration(tmp_path)
+        diagnostic.write_text("stage=qualification-configured\n", encoding="utf-8")
         workspace = tmp_path / "workspace"
         workspace.mkdir()
         port = _free_port()
@@ -196,7 +206,9 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             )
             base_url = f"http://127.0.0.1:{port}"
             _wait_for(base_url + "/healthz", process)
+            diagnostic.write_text("stage=rad-server-healthy\n", encoding="utf-8")
             page.goto(base_url)
+            diagnostic.write_text("stage=browser-loaded\n", encoding="utf-8")
             page.locator("#password").fill(PASSWORD)
             page.locator("#login-form button").click()
             page.locator("#project").fill("qualified_browser")
@@ -217,6 +229,10 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             )
             expect(page.locator("#chain-status")).to_have_text("VERIFIED")
             assert tuple((workspace / ".rad-agent-artifacts").glob("*.json"))
+            diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
+    except Exception:
+        diagnostic.write_text(traceback.format_exc(), encoding="utf-8")
+        raise
     finally:
         if process is not None:
             process.terminate()
@@ -225,7 +241,9 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
-        provider.shutdown()
-        provider.server_close()
-        provider_worker.join(timeout=5)
-        assert not provider_worker.is_alive()
+        if provider is not None:
+            provider.shutdown()
+            provider.server_close()
+        if provider_worker is not None:
+            provider_worker.join(timeout=5)
+            assert not provider_worker.is_alive()
