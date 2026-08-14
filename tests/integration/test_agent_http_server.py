@@ -166,3 +166,25 @@ def test_server_serializes_requests_for_sqlite_thread_ownership(tmp_path) -> Non
     finally:
         server.server_close()
         authenticator.close()
+
+
+def test_serialized_server_closes_each_http_connection(tmp_path) -> None:
+    authenticator = OperatorAuthenticator(tmp_path / "operator.sqlite")
+    server = AgentHttpServer(("127.0.0.1", 0), Application(), authenticator)
+    worker = threading.Thread(target=server.serve_forever)
+    worker.start()
+    try:
+        for _ in range(2):
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            connection.request("GET", "/healthz")
+            response = connection.getresponse()
+            assert response.status == 200
+            assert response.getheader("Connection") == "close"
+            assert response.will_close
+            response.read()
+            connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)
+        authenticator.close()
