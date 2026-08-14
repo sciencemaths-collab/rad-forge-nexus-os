@@ -57,6 +57,16 @@ def evidence() -> dict[str, object]:
     }
 
 
+def preparation() -> dict[str, object]:
+    return {
+        "task_id": "task-1",
+        "task_kind": "mode.app_build.specification",
+        "artifact": {"title": "Qualified task proposal"},
+        "artifact_digest": "sha256:" + "b" * 64,
+        "status": "PROPOSED",
+    }
+
+
 def login_and_resume(page: Page, operator_url: str) -> None:
     page.goto(operator_url)
     page.locator("#password").fill("correct horse battery staple")
@@ -75,6 +85,8 @@ def test_manual_final_step_automatically_verifies_in_real_browser(
         path = request.url.split(operator_url, 1)[-1]
         if path == "/v1/auth/login":
             fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path.endswith("/runtime/preparations"):
+            fulfill(route, preparation())
         elif path.endswith("/runtime/preview"):
             fulfill(route, {"decision": "ALLOW", "approval_required": False})
         elif path.endswith("/runtime/ticks"):
@@ -154,6 +166,8 @@ def test_interrupted_tick_recovers_durable_completion_without_reexecution(
         path = route.request.url.split(operator_url, 1)[-1]
         if path == "/v1/auth/login":
             fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path.endswith("/runtime/preparations"):
+            fulfill(route, preparation())
         elif path.endswith("/runtime/preview"):
             fulfill(route, {"decision": "ALLOW", "approval_required": False})
         elif path.endswith("/runtime/ticks"):

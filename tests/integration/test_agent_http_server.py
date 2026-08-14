@@ -99,6 +99,8 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         script = response.read().decode()
         assert response.status == 200 and "candidate_digest" in script
         assert "/runtime/preview" in script
+        assert "/runtime/preparations" in script
+        assert "#task-artifact" in script
         assert "/runtime/evidence" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script

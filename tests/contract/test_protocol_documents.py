@@ -61,6 +61,7 @@ def test_agent_api_mutations_require_idempotency_keys() -> None:
         "startAgentRuntime",
         "getAgentRuntime",
         "previewAgentRuntimeAction",
+        "prepareAgentRuntimeTask",
         "listAgentRuntimeEvidence",
         "tickAgentRuntime",
         "decideAgentRuntimeApproval",

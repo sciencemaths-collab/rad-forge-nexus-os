@@ -75,10 +75,21 @@ class ReasonedTaskCompositionStore:
 
     def resolve(self, run_id: RunId, task: TaskDefinition) -> Mapping[str, Any]:
         """Return the approved input enriched only with its validated proposal."""
+        artifact = self.prepared_artifact(run_id, task)
+        if artifact is None:
+            raise TaskCompositionError("reasoned task binding is missing")
+        return {
+            **dict(task.input),
+            "reasoned_artifact": artifact.to_dict(),
+            "reasoned_artifact_digest": artifact.digest,
+        }
+
+    def prepared_artifact(self, run_id: RunId, task: TaskDefinition) -> ReasonedTaskArtifact | None:
+        """Read and validate an existing exact binding without invoking the model."""
         self._validate_input(task.input)
         row = self._row(run_id, task.task_id)
         if row is None:
-            raise TaskCompositionError("reasoned task binding is missing")
+            return None
         if row[2] != _task_digest(task):
             raise TaskCompositionError("reasoned task binding does not match approved task")
         try:
@@ -90,11 +101,7 @@ class ReasonedTaskCompositionStore:
             raise TaskCompositionError("stored reasoned task failed integrity validation")
         if artifact.unresolved_questions:
             raise TaskCompositionError("reasoned task has unresolved questions")
-        return {
-            **dict(task.input),
-            "reasoned_artifact": artifact.to_dict(),
-            "reasoned_artifact_digest": artifact.digest,
-        }
+        return artifact
 
     def _row(self, run_id: RunId, task_id: TaskId) -> tuple[str, str, str, str, str] | None:
         row = self._connection.execute(

@@ -50,6 +50,8 @@ from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.scheduler import GovernedScheduler
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 from nexus_os.stores import SQLiteCheckpointStore
+from nexus_os.task_composition import ReasonedTaskCompositionStore
+from nexus_os.task_reasoning import QualifiedTaskReasoner
 from nexus_os.tools import ToolExecutor, ToolRegistry
 from nexus_os.workspace_tools import register_workspace_artifact_tool
 
@@ -173,8 +175,17 @@ def create_local_application(
         adapter_version=selected_profile.adapter_version,
         ids=ids,
     )
+    task_reasoner = QualifiedTaskReasoner(
+        qualifications=authorization,
+        adapter=adapter,
+        provider_id=selected_profile.provider_type,
+        model_id=model_id,
+        adapter_version=selected_profile.adapter_version,
+    )
     runtime_api = (
-        _create_reference_runtime(state_dir, sessions, ids) if mode == "qualified" else None
+        _create_reference_runtime(state_dir, sessions, ids, task_reasoner)
+        if mode == "qualified"
+        else None
     )
     service = AgentApplicationService(
         sessions=sessions,
@@ -298,6 +309,7 @@ def _create_reference_runtime(
     state_dir: Path,
     sessions: AgentSessionStore,
     ids: RandomIds,
+    task_reasoner: QualifiedTaskReasoner | None = None,
 ) -> GovernedAgentRuntimeApi:
     checkpoints = SQLiteCheckpointStore(state_dir / "runtime-checkpoints.sqlite")
     runtime = RuntimeOrchestrator(checkpoints)
@@ -308,6 +320,13 @@ def _create_reference_runtime(
     policy = PolicyEngine(PolicyRules(allowed_operations=allowed))
     ledger = EvidenceLedger(state_dir / "runtime-evidence.sqlite")
     writer = RuntimeEvidenceWriter(ledger)
+    composition = (
+        None
+        if task_reasoner is None
+        else ReasonedTaskCompositionStore(
+            state_dir / "reasoned-task-compositions.sqlite", task_reasoner
+        )
+    )
     bindings = {
         kind: "workspace.write_artifact"
         for kind in (
@@ -351,6 +370,7 @@ def _create_reference_runtime(
         retry=RetryEngine(RetryLimits()),
         evidence=writer,
         tool_bindings=bindings,
+        payload_resolver=composition,
     )
     return GovernedAgentRuntimeApi(
         sessions=sessions,
@@ -370,4 +390,5 @@ def _create_reference_runtime(
         ),
         capabilities=ReferenceRuntimeCapabilities(),
         ids=ids,
+        composition=composition,
     )

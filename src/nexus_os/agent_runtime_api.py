@@ -19,6 +19,7 @@ from nexus_os.graph import ValidatedTaskGraph, compile_task_graph, validate_task
 from nexus_os.runtime import RuntimeOrchestrator, RuntimeSnapshot
 from nexus_os.runtime_evidence import AgentCompletionVerifier
 from nexus_os.scheduler import GovernedScheduler, SchedulerTickResult
+from nexus_os.task_composition import ReasonedTaskCompositionStore
 
 
 class AgentRuntimeApiError(ValueError):
@@ -102,6 +103,7 @@ class GovernedAgentRuntimeApi:
         completion: AgentCompletionVerifier,
         capabilities: CapabilityAuthorizer,
         ids: ApplicationIds,
+        composition: ReasonedTaskCompositionStore | None = None,
     ) -> None:
         self._sessions = sessions
         self._handoff = handoff
@@ -113,6 +115,7 @@ class GovernedAgentRuntimeApi:
         self._completion = completion
         self._capabilities = capabilities
         self._ids = ids
+        self._composition = composition
 
     def start(
         self,
@@ -156,6 +159,51 @@ class GovernedAgentRuntimeApi:
             "decision": preview.decision.value,
             "approval_required": preview.approval_required,
             "reason_codes": list(preview.reason_codes),
+        }
+
+    async def prepare(
+        self,
+        session_id: UUID,
+        identity: AgentIdentity,
+        request: AgentApiRequest,
+        body: dict[str, object] | None,
+    ) -> Mapping[str, object]:
+        """Prepare or recover the exact qualified artifact for one ready task."""
+        del identity
+        if self._composition is None:
+            raise AgentRuntimeApiError("task preparation is unavailable")
+        snapshot = self._snapshot(session_id)
+        requested = None if body is None else TaskId(str(body["task_id"]))
+        tasks = {task.task_id: task for task in snapshot.graph.graph.tasks}
+        if requested is not None:
+            task = tasks.get(requested)
+            if task is None or snapshot.task_states[requested].value != "READY":
+                raise AgentRuntimeApiError("selected task is not ready for preparation")
+        else:
+            task = next(
+                (
+                    tasks[task_id]
+                    for task_id in snapshot.graph.topological_order
+                    if snapshot.task_states[task_id].value == "READY"
+                ),
+                None,
+            )
+            if task is None:
+                raise AgentRuntimeApiError("runtime has no ready task to prepare")
+        artifact = self._composition.prepared_artifact(snapshot.run_id, task)
+        if artifact is None:
+            artifact = await self._composition.prepare(
+                task,
+                run_id=snapshot.run_id,
+                trace_id=request.trace_id,
+                at=request.occurred_at,
+            )
+        return {
+            "task_id": str(task.task_id),
+            "task_kind": task.kind,
+            "artifact": artifact.to_dict(),
+            "artifact_digest": artifact.digest,
+            "status": "PROPOSED",
         }
 
     def evidence(self, session_id: UUID) -> Mapping[str, object]:

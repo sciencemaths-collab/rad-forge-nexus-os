@@ -79,6 +79,13 @@ class AgentRuntimeApi(Protocol):
     def preview(
         self, session_id: UUID, identity: AgentIdentity, task_id: str | None = None
     ) -> Mapping[str, Any]: ...
+    async def prepare(
+        self,
+        session_id: UUID,
+        identity: AgentIdentity,
+        request: AgentApiRequest,
+        body: dict[str, Any] | None,
+    ) -> Mapping[str, Any]: ...
     def evidence(self, session_id: UUID) -> Mapping[str, Any]: ...
     async def tick(
         self,
@@ -132,6 +139,13 @@ class _Route:
 
 _ROUTES = (
     _Route("POST", re.compile(r"^/v1/agent/sessions$"), "create", "agent:write", True),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/preparations$"),
+        "runtime_prepare",
+        "agent:execute",
+        True,
+    ),
     _Route(
         "GET",
         re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)$"),
@@ -334,6 +348,8 @@ class AgentApplicationService:
                 return 201, self._runtime.start(target_session_id, identity, request, body)
             if operation == "runtime_status":
                 return 200, self._runtime.status(target_session_id)
+            if operation == "runtime_prepare":
+                return 200, await self._runtime.prepare(target_session_id, identity, request, body)
             if operation == "runtime_preview":
                 return 200, self._runtime.preview(target_session_id, identity)
             if operation == "runtime_evidence":
@@ -566,6 +582,8 @@ def _valid_operation_body(operation: str, body: dict[str, Any] | None) -> bool:
             and set(body) == {"workspace_root"}
             and isinstance(body["workspace_root"], str)
         )
+    if operation == "runtime_prepare":
+        return body is None or (set(body) == {"task_id"} and isinstance(body["task_id"], str))
     if operation == "runtime_tick":
         return body is None or (
             set(body) <= {"approval_id", "task_id"}
