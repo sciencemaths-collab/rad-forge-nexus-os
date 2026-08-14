@@ -1058,3 +1058,22 @@ an alternate execution path. It remains limited to deterministic JSON artifacts 
 approved workspace. It does not enable shell commands, arbitrary filesystem access, network
 access, publishing, deployment, deletion, external communication, background execution, or
 production use.
+
+## RAD Agent Phase 3C bounded-unattended verification
+
+On 2026-08-13 GitHub Actions run 98 passed all 15 portable release gates for bounded
+unattended browser execution:
+
+- Sequential automatic progression through the existing preview and one-task tick endpoints
+- Fresh mutation idempotency identity and durable checkpoint/evidence refresh for every step
+- Operator-configurable 1–100 step bound with a conservative 25-step default
+- Stop-after-current-step behavior that preserves atomic in-flight work and prevents the next tick
+- Mandatory pause on approval, denial, idle, retry, repair, failure, step bound, or completion
+- Resume through the existing durable session and checkpoint controls
+- Full Python/TypeScript, type, lint, contract, security, packaging, audit, and evidence gates
+
+This removes repetitive operator clicks for routine qualified work without introducing a
+background worker or alternate execution path. Automatic mode remains browser-scoped and
+stops when the UI closes. It does not enable shell commands, arbitrary filesystem access,
+network access, publishing, deployment, deletion, external communication, unrestricted
+autonomy, or production use.
