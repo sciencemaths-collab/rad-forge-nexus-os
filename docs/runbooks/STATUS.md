@@ -1114,6 +1114,24 @@ runtime execution, register or invoke a tool, write files, read workspace inputs
 capabilities, claim task success, publish, deploy, delete, or establish live-model or
 production qualification. Governed composition of validated content remains the next phase.
 
+## RAD Agent Phase 4B reasoned-task composition (accepted)
+
+This slice composes the Phase 4A proposal boundary into the governed scheduler while retaining
+deterministic control:
+
+- One immutable canonical artifact is bound to the exact run, task, and approved-task digest.
+- Missing, drifted, unresolved, spoofed-reserved-field, and conflicting bindings fail closed.
+- Resolution adds only the validated artifact and its digest to the original approved input.
+- Preview and execution resolve the same payload through the same typed-tool schema boundary.
+- Tool selection, effect matching, policy, approval, execution, and evidence remain outside the model.
+
+GitHub Actions run 122 passed all 18 portable release gates on 2026-08-14. The release-evidence
+artifact digest is `sha256:c27165410cc94176c4981ec0026c64d0f42f462698e00b024982e1ff54f799ef`.
+
+The slice does not yet expose preparation through HTTP or the browser and does not establish
+live-provider or production qualification. Phase 4C will add the authenticated preparation and
+review surface without creating an alternate execution path.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:
