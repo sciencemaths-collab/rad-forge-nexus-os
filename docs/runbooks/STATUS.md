@@ -1166,6 +1166,8 @@ The final Phase 3E slice exercises the supported application rather than mocked 
   owning server thread; the full packaged journey detected and closed this composition defect.
 - Close every serialized loopback response connection; the browser gate exposed that HTTP/1.1
   keep-alive otherwise lets an idle browser connection starve subsequent requests.
+- Encode immutable nested runtime mappings at the HTTP wire boundary; the full automatic journey
+  detected the failure when evidence grew beyond the first two task records.
 
 This qualifies the deterministic test-provider path and packaged ordinary-user composition. It
 does not claim that Ollama, LM Studio, OpenAI, or Anthropic live services passed this run, and it

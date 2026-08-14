@@ -2,6 +2,7 @@ import http.client
 import json
 import threading
 from socketserver import ThreadingMixIn
+from types import MappingProxyType
 
 import pytest
 
@@ -18,7 +19,9 @@ class Application:
         token = authorization.removeprefix("Bearer ")
         if self.authenticator.authenticate(token) is None:
             return AgentApiResponse(401, {"code": "unauthorized"})
-        return AgentApiResponse(200, [{"model_id": "local-test"}])
+        return AgentApiResponse(
+            200, [{"model_id": "local-test", "metadata": MappingProxyType({"safe": True})}]
+        )
 
 
 def request(connection, method, path, body=None, headers=None):
@@ -55,7 +58,7 @@ def test_health_login_and_authenticated_request_over_real_socket(tmp_path) -> No
             "/v1/model-qualifications",
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert status == 200 and body == [{"model_id": "local-test"}]
+        assert status == 200 and body == [{"model_id": "local-test", "metadata": {"safe": True}}]
     finally:
         connection.close()
         server.shutdown()

@@ -58,9 +58,10 @@ The packaged loopback HTTP server processes operator requests serially on its ow
 thread. This preserves SQLite connection ownership and deterministic mutation ordering across
 the composed session, replay, approval, checkpoint, registry, and evidence stores. Every
 response closes its HTTP connection because an idle persistent browser connection could starve
-other requests on the serialized server. Parallel handlers and persistent connections are
-outside the qualified local-runtime boundary; future concurrency requires an explicit
-connection-per-request or serialized store design and separate evidence.
+other requests on the serialized server. Immutable application mappings are converted to JSON
+objects only at this wire boundary. Parallel handlers and persistent connections are outside
+the qualified local-runtime boundary; future concurrency requires an explicit connection-per-
+request or serialized store design and separate evidence.
 
 When automatic verification is enabled, the browser may invoke the existing verification
 operation only after the durable runtime reports `SUCCEEDED`. The resulting completion report

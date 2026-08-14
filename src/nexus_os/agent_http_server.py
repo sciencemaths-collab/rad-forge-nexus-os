@@ -8,6 +8,7 @@ import re
 import socket
 import threading
 from collections import defaultdict, deque
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
@@ -176,7 +177,9 @@ class AgentHttpRequestHandler(BaseHTTPRequestHandler):
         body: Any,
         headers: dict[str, str] | None = None,
     ) -> None:
-        payload = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+        payload = json.dumps(
+            body, sort_keys=True, separators=(",", ":"), default=_json_mapping
+        ).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
@@ -217,3 +220,9 @@ def _valid_host(value: str | None) -> bool:
     else:
         host = value.rsplit(":", 1)[0] if value.count(":") == 1 else value
     return host.lower() in {"127.0.0.1", "localhost", "[::1]"}
+
+
+def _json_mapping(value: object) -> dict[object, object]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
