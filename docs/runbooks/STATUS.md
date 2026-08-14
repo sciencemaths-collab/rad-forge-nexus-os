@@ -1095,3 +1095,21 @@ This completes the bounded unattended operator flow from exact preview through v
 completion. It does not transform local evidence into production qualification or add shell,
 arbitrary filesystem, network, publishing, deployment, deletion, external communication, or
 production capabilities.
+
+## RAD Agent Phase 4A qualified-task-reasoning verification
+
+On 2026-08-13 GitHub Actions run 104 passed all 15 portable release gates for the
+proposal-only qualified task-reasoning boundary:
+
+- Exact model-use authorization for task planning and sensitive-action proposals
+- Trusted provider/model/adapter/run/task/trace/kind/effect/input/timeout binding
+- Exact bounded structured artifact contract with deterministic canonical digest
+- One separately qualified repair attempt without invalid-output reflection
+- Duplicate, non-finite, unknown, tool-call, secret-like, empty, and oversized rejection
+- Secret-like and oversized approved task rejection before provider access
+- Ten focused cases; 492-test full Python suite plus all TypeScript and release gates
+
+This is a fake-provider-qualified proposal boundary. It does not compose the reasoner into
+runtime execution, register or invoke a tool, write files, read workspace inputs, promote
+capabilities, claim task success, publish, deploy, delete, or establish live-model or
+production qualification. Governed composition of validated content remains the next phase.
