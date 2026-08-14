@@ -1131,3 +1131,20 @@ This slice closes browser behavior gaps without adding a new execution path:
 The slice remains local-only and is not production qualification. Full qualified provider
 composition, interruption recovery, accessibility scanning, and browser trace artifact capture
 remain required before Phase 3E can be marked fully accepted.
+
+## RAD Agent Phase 3E recovery and browser-quality acceptance (in progress)
+
+The second Phase 3E slice adds ordinary-user failure and accessibility evidence:
+
+- A connection reset after a durably completed tick reconstructs completion from reads without
+  issuing a second tick or replaying the verification mutation.
+- Reloading the browser and resuming a terminal session reconstructs the identical report,
+  evidence head, and run identity without reverification.
+- A real-browser structural accessibility audit requires document language, a main landmark,
+  one primary heading, a live status region, labelled form controls, and named buttons.
+- Keyboard traversal must reach the password control with a visible focus indicator.
+- Failed browser runs retain Playwright traces, screenshots, videos, console context, and server
+  test output as a dedicated CI artifact.
+
+This still does not establish full qualified-provider composition, assistive-technology
+certification, background execution after browser closure, or production qualification.

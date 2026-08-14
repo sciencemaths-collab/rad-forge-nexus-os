@@ -143,3 +143,116 @@ def test_evidence_integrity_failure_hides_completion(page: Page, operator_url: s
     expect(page.locator("#chain-status")).to_have_text("INVALID")
     expect(page.locator("#evidence-list")).to_contain_text("integrity verification failed")
     expect(page.locator("#completion")).to_be_hidden()
+
+
+def test_interrupted_tick_recovers_durable_completion_without_reexecution(
+    page: Page, operator_url: str
+) -> None:
+    state = {"durable_completed": False, "ticks": 0, "verify": 0}
+
+    def handle(route: Route) -> None:
+        path = route.request.url.split(operator_url, 1)[-1]
+        if path == "/v1/auth/login":
+            fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path.endswith("/runtime/preview"):
+            fulfill(route, {"decision": "ALLOW", "approval_required": False})
+        elif path.endswith("/runtime/ticks"):
+            state["ticks"] += 1
+            state["durable_completed"] = True
+            route.abort("connectionreset")
+        elif path.endswith("/runtime/verify"):
+            state["verify"] += 1
+            fulfill(route, {"passed": True, "session": {"state": "COMPLETED"}})
+        elif path.endswith("/runtime/evidence"):
+            fulfill(
+                route,
+                evidence()
+                if state["durable_completed"]
+                else {**evidence(), "record_count": 0, "records": []},
+            )
+        elif path.endswith("/runtime"):
+            fulfill(
+                route,
+                runtime("SUCCEEDED", "SUCCEEDED")
+                if state["durable_completed"]
+                else runtime("READY", "READY"),
+            )
+        elif path == "/v1/agent/sessions/session-browser-1":
+            fulfill(route, {"state": "COMPLETED" if state["durable_completed"] else "ACTIVE"})
+        else:
+            fulfill(route, {"message": f"unexpected request: {path}"}, status=500)
+
+    page.route("**/v1/**", handle)
+    login_and_resume(page, operator_url)
+    page.locator("#tick").click()
+
+    expect(page.locator("#completion-status")).to_have_text("Verification complete")
+    expect(page.locator("#completion-report")).to_contain_text("run-browser-1")
+    assert state["ticks"] == 1
+    assert state["verify"] == 0
+
+
+def test_terminal_reload_reconstructs_report_without_reverification(
+    page: Page, operator_url: str
+) -> None:
+    calls = {"verify": 0}
+
+    def handle(route: Route) -> None:
+        path = route.request.url.split(operator_url, 1)[-1]
+        if path == "/v1/auth/login":
+            fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path.endswith("/runtime/verify"):
+            calls["verify"] += 1
+            fulfill(route, {"passed": True, "session": {"state": "COMPLETED"}})
+        elif path.endswith("/runtime/evidence"):
+            fulfill(route, evidence())
+        elif path.endswith("/runtime"):
+            fulfill(route, runtime("SUCCEEDED", "SUCCEEDED"))
+        elif path == "/v1/agent/sessions/session-browser-1":
+            fulfill(route, {"state": "COMPLETED"})
+        else:
+            fulfill(route, {"message": f"unexpected request: {path}"}, status=500)
+
+    page.route("**/v1/**", handle)
+    login_and_resume(page, operator_url)
+    expect(page.locator("#completion-status")).to_have_text("Verification complete")
+    first_report = page.locator("#completion-report").text_content()
+
+    page.reload()
+    page.locator("#password").fill("correct horse battery staple")
+    page.locator("#login-form button").click()
+    page.locator("#resume-id").fill("session-browser-1")
+    page.locator("#resume-form button").click()
+
+    expect(page.locator("#completion-report")).to_have_text(first_report or "")
+    assert calls["verify"] == 0
+
+
+def test_operator_surface_has_no_critical_accessibility_structure_failures(
+    page: Page, operator_url: str
+) -> None:
+    page.goto(operator_url)
+    audit = page.evaluate(
+        """() => {
+          const failures = [];
+          if (document.documentElement.lang !== 'en') failures.push('document-language');
+          if (!document.querySelector('main')) failures.push('main-landmark');
+          if (document.querySelectorAll('h1').length !== 1) failures.push('single-h1');
+          if (!document.querySelector('[role="status"][aria-live]')) failures.push('live-status');
+          for (const input of document.querySelectorAll('input,textarea')) {
+            if (!input.labels || input.labels.length === 0) failures.push(`unlabelled:${input.id}`);
+          }
+          for (const button of document.querySelectorAll('button')) {
+            const name = button.getAttribute('aria-label') || button.textContent.trim();
+            if (!name) failures.push('unnamed-button');
+          }
+          return failures;
+        }"""
+    )
+    assert audit == []
+
+    page.keyboard.press("Tab")
+    expect(page.locator("#password")).to_be_focused()
+    assert page.locator("#password").evaluate(
+        "element => getComputedStyle(element).outlineStyle !== 'none'"
+    )
