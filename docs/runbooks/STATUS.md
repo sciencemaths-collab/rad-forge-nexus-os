@@ -1148,7 +1148,7 @@ Firefox, and the packaged qualified-provider journey. The release-evidence artif
 
 No live-provider quality or production qualification is claimed.
 
-## RAD Agent Phase 4D graph-wide reasoning evidence (in progress)
+## RAD Agent Phase 4D graph-wide reasoning evidence (accepted)
 
 This slice closes the graph-level recovery and verification binding:
 
@@ -1159,7 +1159,12 @@ This slice closes the graph-level recovery and verification binding:
   or base-input-only task evidence before acceptance verification.
 - Existing uncomposed scheduler and verifier behavior remains backward compatible.
 
-Hosted browser, packaged-provider, and release-evidence gates remain required before acceptance.
+GitHub Actions run 129 passed all 18 portable release gates on 2026-08-15, including Chromium,
+Firefox, and the complete packaged qualified-provider graph. The release-evidence artifact digest
+is `sha256:c82181444460ffed4c2ff7303196056b143e7ff4d0011c73fe21654286501fde`.
+
+The hosted journey also detected and closed canonical serialization of nested immutable task
+inputs before acceptance. No live-provider quality or production qualification is claimed.
 
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
