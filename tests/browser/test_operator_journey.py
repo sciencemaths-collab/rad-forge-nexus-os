@@ -75,6 +75,29 @@ def login_and_resume(page: Page, operator_url: str) -> None:
     page.locator("#resume-form button").click()
 
 
+def test_first_run_readiness_and_lifecycle_are_explicit(
+    page: Page, operator_url: str
+) -> None:
+    def handle(route: Route) -> None:
+        path = route.request.url.split(operator_url, 1)[-1]
+        if path == "/v1/auth/login":
+            fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path == "/v1/model-qualifications":
+            fulfill(route, [{"provider_id": "ollama", "model_id": "qwen-local"}])
+        else:
+            fulfill(route, {"message": f"unexpected request: {path}"}, status=500)
+
+    page.route("**/v1/**", handle)
+    page.goto(operator_url)
+    page.locator("#password").fill("correct horse battery staple")
+    page.locator("#login-form button").click()
+
+    expect(page.locator("#readiness-status")).to_have_text("Qualified")
+    expect(page.locator("#readiness-summary")).to_contain_text("1 active model qualification")
+    expect(page.locator("#readiness-detail")).to_contain_text("qwen-local")
+    expect(page.locator("#lifecycle [data-state=proposed]")).not_to_have_class("active")
+
+
 def test_manual_final_step_automatically_verifies_in_real_browser(
     page: Page, operator_url: str
 ) -> None:

@@ -87,9 +87,12 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert 'role="status"' in html
         assert "Nothing is executed or published" in html
         assert "Resume an existing run" in html
-        assert "Exact next action" in html
+        assert "First-run readiness" in html
+        assert "Model connection" in html
+        assert "Exact next tool call" in html
+        assert 'aria-label="Work lifecycle"' in html
         assert "Run safe steps automatically" in html
-        assert "Stop after current step" in html
+        assert "Pause after current step" in html
         assert "Verify automatically after success" in html
         assert "Completion report" in html
         assert 'id="completion-status"' in html
@@ -102,6 +105,9 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "/runtime/preparations" in script
         assert "#task-artifact" in script
         assert "/runtime/evidence" in script
+        assert "/v1/model-qualifications" in script
+        assert "setLifecycle('proposed')" in script
+        assert "setLifecycle('approved')" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script
