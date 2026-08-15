@@ -89,6 +89,8 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "Resume an existing run" in html
         assert "First-run readiness" in html
         assert "Model connection" in html
+        assert "Editable candidate plan" in html
+        assert "Generate revised plan" in html
         assert "Exact next tool call" in html
         assert 'aria-label="Work lifecycle"' in html
         assert "Run safe steps automatically" in html
@@ -108,6 +110,7 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "/v1/model-qualifications" in script
         assert "setLifecycle('proposed')" in script
         assert "setLifecycle('approved')" in script
+        assert "/candidate/revisions" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script

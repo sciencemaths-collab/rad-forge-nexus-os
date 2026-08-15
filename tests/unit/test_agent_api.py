@@ -119,6 +119,78 @@ def test_create_read_candidate_and_human_approve(tmp_path) -> None:
     assert approved.status == 200 and approved.body["state"] == "APPROVED"
 
 
+def test_operator_revision_creates_new_digest_before_approval(tmp_path) -> None:
+    revised = proposal()
+    revised["constraints"] = ["Do not deploy.", "Keep all work inside the workspace."]
+    subject, sessions = app(tmp_path, [json.dumps(proposal()), json.dumps(revised)])
+    asyncio.run(
+        subject.handle(
+            request(
+                "POST",
+                "/v1/agent/sessions",
+                body={"project_id": "reference_agent", "objective": "Build a reviewed app."},
+                key="create-session-revision",
+            )
+        )
+    )
+    first = sessions.get_candidate(SESSION_ID)
+
+    response = asyncio.run(
+        subject.handle(
+            request(
+                "POST",
+                f"/v1/agent/sessions/{SESSION_ID}/candidate/revisions",
+                body={"instructions": "Keep every generated file inside the workspace."},
+                key="revise-session-0001",
+            )
+        )
+    )
+
+    assert response.status == 200
+    assert response.body["revision"] == 2
+    assert response.body["candidate_digest"] != first.digest
+    assert sessions.get(SESSION_ID).state.value == "USER_REVIEW"
+
+
+def test_revision_retry_recovers_after_durable_drafting_transition(tmp_path) -> None:
+    revised = proposal()
+    revised["constraints"] = ["Keep all work inside the workspace."]
+    subject, sessions = app(tmp_path, [json.dumps(proposal()), json.dumps(revised)])
+    asyncio.run(
+        subject.handle(
+            request(
+                "POST",
+                "/v1/agent/sessions",
+                body={"project_id": "reference_agent", "objective": "Build a reviewed app."},
+                key="create-session-recovery",
+            )
+        )
+    )
+    current = sessions.get(SESSION_ID)
+    sessions.request_revision(
+        SESSION_ID,
+        event_id=uid(299),
+        actor_id="owner-user",
+        occurred_at=CONTROL_AT,
+        expected_sequence=len(current.events),
+    )
+
+    response = asyncio.run(
+        subject.handle(
+            request(
+                "POST",
+                f"/v1/agent/sessions/{SESSION_ID}/candidate/revisions",
+                body={"instructions": "Keep all generated work inside the workspace."},
+                key="revise-session-recovery",
+            )
+        )
+    )
+
+    assert response.status == 200
+    assert response.body["revision"] == 2
+    assert sessions.get(SESSION_ID).state.value == "USER_REVIEW"
+
+
 def test_authentication_scope_and_human_approval_are_enforced(tmp_path) -> None:
     subject, _ = app(tmp_path, [json.dumps(proposal())])
     missing = asyncio.run(

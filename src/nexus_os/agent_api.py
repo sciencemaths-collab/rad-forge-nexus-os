@@ -15,7 +15,13 @@ from typing import Any, Protocol, cast
 from uuid import UUID
 
 from nexus_os.agent_controller import AgentControllerError, AgentReasoningController
-from nexus_os.agent_store import AgentSessionStore, AgentStoreError, ReviewPrincipal
+from nexus_os.agent_store import (
+    AgentEventType,
+    AgentSessionStore,
+    AgentState,
+    AgentStoreError,
+    ReviewPrincipal,
+)
 from nexus_os.domain import TraceId
 from nexus_os.model_registry import ModelRegistryError, RegistryRecord
 from nexus_os.secrets import redact
@@ -228,6 +234,13 @@ _ROUTES = (
     ),
     _Route(
         "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/candidate/revisions$"),
+        "revise_candidate",
+        "agent:write",
+        True,
+    ),
+    _Route(
+        "POST",
         re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/approve$"),
         "approve",
         "agent:approve",
@@ -378,6 +391,43 @@ class AgentApplicationService:
             return 200, self._sessions.get(target_session_id).to_dict()
         if operation == "candidate" and target_session_id is not None:
             return 200, self._sessions.get_candidate(target_session_id).to_dict()
+        if operation == "revise_candidate" and target_session_id is not None:
+            if body is None or set(body) != {"instructions"}:
+                raise AgentApiError("request body is invalid")
+            session = self._sessions.get(target_session_id)
+            if session.state is AgentState.USER_REVIEW:
+                drafting = self._sessions.request_revision(
+                    target_session_id,
+                    event_id=self._ids.event_id(),
+                    actor_id=identity.actor_id,
+                    occurred_at=request.occurred_at,
+                    expected_sequence=len(session.events),
+                )
+            elif (
+                session.state is AgentState.DRAFTING
+                and session.events[-1].event_type is AgentEventType.REVISION_REQUESTED
+            ):
+                drafting = session
+            else:
+                raise AgentApiError("candidate revision is unavailable in the current state")
+            prepared = await self._controller.prepare(
+                target_session_id,
+                actor_id="agent-controller",
+                at=request.occurred_at,
+                expected_sequence=len(drafting.events),
+                trace_id=request.trace_id,
+                clarification=body["instructions"],
+            )
+            if prepared.state.value != "SPECIFICATION_READY":
+                raise AgentApiError("revised candidate still requires clarification")
+            reviewed = self._sessions.start_review(
+                target_session_id,
+                event_id=self._ids.event_id(),
+                actor_id="agent-service",
+                occurred_at=request.occurred_at,
+                expected_sequence=len(prepared.events),
+            )
+            return 200, self._sessions.get_candidate(reviewed.session_id).to_dict()
         if operation == "clarify" and target_session_id is not None:
             if body is None or set(body) != {"response"}:
                 raise AgentApiError("request body is invalid")
@@ -580,6 +630,12 @@ def _valid_operation_body(operation: str, body: dict[str, Any] | None) -> bool:
         )
     if operation == "clarify":
         return body is not None and set(body) == {"response"} and isinstance(body["response"], str)
+    if operation == "revise_candidate":
+        return (
+            body is not None
+            and set(body) == {"instructions"}
+            and isinstance(body["instructions"], str)
+        )
     if operation == "approve":
         return (
             body is not None

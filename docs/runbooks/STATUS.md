@@ -1187,6 +1187,25 @@ GitHub Actions run 133 passed all 18 portable release gates on 2026-08-15, inclu
 Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
 `sha256:27627998587ea5de88dc050da917edc524544ca049c2fbe15033a62014c0b90f`.
 
+## RAD Agent Phase 5B candidate-plan revision (accepted)
+
+This slice adds governed plan editing without weakening immutable approval:
+
+- During human review, an operator may submit bounded revision instructions before approval.
+- Revision returns the session from `USER_REVIEW` to drafting, calls the qualified model, and
+  persists a monotonic candidate revision with a new canonical digest.
+- The prior candidate remains append-only; the browser never mutates a reviewed document in
+  place and approval binds only to the newly displayed digest.
+- Revision is authenticated, scope-checked, secret-screened, idempotent, and rejected outside
+  the review state.
+
+This is model-mediated structured plan editing, not arbitrary JSON replacement. It does not add
+post-approval mutation or bypass candidate schema validation.
+
+GitHub Actions run 136 passed all 18 portable release gates on 2026-08-15, including Chromium,
+Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
+`sha256:4543d10f19211b5e9b9184e61ced7cbdc48ac5a9c119b80c499181155ef4dde3`.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:

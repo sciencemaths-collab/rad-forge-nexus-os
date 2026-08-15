@@ -96,6 +96,49 @@ def test_first_run_readiness_and_lifecycle_are_explicit(page: Page, operator_url
     expect(page.locator("#lifecycle [data-state=proposed]")).not_to_have_class("active")
 
 
+def test_operator_revises_candidate_before_digest_bound_approval(
+    page: Page, operator_url: str
+) -> None:
+    def handle(route: Route) -> None:
+        path = route.request.url.split(operator_url, 1)[-1]
+        if path == "/v1/auth/login":
+            fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path == "/v1/model-qualifications":
+            fulfill(route, [{"provider_id": "ollama", "model_id": "qwen-local"}])
+        elif path == "/v1/agent/sessions":
+            fulfill(route, {"session_id": "session-browser-1"}, status=201)
+        elif path.endswith("/candidate/revisions"):
+            assert route.request.post_data_json == {
+                "instructions": "Require a workspace-only verification artifact."
+            }
+            fulfill(
+                route,
+                {
+                    "revision": 2,
+                    "candidate_digest": "c" * 64,
+                    "constraints": ["Workspace only."],
+                },
+            )
+        elif path.endswith("/candidate"):
+            fulfill(route, {"revision": 1, "candidate_digest": "b" * 64})
+        else:
+            fulfill(route, {"message": f"unexpected request: {path}"}, status=500)
+
+    page.route("**/v1/**", handle)
+    page.goto(operator_url)
+    page.locator("#password").fill("correct horse battery staple")
+    page.locator("#login-form button").click()
+    page.locator("#objective").fill("Create a verified workspace artifact.")
+    page.locator("#goal-form button").click()
+    expect(page.locator("#review")).to_be_visible()
+    page.locator("#revision-instructions").fill("Require a workspace-only verification artifact.")
+    page.locator("#revise").click()
+
+    expect(page.locator("#digest")).to_contain_text("Revision 2 digest")
+    expect(page.locator("#candidate")).to_contain_text("Workspace only")
+    expect(page.locator("#approve")).to_be_enabled()
+
+
 def test_manual_final_step_automatically_verifies_in_real_browser(
     page: Page, operator_url: str
 ) -> None:

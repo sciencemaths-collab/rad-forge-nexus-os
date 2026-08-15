@@ -67,6 +67,7 @@ class AgentEventType(StrEnum):
     CLARIFICATION_RECEIVED = "CLARIFICATION_RECEIVED"
     SPECIFICATION_PREPARED = "SPECIFICATION_PREPARED"
     REVIEW_STARTED = "REVIEW_STARTED"
+    REVISION_REQUESTED = "REVISION_REQUESTED"
     SPECIFICATION_REVISED = "SPECIFICATION_REVISED"
     SPECIFICATION_APPROVED = "SPECIFICATION_APPROVED"
     RUN_STARTED = "RUN_STARTED"
@@ -451,6 +452,29 @@ class AgentSessionStore:
             AgentEventType.CLARIFICATION_RECEIVED,
             AgentActorType.USER,
             "Clarification received; candidate revision required.",
+        )
+
+    def request_revision(
+        self,
+        session_id: UUID,
+        *,
+        event_id: UUID,
+        actor_id: str,
+        occurred_at: datetime,
+        expected_sequence: int,
+    ) -> AgentSession:
+        """Return an unapproved review candidate to drafting for one immutable revision."""
+        return self._simple_transition(
+            session_id,
+            event_id,
+            actor_id,
+            occurred_at,
+            expected_sequence,
+            AgentState.USER_REVIEW,
+            AgentState.DRAFTING,
+            AgentEventType.REVISION_REQUESTED,
+            AgentActorType.USER,
+            "Candidate revision requested by the authenticated operator.",
         )
 
     def start_review(
