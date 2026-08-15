@@ -61,6 +61,28 @@ paths:
         '200':
           description: Candidate specification
           content: {application/json: {schema: {$ref: '../schemas/agent-candidate-specification.schema.json'}}}
+  /v1/agent/sessions/{sessionId}/candidate/revisions:
+    post:
+      operationId: reviseAgentCandidateSpecification
+      x-required-scope: agent:write
+      description: Generate a new immutable candidate revision from operator instructions; never mutates or approves the prior revision.
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [instructions]
+              properties: {instructions: {type: string, minLength: 1, maxLength: 8000}}
+      responses:
+        '200':
+          description: New immutable candidate revision
+          content: {application/json: {schema: {$ref: '../schemas/agent-candidate-specification.schema.json'}}}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
   /v1/agent/sessions/{sessionId}/approve:
     post:
       operationId: approveAgentCandidateSpecification

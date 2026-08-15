@@ -130,6 +130,45 @@ def test_unresolved_candidate_requires_clarification_then_revision(tmp_path) -> 
     assert store.get_candidate(SESSION_ID).revision == 2
 
 
+def test_operator_can_request_immutable_revision_only_during_review(tmp_path) -> None:
+    store = AgentSessionStore(tmp_path / "agent.sqlite")
+    created(store)
+    store.save_candidate(
+        CandidateSpecification.parse(candidate()),
+        event_id=uid(11),
+        actor_id="qualified-agent",
+        occurred_at=AT + timedelta(minutes=1),
+        expected_sequence=1,
+    )
+    store.start_review(
+        SESSION_ID,
+        event_id=uid(12),
+        actor_id="agent-service",
+        occurred_at=AT + timedelta(minutes=2),
+        expected_sequence=2,
+    )
+
+    drafting = store.request_revision(
+        SESSION_ID,
+        event_id=uid(13),
+        actor_id="owner-user",
+        occurred_at=AT + timedelta(minutes=3),
+        expected_sequence=3,
+    )
+
+    assert drafting.state is AgentState.DRAFTING
+    assert drafting.events[-1].event_type.value == "REVISION_REQUESTED"
+    assert store.get_candidate(SESSION_ID).revision == 1
+    with pytest.raises(AgentStoreError, match="state does not permit"):
+        store.request_revision(
+            SESSION_ID,
+            event_id=uid(14),
+            actor_id="owner-user",
+            occurred_at=AT + timedelta(minutes=4),
+            expected_sequence=4,
+        )
+
+
 def test_stale_sequence_rejected_without_partial_event(tmp_path) -> None:
     store = AgentSessionStore(tmp_path / "agent.sqlite")
     created(store)

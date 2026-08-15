@@ -57,6 +57,7 @@ def test_agent_api_mutations_require_idempotency_keys() -> None:
         "getAgentSession",
         "submitAgentClarification",
         "getAgentCandidateSpecification",
+        "reviseAgentCandidateSpecification",
         "approveAgentCandidateSpecification",
         "startAgentRuntime",
         "getAgentRuntime",

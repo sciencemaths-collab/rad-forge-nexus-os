@@ -13,7 +13,7 @@
     "occurred_at": {"type": "string", "format": "date-time"},
     "from_state": {"$ref": "#/$defs/nullable_state"},
     "to_state": {"$ref": "#/$defs/state"},
-    "event_type": {"enum": ["SESSION_CREATED", "CLARIFICATION_REQUESTED", "CLARIFICATION_RECEIVED", "SPECIFICATION_PREPARED", "REVIEW_STARTED", "SPECIFICATION_REVISED", "SPECIFICATION_APPROVED", "RUN_STARTED", "APPROVAL_REQUESTED", "APPROVAL_RESOLVED", "VERIFICATION_STARTED", "SESSION_COMPLETED", "SESSION_FAILED", "SESSION_CANCELLED"]},
+    "event_type": {"enum": ["SESSION_CREATED", "CLARIFICATION_REQUESTED", "CLARIFICATION_RECEIVED", "SPECIFICATION_PREPARED", "REVIEW_STARTED", "REVISION_REQUESTED", "SPECIFICATION_REVISED", "SPECIFICATION_APPROVED", "RUN_STARTED", "APPROVAL_REQUESTED", "APPROVAL_RESOLVED", "VERIFICATION_STARTED", "SESSION_COMPLETED", "SESSION_FAILED", "SESSION_CANCELLED"]},
     "actor_type": {"enum": ["USER", "AGENT", "SYSTEM", "REVIEWER"]},
     "summary": {"type": "string", "minLength": 1, "maxLength": 2000},
     "candidate_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
