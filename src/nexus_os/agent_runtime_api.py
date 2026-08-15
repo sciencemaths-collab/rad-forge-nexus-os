@@ -206,6 +206,27 @@ class GovernedAgentRuntimeApi:
             "status": "PROPOSED",
         }
 
+    def preparations(self, session_id: UUID) -> Mapping[str, object]:
+        """Return graph-wide durable preparation and runtime status."""
+        if self._composition is None:
+            raise AgentRuntimeApiError("task preparation is unavailable")
+        snapshot = self._snapshot(session_id)
+        items: list[Mapping[str, object]] = []
+        tasks = {task.task_id: task for task in snapshot.graph.graph.tasks}
+        for task_id in snapshot.graph.topological_order:
+            task = tasks[task_id]
+            artifact = self._composition.prepared_artifact(snapshot.run_id, task)
+            items.append(
+                {
+                    "task_id": str(task.task_id),
+                    "task_kind": task.kind,
+                    "runtime_status": snapshot.task_states[task.task_id].value,
+                    "preparation_status": "PROPOSED" if artifact is not None else "NOT_PREPARED",
+                    "artifact_digest": None if artifact is None else artifact.digest,
+                }
+            )
+        return {"run_id": str(snapshot.run_id), "tasks": items}
+
     def evidence(self, session_id: UUID) -> Mapping[str, object]:
         snapshot = self._snapshot(session_id)
         records = self._evidence.records(snapshot.graph.graph.project_id, snapshot.run_id)

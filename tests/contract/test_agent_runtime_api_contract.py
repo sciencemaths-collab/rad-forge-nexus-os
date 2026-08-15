@@ -26,6 +26,13 @@ class RuntimeApi:
             "status": "PROPOSED",
         }
 
+    def preparations(self, session_id):
+        self.calls.append(("preparations",))
+        return {
+            "run_id": _snapshot()["run_id"],
+            "tasks": [{"task_id": "task", "preparation_status": "PROPOSED"}],
+        }
+
     async def tick(self, session_id, identity, req, body):
         self.calls.append(("tick", body))
         return {"outcome": "IDLE", "runtime": _snapshot()}
@@ -77,23 +84,34 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
     prepared = asyncio.run(
         subject.handle(request("POST", base + "/preparations", key="runtime-prepare-001"))
     )
+    manifest = asyncio.run(subject.handle(request("GET", base + "/preparations")))
     tick = asyncio.run(subject.handle(request("POST", base + "/ticks", key="runtime-tick-0001")))
     verified = asyncio.run(
         subject.handle(request("POST", base + "/verify", key="runtime-verify-001"))
     )
-    assert (started.status, status.status, prepared.status, tick.status, verified.status) == (
+    assert (
+        started.status,
+        status.status,
+        prepared.status,
+        manifest.status,
+        tick.status,
+        verified.status,
+    ) == (
         201,
+        200,
         200,
         200,
         200,
         200,
     )
     assert prepared.body["status"] == "PROPOSED"
+    assert manifest.body["tasks"][0]["preparation_status"] == "PROPOSED"
     assert replay.headers["Idempotent-Replay"] == "true"
     assert [call[0] for call in runtime.calls] == [
         "start",
         "status",
         "prepare",
+        "preparations",
         "tick",
         "verify",
     ]

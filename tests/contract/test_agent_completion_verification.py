@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from types import MappingProxyType
 
 import pytest
 
@@ -89,6 +90,14 @@ class Verifier:
         )
 
 
+class PayloadResolver:
+    def resolve(self, run_id, task):  # type: ignore[no-untyped-def]
+        return {
+            **dict(task.input),
+            "reasoned_artifact_digest": "sha256:" + "9" * 64,
+        }
+
+
 def _succeeded(tmp_path):
     runtime = RuntimeOrchestrator(SQLiteCheckpointStore(tmp_path / "runtime.db"))
     graph = _graph()
@@ -131,6 +140,55 @@ def test_agent_completes_only_after_task_and_acceptance_evidence_verify(tmp_path
     )
     assert sessions.get(SESSION_ID).state.value == "COMPLETED"
     assert ledger.verify("reference_agent", RUN).record_count == 2
+
+
+def test_completion_rejects_evidence_not_bound_to_prepared_execution_payload(tmp_path) -> None:
+    sessions = AgentSessionStore(tmp_path / "agent.db")
+    _running(sessions)
+    snapshot, task = _succeeded(tmp_path)
+    ledger = EvidenceLedger(tmp_path / "evidence.db")
+    writer = RuntimeEvidenceWriter(ledger)
+    writer.task_success(
+        snapshot,
+        task,
+        ToolResult("nexus.test", {"ok": True}, "sha256:" + "1" * 64, False),
+        actor="runtime",
+        trace_id=TRACE,
+        now=NOW,
+    )
+    service = AgentCompletionVerifier(
+        sessions=sessions,
+        ledger=ledger,
+        writer=writer,
+        verifiers={"Run the declared build gate.": Verifier()},
+        payload_resolver=PayloadResolver(),
+    )
+    with pytest.raises(RuntimeEvidenceError, match="does not match prepared"):
+        service.verify(
+            SESSION_ID,
+            snapshot,
+            start_event_id=uid(15),
+            completion_event_id=uid(16),
+            actor_id="verification-service",
+            trace_id=TRACE,
+            now=NOW,
+            expected_sequence=5,
+        )
+
+
+def test_task_evidence_canonicalizes_nested_immutable_execution_payload(tmp_path) -> None:
+    snapshot, task = _succeeded(tmp_path)
+    writer = RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "evidence.db"))
+    record = writer.task_success(
+        snapshot,
+        task,
+        ToolResult("nexus.test", {"ok": True}, "sha256:" + "1" * 64, False),
+        input_payload={"nested": MappingProxyType({"value": "executed"})},
+        actor="runtime",
+        trace_id=TRACE,
+        now=NOW,
+    )
+    assert record.input_digest.startswith("sha256:")
 
 
 def test_missing_task_evidence_cannot_enter_verification_or_complete(tmp_path) -> None:
