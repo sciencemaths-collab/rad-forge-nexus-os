@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from types import MappingProxyType
 
 import pytest
 
@@ -173,6 +174,21 @@ def test_completion_rejects_evidence_not_bound_to_prepared_execution_payload(tmp
             now=NOW,
             expected_sequence=5,
         )
+
+
+def test_task_evidence_canonicalizes_nested_immutable_execution_payload(tmp_path) -> None:
+    snapshot, task = _succeeded(tmp_path)
+    writer = RuntimeEvidenceWriter(EvidenceLedger(tmp_path / "evidence.db"))
+    record = writer.task_success(
+        snapshot,
+        task,
+        ToolResult("nexus.test", {"ok": True}, "sha256:" + "1" * 64, False),
+        input_payload={"nested": MappingProxyType({"value": "executed"})},
+        actor="runtime",
+        trace_id=TRACE,
+        now=NOW,
+    )
+    assert record.input_digest.startswith("sha256:")
 
 
 def test_missing_task_evidence_cannot_enter_verification_or_complete(tmp_path) -> None:

@@ -311,6 +311,17 @@ class AgentCompletionVerifier:
 
 def _digest(value: Any) -> str:
     encoded = json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+        default=_json_mapping,
     )
     return "sha256:" + hashlib.sha256(encoded.encode()).hexdigest()
+
+
+def _json_mapping(value: object) -> dict[object, object]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
