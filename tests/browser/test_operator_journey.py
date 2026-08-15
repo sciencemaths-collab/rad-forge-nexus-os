@@ -75,9 +75,7 @@ def login_and_resume(page: Page, operator_url: str) -> None:
     page.locator("#resume-form button").click()
 
 
-def test_first_run_readiness_and_lifecycle_are_explicit(
-    page: Page, operator_url: str
-) -> None:
+def test_first_run_readiness_and_lifecycle_are_explicit(page: Page, operator_url: str) -> None:
     def handle(route: Route) -> None:
         path = route.request.url.split(operator_url, 1)[-1]
         if path == "/v1/auth/login":
