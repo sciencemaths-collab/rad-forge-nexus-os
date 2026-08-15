@@ -1166,7 +1166,7 @@ is `sha256:c82181444460ffed4c2ff7303196056b143e7ff4d0011c73fe21654286501fde`.
 The hosted journey also detected and closed canonical serialization of nested immutable task
 inputs before acceptance. No live-provider quality or production qualification is claimed.
 
-## RAD Agent Phase 5A operator shell (in progress)
+## RAD Agent Phase 5A operator shell (accepted)
 
 This first browser-upgrade slice makes the supported workflow legible before execution:
 
@@ -1182,6 +1182,10 @@ This first browser-upgrade slice makes the supported workflow legible before exe
 
 This slice does not yet add in-browser configuration writes, candidate-plan editing, artifact
 downloads, or durable cancel semantics. Those remain subsequent Phase 5 work.
+
+GitHub Actions run 133 passed all 18 portable release gates on 2026-08-15, including Chromium,
+Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
+`sha256:27627998587ea5de88dc050da917edc524544ca049c2fbe15033a62014c0b90f`.
 
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
