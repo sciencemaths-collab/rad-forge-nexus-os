@@ -11,7 +11,7 @@ from typing import Any, Protocol
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from nexus_os.agent_store import AgentSessionStore, AgentState
-from nexus_os.domain import RunState, TaskDefinition, TaskStatus, TraceId
+from nexus_os.domain import RunId, RunState, TaskDefinition, TaskStatus, TraceId
 from nexus_os.evidence import (
     GENESIS,
     EvidenceKind,
@@ -45,6 +45,10 @@ class AcceptanceVerifier(Protocol):
     ) -> AcceptanceResult: ...
 
 
+class EvidencePayloadResolver(Protocol):
+    def resolve(self, run_id: RunId, task: TaskDefinition) -> Mapping[str, Any]: ...
+
+
 class RuntimeEvidenceWriter:
     def __init__(self, ledger: EvidenceLedger) -> None:
         self._ledger = ledger
@@ -55,6 +59,7 @@ class RuntimeEvidenceWriter:
         task: TaskDefinition,
         result: ToolResult,
         *,
+        input_payload: Mapping[str, Any] | None = None,
         actor: str,
         trace_id: TraceId,
         now: datetime,
@@ -65,7 +70,7 @@ class RuntimeEvidenceWriter:
             EvidenceKind.RUNTIME_EVENT,
             EvidenceOutcome.PASS,
             f"task:{task.task_id}",
-            _digest(task.canonical_dict()),
+            _digest(task.canonical_dict() if input_payload is None else dict(input_payload)),
             _digest(dict(result.output)),
             actor,
             trace_id,
@@ -195,11 +200,13 @@ class AgentCompletionVerifier:
         ledger: EvidenceLedger,
         writer: RuntimeEvidenceWriter,
         verifiers: Mapping[str, AcceptanceVerifier],
+        payload_resolver: EvidencePayloadResolver | None = None,
     ) -> None:
         self._sessions = sessions
         self._ledger = ledger
         self._writer = writer
         self._verifiers = dict(verifiers)
+        self._payload_resolver = payload_resolver
 
     def verify(
         self,
@@ -234,6 +241,28 @@ class AgentCompletionVerifier:
         if passed_tasks != set(snapshot.task_states):
             raise RuntimeEvidenceError("task outcome evidence is incomplete")
         self._ledger.verify(session.project_id, snapshot.run_id)
+        if self._payload_resolver is not None:
+            evidence_by_task = {
+                record.task_id: record
+                for record in records
+                if record.kind is EvidenceKind.RUNTIME_EVENT
+                and record.outcome is EvidenceOutcome.PASS
+                and record.task_id is not None
+            }
+            try:
+                expected_payloads = {
+                    task.task_id: self._payload_resolver.resolve(snapshot.run_id, task)
+                    for task in snapshot.graph.graph.tasks
+                }
+            except (KeyError, ValueError) as exc:
+                raise RuntimeEvidenceError(
+                    "prepared execution payload could not be verified"
+                ) from exc
+            for task_id, payload in expected_payloads.items():
+                if evidence_by_task[task_id].input_digest != _digest(dict(payload)):
+                    raise RuntimeEvidenceError(
+                        "task evidence does not match prepared execution payload"
+                    )
         verifying = (
             self._sessions.start_verification(
                 session_id,

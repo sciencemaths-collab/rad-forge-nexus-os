@@ -121,12 +121,14 @@ def test_facade_starts_and_recovers_runtime_from_durable_graph(tmp_path) -> None
     started = facade.start(SESSION, identity, request, {"workspace_root": "/workspace/project"})
     recovered = facade.status(SESSION)
     prepared = asyncio.run(facade.prepare(SESSION, identity, request, None))
+    preparations = facade.preparations(SESSION)
     preview = facade.preview(SESSION, identity)
     evidence_view = facade.evidence(SESSION)
     assert started["run_state"] == "READY"
     assert recovered == started
     assert prepared["status"] == "PROPOSED"
     assert prepared["artifact_digest"].startswith("sha256:")
+    assert preparations["tasks"][0]["preparation_status"] == "PROPOSED"
     assert preview["task_id"] == "specification"
     assert preview["decision"] == "ALLOW"
     assert evidence_view["records"] == []

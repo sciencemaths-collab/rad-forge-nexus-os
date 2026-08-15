@@ -387,6 +387,7 @@ def _create_reference_runtime(
             verifiers={
                 RuntimeTaskEvidenceVerifier.method: RuntimeTaskEvidenceVerifier(),
             },
+            payload_resolver=composition,
         ),
         capabilities=ReferenceRuntimeCapabilities(),
         ids=ids,

@@ -18,6 +18,8 @@ evidence, and acceptance verification.
 - `POST .../runtime/preparations` (`agent:execute`) invokes the exactly qualified task
   reasoner at most once for an exact ready task, or recovers its immutable prior artifact.
   It returns the `PROPOSED` artifact and digest for operator review before preview/execution.
+- `GET .../runtime/preparations` (`agent:read`) returns every graph task in topological order
+  with its durable preparation state, runtime state, and validated artifact digest.
 - `GET .../runtime/preview` (`agent:read`) returns the exact next typed-tool input,
   effect, policy decision, and digests without resolving a handler or changing state.
 - `GET .../runtime/evidence` (`agent:read`) returns the ordered, append-only evidence

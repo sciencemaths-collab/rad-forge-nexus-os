@@ -114,6 +114,12 @@ paths:
       requestBody:
         content: {application/json: {schema: {type: object, additionalProperties: false, properties: {task_id: {type: string}}}}}
       responses: {'200': {description: Exact proposed artifact, digest, task binding, and PROPOSED status}}
+    get:
+      operationId: listAgentRuntimePreparations
+      x-required-scope: agent:read
+      description: Graph-wide durable preparation and runtime status in topological order.
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses: {'200': {description: Preparation status and artifact digest for every runtime task}}
   /v1/agent/sessions/{sessionId}/runtime/preview:
     get:
       operationId: previewAgentRuntimeAction

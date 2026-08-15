@@ -1148,6 +1148,19 @@ Firefox, and the packaged qualified-provider journey. The release-evidence artif
 
 No live-provider quality or production qualification is claimed.
 
+## RAD Agent Phase 4D graph-wide reasoning evidence (in progress)
+
+This slice closes the graph-level recovery and verification binding:
+
+- A read-only authenticated manifest reports preparation and runtime state for every task in
+  deterministic topological order, validating every stored artifact it encounters.
+- Task success evidence digests the exact resolved payload used by preview and execution.
+- Final completion recomputes every prepared payload and rejects missing, drifted, corrupted,
+  or base-input-only task evidence before acceptance verification.
+- Existing uncomposed scheduler and verifier behavior remains backward compatible.
+
+Hosted browser, packaged-provider, and release-evidence gates remain required before acceptance.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:

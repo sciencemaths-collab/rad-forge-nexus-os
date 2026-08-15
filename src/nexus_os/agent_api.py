@@ -86,6 +86,7 @@ class AgentRuntimeApi(Protocol):
         request: AgentApiRequest,
         body: dict[str, Any] | None,
     ) -> Mapping[str, Any]: ...
+    def preparations(self, session_id: UUID) -> Mapping[str, Any]: ...
     def evidence(self, session_id: UUID) -> Mapping[str, Any]: ...
     async def tick(
         self,
@@ -145,6 +146,13 @@ _ROUTES = (
         "runtime_prepare",
         "agent:execute",
         True,
+    ),
+    _Route(
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/preparations$"),
+        "runtime_preparations",
+        "agent:read",
+        False,
     ),
     _Route(
         "GET",
@@ -350,6 +358,8 @@ class AgentApplicationService:
                 return 200, self._runtime.status(target_session_id)
             if operation == "runtime_prepare":
                 return 200, await self._runtime.prepare(target_session_id, identity, request, body)
+            if operation == "runtime_preparations":
+                return 200, self._runtime.preparations(target_session_id)
             if operation == "runtime_preview":
                 return 200, self._runtime.preview(target_session_id, identity)
             if operation == "runtime_evidence":

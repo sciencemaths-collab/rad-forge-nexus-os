@@ -276,6 +276,7 @@ class GovernedScheduler:
             running,
             task,
             result,
+            input_payload=payload,
             actor=actor_id,
             trace_id=trace_id,
             now=now,
