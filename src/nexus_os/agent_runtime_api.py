@@ -467,6 +467,63 @@ def _artifact_file(task_input: Mapping[str, object]) -> tuple[Path, bytes] | Non
         document = json.loads(body)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise AgentRuntimeApiError("downloadable artifact content is invalid") from exc
-    if not isinstance(document, dict) or document.get("tool") != "workspace.write_artifact":
+    if not isinstance(document, dict) or not _valid_download_provenance(document):
         raise AgentRuntimeApiError("downloadable artifact provenance is invalid")
     return target_resolved.relative_to(root), body
+
+
+def _valid_download_provenance(document: dict[str, object]) -> bool:
+    tool = document.get("tool")
+    if tool == "workspace.write_artifact":
+        return document.get("schema_version") == "1.0" and isinstance(
+            document.get("task_input"), dict
+        )
+    if tool != "research.ingest_local_sources" or document.get("schema_version") != "1.0":
+        return False
+    sources = document.get("sources")
+    manifest_digest = document.get("manifest_digest")
+    source_set_digest = document.get("source_set_digest")
+    if (
+        not isinstance(sources, list)
+        or not 1 <= len(sources) <= 32
+        or document.get("source_count") != len(sources)
+        or not _sha256(manifest_digest)
+        or not _sha256(source_set_digest)
+    ):
+        return False
+    for source in sources:
+        if not _valid_research_source(source, manifest_digest):
+            return False
+    encoded = json.dumps(
+        sources, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+    ).encode()
+    return source_set_digest == "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def _valid_research_source(value: object, manifest_digest: object) -> bool:
+    if not isinstance(value, dict):
+        return False
+    text = value.get("text")
+    locator = value.get("locator")
+    content_digest = value.get("content_digest")
+    provenance = value.get("provenance")
+    if (
+        not isinstance(text, str)
+        or not isinstance(locator, str)
+        or not _sha256(content_digest)
+        or not isinstance(provenance, dict)
+        or provenance.get("manifest_digest") != manifest_digest
+    ):
+        return False
+    text_digest = "sha256:" + hashlib.sha256(text.encode()).hexdigest()
+    source_id = "sha256:" + hashlib.sha256(f"{locator}\n{content_digest}".encode()).hexdigest()
+    return value.get("extracted_text_digest") == text_digest and value.get("source_id") == source_id
+
+
+def _sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 71
+        and value.startswith("sha256:")
+        and all(character in "0123456789abcdef" for character in value[7:])
+    )

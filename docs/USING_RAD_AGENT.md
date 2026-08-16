@@ -267,6 +267,32 @@ Start with:
 Passing fake-transport tests does not establish live account access, model quality,
 reliability, billing correctness, or production readiness.
 
+## Prepare local biological-research sources
+
+For a candidate whose approved mode is `research`, create a `research-sources` directory in
+the workspace selected in the browser. Add bounded UTF-8 Markdown or text sources and declare
+each one in `research-sources/manifest.json`:
+
+```json
+{
+  "schema_version": "1.0",
+  "sources": [
+    {
+      "path": "protein-study.md",
+      "locator": "doi:10.0000/example",
+      "retrieved_at": "2026-08-16T00:00:00Z",
+      "license_access": "Operator-supplied copy used for local analysis"
+    }
+  ]
+}
+```
+
+RAD Agent does not download the locator. At the source-acquisition stage it reads only the
+declared local files, verifies workspace confinement and limits, and writes the digest-bound
+`.rad-agent-artifacts/sources.json`. Review that artifact and its evidence before later claim
+or citation work. PDF, DOCX, remote retrieval, automatic publication, and scientific-quality
+judgment are not included in this source-ingestion slice.
+
 ## Build a domain-specific executing agent
 
 The RAD Forge Runtime can govern real work after the deployer supplies all of the
