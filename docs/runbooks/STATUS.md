@@ -1251,25 +1251,26 @@ Firefox, and actual artifact-byte downloads through the packaged qualified-provi
 release-evidence artifact digest is
 `sha256:bb9096092d056b4c2d7893259ef70df01dfb534a1b92bce39bd6936dd4b12b5b`.
 
-## RAD Agent Phase 5E biological research review (accepted)
+## RAD Agent Phase 5E research review (accepted)
 
-This slice re-centers the operator experience on RAD Agent's scientific-research application:
+This slice makes RAD Agent's domain-neutral research application explicit in the operator
+experience while preserving app creation and data analysis as equal application modes:
 
-- Qualified `research` candidates receive a dedicated scientific review dossier before human
+- Qualified `research` candidates receive a dedicated research review dossier before human
   approval while retaining the complete immutable candidate and digest.
-- The dossier makes the biological question, source provenance, claim/artifact grounding,
+- The dossier makes the research question, source provenance, claim/artifact grounding,
   contradictions, uncertainty, citations, reproducibility, sensitive-data handling,
   publication boundary, acceptance checks, and governed risk effect explicit.
 - Model-originated objective, acceptance, and risk text uses text-only DOM assignment.
-- The packaged qualified-provider browser journey uses a protein-interaction research objective
+- The packaged qualified-provider browser journey uses a domain-neutral research objective
   and must pass from dossier review through governed execution, verification, and result download.
 
-This surface does not acquire literature, execute molecular simulation, assess biological
-truth, or authorize publication. Those require separately registered research tools and
-deterministic verifiers through the shared governed boundary.
+This surface does not acquire sources, perform domain analysis, assess research validity, or
+authorize publication. Those require separately registered tools and deterministic verifiers
+through the shared governed boundary.
 
 GitHub Actions run 147 passed all 18 portable release gates on 2026-08-16, including Chromium,
-Firefox, and the packaged qualified-provider protein-interaction research journey. The
+Firefox, and the packaged qualified-provider research journey. The
 release-evidence artifact digest is
 `sha256:51f70f313e8740fb159e830bade07105f5904e55d9aba82f02347df70712ca27`.
 
@@ -1285,14 +1286,14 @@ This slice replaces the research source-acquisition placeholder with one real go
   raw/text digests, stable source identifiers, counts, extractor version, manifest provenance,
   and a source-set digest.
 - Writes are atomic and conflict-safe; identical output is recognized without overwriting.
-- The packaged protein-interaction browser journey supplies a local literature fixture and must
+- The packaged domain-neutral research journey supplies a local source fixture and must
   verify the real provenance artifact through governed execution and downloads.
 
-This does not fetch literature, parse PDF/DOCX, construct or validate biological claims,
-evaluate scientific quality, authorize egress, or publish.
+This does not fetch sources, parse PDF/DOCX, construct or validate domain claims, evaluate
+research quality, authorize egress, or publish.
 
 GitHub Actions run 150 passed all 18 portable release gates on 2026-08-16, including Chromium,
-Firefox, and the installed-wheel protein-study ingestion, provenance verification, governed
+Firefox, and the installed-wheel local-source ingestion, provenance verification, governed
 execution, and artifact-download journey. The release-evidence artifact digest is
 `sha256:ea057f5f6f08af3b5c16601ff48163378afde12830d63d47de741741d4aa00e1`.
 

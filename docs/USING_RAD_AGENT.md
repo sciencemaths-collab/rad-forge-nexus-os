@@ -267,7 +267,7 @@ Start with:
 Passing fake-transport tests does not establish live account access, model quality,
 reliability, billing correctness, or production readiness.
 
-## Prepare local biological-research sources
+## Prepare local research sources
 
 For a candidate whose approved mode is `research`, create a `research-sources` directory in
 the workspace selected in the browser. Add bounded UTF-8 Markdown or text sources and declare
@@ -278,8 +278,8 @@ each one in `research-sources/manifest.json`:
   "schema_version": "1.0",
   "sources": [
     {
-      "path": "protein-study.md",
-      "locator": "doi:10.0000/example",
+      "path": "source-note.md",
+      "locator": "local:research/source-note",
       "retrieved_at": "2026-08-16T00:00:00Z",
       "license_access": "Operator-supplied copy used for local analysis"
     }

@@ -23,7 +23,7 @@ PASSWORD = "correct horse battery staple"  # noqa: S105 - inert acceptance fixtu
 
 def proposal() -> dict[str, object]:
     return {
-        "objective": "Review a protein-interaction hypothesis with traceable evidence.",
+        "objective": "Evaluate competing explanations using traceable local sources.",
         "mode": "research",
         "inputs": [],
         "constraints": [
@@ -33,14 +33,14 @@ def proposal() -> dict[str, object]:
         "acceptance_criteria": [
             {
                 "acceptance_id": "AC-CLAIM_TRACEABILITY",
-                "statement": "Every biological claim links to a source span or artifact.",
+                "statement": "Every material claim links to a source span or artifact.",
                 "verification_method": "runtime_task_evidence",
             }
         ],
         "required_capabilities": ["research.planning"],
         "risk_summary": {
             "highest_effect": "WORKSPACE_WRITE",
-            "reasons": ["Scientific outputs require evidence and human interpretation."],
+            "reasons": ["Research outputs require evidence and human interpretation."],
         },
         "unresolved_questions": [],
         "review_ready": True,
@@ -211,8 +211,8 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
         workspace.mkdir()
         research_sources = workspace / "research-sources"
         research_sources.mkdir()
-        (research_sources / "protein-study.md").write_text(
-            "# Protein interaction\nThe local assay report records binding.\n",
+        (research_sources / "source-note.md").write_text(
+            "# Competing explanations\nThe supplied report records two interpretations.\n",
             encoding="utf-8",
         )
         (research_sources / "manifest.json").write_text(
@@ -221,8 +221,8 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
                     "schema_version": "1.0",
                     "sources": [
                         {
-                            "path": "protein-study.md",
-                            "locator": "doi:10.0000/rad.browser.example",
+                            "path": "source-note.md",
+                            "locator": "local:research/source-note",
                             "retrieved_at": "2026-08-16T00:00:00Z",
                             "license_access": "Operator-supplied local acceptance source",
                         }
@@ -257,16 +257,16 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             page.locator("#login-form button").click()
             page.locator("#project").fill("qualified_browser")
             page.locator("#objective").fill(
-                "Review a protein-interaction hypothesis with traceable evidence."
+                "Evaluate competing explanations using traceable local sources."
             )
             page.locator("#goal-form button").click()
             expect(page.locator("#review")).to_be_visible(timeout=15_000)
             expect(page.locator("#research-review")).to_be_visible()
-            expect(page.locator("#research-question")).to_contain_text("protein-interaction")
+            expect(page.locator("#research-question")).to_contain_text("competing explanations")
             expect(page.locator("#research-acceptance")).to_contain_text("AC-CLAIM_TRACEABILITY")
             expect(page.locator("#research-risk")).to_contain_text("WORKSPACE_WRITE")
             expect(page.locator("#research-review")).to_contain_text(
-                "External submission or publication is never automatic"
+                "External submission, communication, or publication is never automatic"
             )
             page.locator("#approve").click()
             expect(page.locator("#runtime-setup")).to_be_visible()
@@ -296,7 +296,7 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
                 (workspace / ".rad-agent-artifacts/sources.json").read_text(encoding="utf-8")
             )
             assert sources_artifact["tool"] == "research.ingest_local_sources"
-            assert sources_artifact["sources"][0]["locator"].startswith("doi:")
+            assert sources_artifact["sources"][0]["locator"] == "local:research/source-note"
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")

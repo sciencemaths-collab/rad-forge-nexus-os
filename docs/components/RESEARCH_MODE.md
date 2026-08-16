@@ -22,7 +22,7 @@ action and human approval.
 ## Operator review surface
 
 When a qualified candidate selects `research` mode, the browser presents a scientific review
-dossier before approval. It separates the biological question, source-provenance obligations,
+dossier before approval. It separates the research question, source-provenance obligations,
 claim and deterministic-computation grounding, contradictory evidence, citation and
 reproducibility gates, sensitive-data controls, publication boundaries, acceptance criteria,
 and the proposed risk effect. The dossier is derived from the immutable candidate and uses
