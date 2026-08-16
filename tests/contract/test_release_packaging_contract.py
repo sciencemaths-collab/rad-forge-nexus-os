@@ -34,4 +34,5 @@ def test_tag_release_requires_qualification_checksums_attestations_and_sbom() ->
     assert "SHA256SUMS" in text
     assert "actions/attest-build-provenance@v3" in text
     assert "--sbom=true" in text
+    assert "steps.image.outputs.subject" in text
     assert "gh release create" in text
