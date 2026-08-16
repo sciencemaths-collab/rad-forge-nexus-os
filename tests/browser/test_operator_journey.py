@@ -139,6 +139,60 @@ def test_operator_revises_candidate_before_digest_bound_approval(
     expect(page.locator("#approve")).to_be_enabled()
 
 
+def test_durable_pause_resume_and_confirmed_cancel_controls(page: Page, operator_url: str) -> None:
+    state = {"run": "RUNNING"}
+
+    def handle(route: Route) -> None:
+        path = route.request.url.split(operator_url, 1)[-1]
+        if path == "/v1/auth/login":
+            fulfill(route, {"access_token": "browser-token", "token_type": "Bearer"})
+        elif path == "/v1/model-qualifications":
+            fulfill(route, [{"provider_id": "ollama", "model_id": "qwen-local"}])
+        elif path.endswith("/runtime/pause"):
+            state["run"] = "PAUSED"
+            fulfill(route, runtime("PAUSED", "READY"))
+        elif path.endswith("/runtime/resume"):
+            state["run"] = "RUNNING"
+            fulfill(route, runtime("RUNNING", "READY"))
+        elif path.endswith("/runtime/cancel"):
+            state["run"] = "CANCELLED"
+            fulfill(
+                route,
+                {
+                    "runtime": runtime("CANCELLED", "CANCELLED"),
+                    "session": {"state": "CANCELLED"},
+                },
+            )
+        elif path.endswith("/runtime/preparations"):
+            fulfill(route, preparation())
+        elif path.endswith("/runtime/preview"):
+            fulfill(route, {"decision": "ALLOW", "approval_required": False})
+        elif path.endswith("/runtime/evidence"):
+            fulfill(route, evidence())
+        elif path.endswith("/runtime"):
+            fulfill(route, runtime(state["run"], "READY"))
+        elif path == "/v1/agent/sessions/session-browser-1":
+            fulfill(route, {"state": "RUNNING"})
+        else:
+            fulfill(route, {"message": f"unexpected request: {path}"}, status=500)
+
+    page.route("**/v1/**", handle)
+    login_and_resume(page, operator_url)
+    expect(page.locator("#pause-run")).to_be_enabled()
+    page.locator("#pause-run").click()
+    expect(page.locator("#run-state")).to_have_text("PAUSED")
+    expect(page.locator("#resume-run")).to_be_enabled()
+    page.locator("#resume-run").click()
+    expect(page.locator("#run-state")).to_have_text("RUNNING")
+
+    page.locator("#cancel-run").click()
+    expect(page.locator("#cancel-run")).to_have_text("Confirm cancel run")
+    expect(page.locator("#run-state")).to_have_text("RUNNING")
+    page.locator("#cancel-run").click()
+    expect(page.locator("#run-state")).to_have_text("CANCELLED")
+    expect(page.locator("#preview")).to_contain_text("No further action")
+
+
 def test_manual_final_step_automatically_verifies_in_real_browser(
     page: Page, operator_url: str
 ) -> None:

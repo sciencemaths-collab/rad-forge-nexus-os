@@ -95,6 +95,8 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert 'aria-label="Work lifecycle"' in html
         assert "Run safe steps automatically" in html
         assert "Pause after current step" in html
+        assert "Resume execution" in html
+        assert "Cancel run" in html
         assert "Verify automatically after success" in html
         assert "Completion report" in html
         assert 'id="completion-status"' in html
@@ -111,6 +113,9 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "setLifecycle('proposed')" in script
         assert "setLifecycle('approved')" in script
         assert "/candidate/revisions" in script
+        assert "/runtime/pause" in script
+        assert "/runtime/resume" in script
+        assert "/runtime/cancel" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script

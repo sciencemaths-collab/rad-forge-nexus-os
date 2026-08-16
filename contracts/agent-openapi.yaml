@@ -119,6 +119,28 @@ paths:
       x-required-scope: agent:read
       parameters: [$ref: '#/components/parameters/SessionId']
       responses: {'200': {$ref: '#/components/responses/RuntimeResponse'}}
+  /v1/agent/sessions/{sessionId}/runtime/pause:
+    post:
+      operationId: pauseAgentRuntime
+      x-required-scope: agent:execute
+      description: Durably pause a running runtime between governed task dispatches.
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      responses: {'200': {$ref: '#/components/responses/RuntimeResponse'}, '409': {$ref: '#/components/responses/ErrorResponse'}}
+  /v1/agent/sessions/{sessionId}/runtime/resume:
+    post:
+      operationId: resumeAgentRuntimeExecution
+      x-required-scope: agent:execute
+      description: Durably resume execution from a PAUSED runtime checkpoint.
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      responses: {'200': {$ref: '#/components/responses/RuntimeResponse'}, '409': {$ref: '#/components/responses/ErrorResponse'}}
+  /v1/agent/sessions/{sessionId}/runtime/cancel:
+    post:
+      operationId: cancelAgentRuntime
+      x-required-scope: agent:execute
+      x-human-principal-required: true
+      description: Durably cancel all non-terminal runtime tasks and the bound Agent session.
+      parameters: [$ref: '#/components/parameters/SessionId', $ref: '#/components/parameters/IdempotencyKey']
+      responses: {'200': {description: Cancelled runtime and Agent session}, '409': {$ref: '#/components/responses/ErrorResponse'}}
   /v1/agent/sessions/{sessionId}/runtime/ticks:
     post:
       operationId: tickAgentRuntime

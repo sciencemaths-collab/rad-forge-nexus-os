@@ -95,6 +95,66 @@ class RuntimeOrchestrator:
             raise RuntimeOrchestratorError("terminal runtime checkpoint cannot be resumed")
         return snapshot
 
+    def pause(
+        self, snapshot: RuntimeSnapshot, *, trace_id: TraceId, now: datetime
+    ) -> RuntimeSnapshot:
+        """Durably pause a running checkpoint only between governed task dispatches."""
+        if snapshot.run_state is not RunState.RUNNING:
+            raise RuntimeOrchestratorError("only a running runtime can be paused")
+        if any(state is TaskStatus.RUNNING for state in snapshot.task_states.values()):
+            raise RuntimeOrchestratorError("runtime cannot pause during an active task")
+        sequence = snapshot.transition_sequence + 1
+        self._states.transition_run(
+            run_id=snapshot.run_id,
+            current=RunState.RUNNING,
+            target=RunState.PAUSED,
+            sequence=sequence,
+            occurred_at=now,
+            trace_id=trace_id,
+            reason_code="operator.pause",
+        )
+        return self._persist(
+            RuntimeSnapshot(
+                snapshot.run_id,
+                snapshot.graph,
+                RunState.PAUSED,
+                snapshot.task_states,
+                sequence,
+                snapshot.revision,
+            ),
+            expected_revision=snapshot.revision,
+            now=now,
+        )
+
+    def continue_run(
+        self, snapshot: RuntimeSnapshot, *, trace_id: TraceId, now: datetime
+    ) -> RuntimeSnapshot:
+        """Durably authorize a paused checkpoint to continue execution."""
+        if snapshot.run_state is not RunState.PAUSED:
+            raise RuntimeOrchestratorError("only a paused runtime can be resumed")
+        sequence = snapshot.transition_sequence + 1
+        self._states.transition_run(
+            run_id=snapshot.run_id,
+            current=RunState.PAUSED,
+            target=RunState.RUNNING,
+            sequence=sequence,
+            occurred_at=now,
+            trace_id=trace_id,
+            reason_code="operator.resume",
+        )
+        return self._persist(
+            RuntimeSnapshot(
+                snapshot.run_id,
+                snapshot.graph,
+                RunState.RUNNING,
+                snapshot.task_states,
+                sequence,
+                snapshot.revision,
+            ),
+            expected_revision=snapshot.revision,
+            now=now,
+        )
+
     def inspect(self, *, run_id: RunId, graph: ValidatedTaskGraph) -> RuntimeSnapshot:
         """Rehydrate any durable checkpoint without authorizing further execution."""
         checkpoint = self._store.load(

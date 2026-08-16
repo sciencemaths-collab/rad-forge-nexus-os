@@ -102,6 +102,25 @@ def test_cancellation_is_staged_and_durable(tmp_path) -> None:  # type: ignore[n
         assert store.load(run_id).payload["run_state"] == "CANCELLED"  # type: ignore[union-attr]
 
 
+def test_pause_and_resume_are_durable_only_between_tasks(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    run_id = RunId.new()
+    with SQLiteCheckpointStore(tmp_path / "runtime.db") as store:
+        runtime = RuntimeOrchestrator(store)
+        created = runtime.create(run_id=run_id, graph=_graph(), trace_id=TRACE, now=NOW)
+        running = runtime.start_task(created, TaskId("extract"), trace_id=TRACE, now=NOW)
+        with pytest.raises(RuntimeOrchestratorError, match="active task"):
+            runtime.pause(running, trace_id=TRACE, now=NOW)
+        between_tasks = runtime.complete_task(
+            running, TaskId("extract"), TaskStatus.SUCCEEDED, trace_id=TRACE, now=NOW
+        )
+        paused = runtime.pause(between_tasks, trace_id=TRACE, now=NOW)
+        assert paused.run_state is RunState.PAUSED
+        assert runtime.inspect(run_id=run_id, graph=_graph()) == paused
+        resumed = runtime.continue_run(paused, trace_id=TRACE, now=NOW)
+        assert resumed.run_state is RunState.RUNNING
+        assert resumed.task_states[TaskId("report")] is TaskStatus.READY
+
+
 def test_resume_rejects_missing_or_terminal_checkpoint(tmp_path) -> None:  # type: ignore[no-untyped-def]
     with SQLiteCheckpointStore(tmp_path / "runtime.db") as store:
         runtime = RuntimeOrchestrator(store)

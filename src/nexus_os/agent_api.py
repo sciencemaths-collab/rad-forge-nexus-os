@@ -82,6 +82,15 @@ class AgentRuntimeApi(Protocol):
         body: dict[str, Any],
     ) -> Mapping[str, Any]: ...
     def status(self, session_id: UUID) -> Mapping[str, Any]: ...
+    def pause(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, Any]: ...
+    def resume_execution(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, Any]: ...
+    def cancel(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, Any]: ...
     def preview(
         self, session_id: UUID, identity: AgentIdentity, task_id: str | None = None
     ) -> Mapping[str, Any]: ...
@@ -180,6 +189,27 @@ _ROUTES = (
         "runtime_status",
         "agent:read",
         False,
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/pause$"),
+        "runtime_pause",
+        "agent:execute",
+        True,
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/resume$"),
+        "runtime_resume",
+        "agent:execute",
+        True,
+    ),
+    _Route(
+        "POST",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/cancel$"),
+        "runtime_cancel",
+        "agent:execute",
+        True,
     ),
     _Route(
         "GET",
@@ -369,6 +399,12 @@ class AgentApplicationService:
                 return 201, self._runtime.start(target_session_id, identity, request, body)
             if operation == "runtime_status":
                 return 200, self._runtime.status(target_session_id)
+            if operation == "runtime_pause":
+                return 200, self._runtime.pause(target_session_id, identity, request)
+            if operation == "runtime_resume":
+                return 200, self._runtime.resume_execution(target_session_id, identity, request)
+            if operation == "runtime_cancel":
+                return 200, self._runtime.cancel(target_session_id, identity, request)
             if operation == "runtime_prepare":
                 return 200, await self._runtime.prepare(target_session_id, identity, request, body)
             if operation == "runtime_preparations":

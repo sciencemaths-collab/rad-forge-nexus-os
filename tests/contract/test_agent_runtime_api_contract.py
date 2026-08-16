@@ -16,6 +16,21 @@ class RuntimeApi:
         self.calls.append(("status",))
         return _snapshot()
 
+    def pause(self, session_id, identity, req):
+        self.calls.append(("pause", identity.actor_id))
+        return {**_snapshot(), "run_state": "PAUSED"}
+
+    def resume_execution(self, session_id, identity, req):
+        self.calls.append(("resume", identity.actor_id))
+        return {**_snapshot(), "run_state": "RUNNING"}
+
+    def cancel(self, session_id, identity, req):
+        self.calls.append(("cancel", identity.human))
+        return {
+            "runtime": {**_snapshot(), "run_state": "CANCELLED"},
+            "session": {"state": "CANCELLED"},
+        }
+
     async def prepare(self, session_id, identity, req, body):
         self.calls.append(("prepare", body))
         return {
@@ -81,6 +96,10 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
         )
     )
     status = asyncio.run(subject.handle(request("GET", base)))
+    paused = asyncio.run(subject.handle(request("POST", base + "/pause", key="runtime-pause-0001")))
+    resumed = asyncio.run(
+        subject.handle(request("POST", base + "/resume", key="runtime-resume-001"))
+    )
     prepared = asyncio.run(
         subject.handle(request("POST", base + "/preparations", key="runtime-prepare-001"))
     )
@@ -89,15 +108,24 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
     verified = asyncio.run(
         subject.handle(request("POST", base + "/verify", key="runtime-verify-001"))
     )
+    cancelled = asyncio.run(
+        subject.handle(request("POST", base + "/cancel", key="runtime-cancel-001"))
+    )
     assert (
         started.status,
         status.status,
+        paused.status,
+        resumed.status,
         prepared.status,
         manifest.status,
         tick.status,
         verified.status,
+        cancelled.status,
     ) == (
         201,
+        200,
+        200,
+        200,
         200,
         200,
         200,
@@ -110,10 +138,13 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
     assert [call[0] for call in runtime.calls] == [
         "start",
         "status",
+        "pause",
+        "resume",
         "prepare",
         "preparations",
         "tick",
         "verify",
+        "cancel",
     ]
 
 
