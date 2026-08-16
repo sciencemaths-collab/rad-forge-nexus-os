@@ -39,7 +39,7 @@ class _Parser(argparse.ArgumentParser):
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = _Parser(prog="nexus-model-eval")
+    parser = _Parser(prog="rad-model-eval")
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--corpus", required=True)

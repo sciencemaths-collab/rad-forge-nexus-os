@@ -1,5 +1,13 @@
 # Engineering Status
 
+## Phase 6A — public RAD Agent naming and compatibility boundary
+
+- Canonical product, CLI help, API/SDK errors, and current architecture labels use RAD Agent.
+- `RAD_AGENT__*` is the preferred nested configuration overlay; deprecated `NEXUS__*`
+  remains supported with deterministic RAD Agent precedence.
+- Package/import identifiers, stored deterministic namespaces, historical ADRs, and the
+  repository slug remain unchanged until a separately versioned compatibility release.
+
 Last updated: 2026-08-13
 
 Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — NO CAPABILITY IS PRODUCTION READY**

@@ -10,7 +10,7 @@ changing the corpus and treat it as independent evidence.
 ## Run the public reference evaluation
 
 ```bash
-uv run nexus-model-eval \
+uv run rad-model-eval \
   --base-url http://127.0.0.1:11434/v1 \
   --model YOUR_LOCAL_MODEL_ID \
   --corpus benchmarks/model-evaluation/reference-v1.json \
@@ -32,4 +32,4 @@ variable name nor its resolved value.
 `NOT_QUALIFIED` regardless of scores. An independent evidence process must verify the
 run, anchor evidence UUIDs, and pass them through Component AJ before any Agent use is
 allowed. Never rename a passing evaluation manifest as qualification evidence or use
-it to bypass NEXUS OS policy and approval.
+it to bypass RAD Agent policy and approval.

@@ -21,7 +21,8 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 MAX_CONFIG_BYTES = 1024 * 1024
-ENV_PREFIX = "NEXUS__"
+ENV_PREFIX = "RAD_AGENT__"
+LEGACY_ENV_PREFIX = "NEXUS__"
 SECRET_REFERENCE_PREFIXES = ("env:", "vault:", "secret:")
 _SOURCE_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas" / "project.schema.json"
 
@@ -166,30 +167,36 @@ def _apply_environment_overlays(
     document: dict[str, Any], environ: Mapping[str, str]
 ) -> dict[str, Any]:
     result = copy.deepcopy(document)
-    for key in sorted(environ):
-        if not key.startswith(ENV_PREFIX):
-            continue
-        path = [part.lower() for part in key[len(ENV_PREFIX) :].split("__") if part]
-        if not path:
-            raise ConfigError(f"invalid environment overlay name: {key}")
-        cursor: dict[str, Any] = result
-        for part in path[:-1]:
-            value = cursor.get(part)
-            if not isinstance(value, dict):
-                raise ConfigError(f"environment overlay targets unknown object: {key}")
-            cursor = value
-        leaf = path[-1]
-        if leaf not in cursor:
-            raise ConfigError(f"environment overlay targets unknown key: {key}")
-        try:
-            overlay = yaml.safe_load(environ[key])
-        except yaml.YAMLError as exc:
-            raise ConfigError(f"environment overlay is malformed: {key}") from exc
-        if path[-1] in {"credential", "secrets"} and isinstance(overlay, str):
-            if not overlay.startswith(SECRET_REFERENCE_PREFIXES):
-                raise ConfigError(f"environment overlay contains a literal secret: {key}")
-        cursor[leaf] = overlay
+    for prefix in (LEGACY_ENV_PREFIX, ENV_PREFIX):
+        for key in sorted(environ):
+            if key.startswith(prefix):
+                _apply_environment_overlay(result, key, environ[key], prefix)
     return result
+
+
+def _apply_environment_overlay(
+    result: dict[str, Any], key: str, raw_value: str, prefix: str
+) -> None:
+    path = [part.lower() for part in key[len(prefix) :].split("__") if part]
+    if not path:
+        raise ConfigError(f"invalid environment overlay name: {key}")
+    cursor: dict[str, Any] = result
+    for part in path[:-1]:
+        value = cursor.get(part)
+        if not isinstance(value, dict):
+            raise ConfigError(f"environment overlay targets unknown object: {key}")
+        cursor = value
+    leaf = path[-1]
+    if leaf not in cursor:
+        raise ConfigError(f"environment overlay targets unknown key: {key}")
+    try:
+        overlay = yaml.safe_load(raw_value)
+    except yaml.YAMLError as exc:
+        raise ConfigError(f"environment overlay is malformed: {key}") from exc
+    if path[-1] in {"credential", "secrets"} and isinstance(overlay, str):
+        if not overlay.startswith(SECRET_REFERENCE_PREFIXES):
+            raise ConfigError(f"environment overlay contains a literal secret: {key}")
+    cursor[leaf] = overlay
 
 
 def environment() -> Mapping[str, str]:

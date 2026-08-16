@@ -1,4 +1,4 @@
-"""Atomic durable NEXUS Agent sessions and candidate specification revisions."""
+"""Atomic durable RAD Agent sessions and candidate specification revisions."""
 
 from __future__ import annotations
 

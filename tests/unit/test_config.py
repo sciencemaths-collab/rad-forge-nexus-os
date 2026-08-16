@@ -40,16 +40,30 @@ def test_returned_data_cannot_mutate_canonical_state() -> None:
 
 
 def test_environment_overlay_is_typed_and_deterministic() -> None:
-    loaded = load_project_config(EXAMPLE, environ={"NEXUS__POLICY__MAX_ATTEMPTS": "7"})
+    loaded = load_project_config(EXAMPLE, environ={"RAD_AGENT__POLICY__MAX_ATTEMPTS": "7"})
 
     assert loaded.data["policy"]["max_attempts"] == 7
+
+
+def test_legacy_environment_overlay_remains_compatible_but_rad_agent_wins() -> None:
+    legacy = load_project_config(EXAMPLE, environ={"NEXUS__POLICY__MAX_ATTEMPTS": "6"})
+    preferred = load_project_config(
+        EXAMPLE,
+        environ={
+            "NEXUS__POLICY__MAX_ATTEMPTS": "6",
+            "RAD_AGENT__POLICY__MAX_ATTEMPTS": "7",
+        },
+    )
+
+    assert legacy.data["policy"]["max_attempts"] == 6
+    assert preferred.data["policy"]["max_attempts"] == 7
 
 
 @pytest.mark.parametrize(
     "environment",
     [
-        {"NEXUS__POLICY__UNKNOWN": "1"},
-        {"NEXUS__UNKNOWN": "1"},
+        {"RAD_AGENT__POLICY__UNKNOWN": "1"},
+        {"RAD_AGENT__UNKNOWN": "1"},
     ],
 )
 def test_unknown_environment_overlay_is_rejected(environment: dict[str, str]) -> None:

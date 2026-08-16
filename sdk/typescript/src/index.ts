@@ -28,7 +28,7 @@ export interface Run {
 }
 
 export class SdkValidationError extends Error {
-  constructor(message = "NEXUS SDK validation failed") {
+  constructor(message = "RAD Agent SDK validation failed") {
     super(message);
     this.name = "SdkValidationError";
   }
@@ -42,7 +42,7 @@ export class ApiError extends Error {
     readonly requestId: string,
     readonly retryable: boolean,
   ) {
-    super(`NEXUS API error: ${code}`);
+    super(`RAD Agent API error: ${code}`);
     this.name = "ApiError";
   }
 }

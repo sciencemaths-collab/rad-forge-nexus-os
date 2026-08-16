@@ -34,7 +34,7 @@ class ApiError(RuntimeError):
     def __init__(
         self, status: int, code: str, message: str, request_id: str, retryable: bool
     ) -> None:
-        super().__init__(f"NEXUS API error: {code}")
+        super().__init__(f"RAD Agent API error: {code}")
         self.status = status
         self.code = code
         self.message = message
