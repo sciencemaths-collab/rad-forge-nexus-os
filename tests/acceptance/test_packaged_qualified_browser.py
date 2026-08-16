@@ -249,6 +249,14 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
                 "LOCAL_VERIFIED_NOT_PRODUCTION"
             )
             expect(page.locator("#chain-status")).to_have_text("VERIFIED")
+            expect(page.locator("#artifact-count")).not_to_have_text("0 artifacts")
+            expect(page.locator("#download-evidence")).to_be_enabled()
+            expect(page.locator("#download-report")).to_be_enabled()
+            with page.expect_download() as download_info:
+                page.locator("#artifact-list button").first.click()
+            downloaded = download_info.value
+            assert downloaded.suggested_filename.endswith(".json")
+            assert downloaded.path().read_bytes().endswith(b"\n")
             assert tuple((workspace / ".rad-agent-artifacts").glob("*.json"))
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:

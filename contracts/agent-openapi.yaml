@@ -180,6 +180,25 @@ paths:
       responses:
         '200':
           description: Runtime evidence chain with EMPTY or cryptographically VERIFIED status and head hash
+  /v1/agent/sessions/{sessionId}/runtime/artifacts:
+    get:
+      operationId: listAgentRuntimeArtifacts
+      x-required-scope: agent:read
+      description: List successful graph-declared workspace artifacts after boundary and provenance validation.
+      parameters: [$ref: '#/components/parameters/SessionId']
+      responses: {'200': {description: Downloadable artifact metadata and digests}}
+  /v1/agent/sessions/{sessionId}/runtime/artifacts/{taskId}:
+    get:
+      operationId: downloadAgentRuntimeArtifact
+      x-required-scope: agent:read
+      description: Return one bounded verified JSON artifact as base64 content; arbitrary workspace paths are never accepted.
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - name: taskId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[a-z][a-z0-9_-]{1,63}$'}
+      responses: {'200': {description: Verified artifact metadata and base64 content}, '409': {$ref: '#/components/responses/ErrorResponse'}}
   /v1/agent/sessions/{sessionId}/runtime/approvals/{approvalId}:
     post:
       operationId: decideAgentRuntimeApproval

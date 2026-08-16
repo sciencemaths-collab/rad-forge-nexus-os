@@ -48,6 +48,18 @@ class RuntimeApi:
             "tasks": [{"task_id": "task", "preparation_status": "PROPOSED"}],
         }
 
+    def artifacts(self, session_id):
+        self.calls.append(("artifacts",))
+        return {"run_id": _snapshot()["run_id"], "artifacts": []}
+
+    def artifact(self, session_id, task_id):
+        self.calls.append(("artifact", task_id))
+        return {
+            "task_id": task_id,
+            "name": "result.json",
+            "content_base64": "e30K",
+        }
+
     async def tick(self, session_id, identity, req, body):
         self.calls.append(("tick", body))
         return {"outcome": "IDLE", "runtime": _snapshot()}
@@ -104,6 +116,8 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
         subject.handle(request("POST", base + "/preparations", key="runtime-prepare-001"))
     )
     manifest = asyncio.run(subject.handle(request("GET", base + "/preparations")))
+    artifacts = asyncio.run(subject.handle(request("GET", base + "/artifacts")))
+    artifact = asyncio.run(subject.handle(request("GET", base + "/artifacts/task")))
     tick = asyncio.run(subject.handle(request("POST", base + "/ticks", key="runtime-tick-0001")))
     verified = asyncio.run(
         subject.handle(request("POST", base + "/verify", key="runtime-verify-001"))
@@ -118,11 +132,15 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
         resumed.status,
         prepared.status,
         manifest.status,
+        artifacts.status,
+        artifact.status,
         tick.status,
         verified.status,
         cancelled.status,
     ) == (
         201,
+        200,
+        200,
         200,
         200,
         200,
@@ -142,6 +160,8 @@ def test_authenticated_runtime_routes_and_idempotent_mutations(tmp_path) -> None
         "resume",
         "prepare",
         "preparations",
+        "artifacts",
+        "artifact",
         "tick",
         "verify",
         "cancel",

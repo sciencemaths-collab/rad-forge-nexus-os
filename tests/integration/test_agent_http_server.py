@@ -99,6 +99,9 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "Cancel run" in html
         assert "Verify automatically after success" in html
         assert "Completion report" in html
+        assert "Verified results package" in html
+        assert "Download evidence JSON" in html
+        assert "Download verification report" in html
         assert 'id="completion-status"' in html
 
         connection.request("GET", "/ui/app.js")
@@ -116,6 +119,9 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "/runtime/pause" in script
         assert "/runtime/resume" in script
         assert "/runtime/cancel" in script
+        assert "/runtime/artifacts" in script
+        assert "content_base64" in script
+        assert r"+'\n'" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script

@@ -103,6 +103,8 @@ class AgentRuntimeApi(Protocol):
     ) -> Mapping[str, Any]: ...
     def preparations(self, session_id: UUID) -> Mapping[str, Any]: ...
     def evidence(self, session_id: UUID) -> Mapping[str, Any]: ...
+    def artifacts(self, session_id: UUID) -> Mapping[str, Any]: ...
+    def artifact(self, session_id: UUID, task_id: str) -> Mapping[str, Any]: ...
     async def tick(
         self,
         session_id: UUID,
@@ -222,6 +224,22 @@ _ROUTES = (
         "GET",
         re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/evidence$"),
         "runtime_evidence",
+        "agent:read",
+        False,
+    ),
+    _Route(
+        "GET",
+        re.compile(r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/artifacts$"),
+        "runtime_artifacts",
+        "agent:read",
+        False,
+    ),
+    _Route(
+        "GET",
+        re.compile(
+            r"^/v1/agent/sessions/(?P<sessionId>[^/]+)/runtime/artifacts/(?P<taskId>[a-z][a-z0-9_-]{1,63})$"
+        ),
+        "runtime_artifact",
         "agent:read",
         False,
     ),
@@ -413,6 +431,10 @@ class AgentApplicationService:
                 return 200, self._runtime.preview(target_session_id, identity)
             if operation == "runtime_evidence":
                 return 200, self._runtime.evidence(target_session_id)
+            if operation == "runtime_artifacts":
+                return 200, self._runtime.artifacts(target_session_id)
+            if operation == "runtime_artifact":
+                return 200, self._runtime.artifact(target_session_id, values["taskId"])
             if operation == "runtime_tick":
                 return 200, await self._runtime.tick(target_session_id, identity, request, body)
             if operation == "runtime_approval" and body is not None:

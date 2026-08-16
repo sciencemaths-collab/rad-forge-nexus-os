@@ -81,3 +81,9 @@ Runtime control mutations are explicit and idempotent. `/runtime/pause` persists
 between-task pause, `/runtime/resume` continues only a paused checkpoint, and `/runtime/cancel`
 terminally cancels unfinished tasks plus the bound Agent session. Cancellation requires a human
 principal; pause never interrupts an active governed task.
+
+Successful graph-declared workspace artifacts are available through read-only artifact manifest
+and task-identity download operations. The API never accepts a client filesystem path. Before
+returning bounded base64 content it revalidates workspace confinement, regular-file and symlink
+status, size, JSON structure, governed-tool provenance, and SHA-256 digest. Evidence-chain and
+verification-report downloads are assembled by the browser from authenticated API responses.

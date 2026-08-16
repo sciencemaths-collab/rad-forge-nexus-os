@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import sqlite3
 from collections.abc import Mapping
@@ -286,6 +288,50 @@ class GovernedAgentRuntimeApi:
             "records": [record.to_dict() for record in records],
         }
 
+    def artifacts(self, session_id: UUID) -> Mapping[str, object]:
+        """List only successful, graph-declared workspace artifacts."""
+        snapshot = self._snapshot(session_id)
+        items = []
+        for task in snapshot.graph.graph.tasks:
+            if snapshot.task_states[task.task_id].value != "SUCCEEDED":
+                continue
+            artifact = _artifact_file(task.input)
+            if artifact is None:
+                continue
+            path, body = artifact
+            items.append(
+                {
+                    "task_id": str(task.task_id),
+                    "name": path.name,
+                    "path": str(path),
+                    "bytes": len(body),
+                    "sha256": "sha256:" + hashlib.sha256(body).hexdigest(),
+                    "media_type": "application/json",
+                }
+            )
+        return {"run_id": str(snapshot.run_id), "artifacts": items}
+
+    def artifact(self, session_id: UUID, task_id: str) -> Mapping[str, object]:
+        """Return one verified graph-declared artifact as bounded base64 content."""
+        snapshot = self._snapshot(session_id)
+        selected = next(
+            (task for task in snapshot.graph.graph.tasks if str(task.task_id) == task_id), None
+        )
+        if selected is None or snapshot.task_states[selected.task_id].value != "SUCCEEDED":
+            raise AgentRuntimeApiError("artifact task is unavailable")
+        artifact = _artifact_file(selected.input)
+        if artifact is None:
+            raise AgentRuntimeApiError("task has no downloadable artifact")
+        path, body = artifact
+        return {
+            "task_id": str(selected.task_id),
+            "name": path.name,
+            "bytes": len(body),
+            "sha256": "sha256:" + hashlib.sha256(body).hexdigest(),
+            "media_type": "application/json",
+            "content_base64": base64.b64encode(body).decode("ascii"),
+        }
+
     async def tick(
         self,
         session_id: UUID,
@@ -390,3 +436,37 @@ def _approval(record: ApprovalRecord) -> dict[str, object]:
         "status": record.status.value,
         "expires_at": record.expires_at.isoformat().replace("+00:00", "Z"),
     }
+
+
+def _artifact_file(task_input: Mapping[str, object]) -> tuple[Path, bytes] | None:
+    root_value = task_input.get("workspace_root")
+    artifact_value = task_input.get("expected_artifact")
+    if not isinstance(root_value, str) or not isinstance(artifact_value, str):
+        return None
+    root = Path(root_value).resolve()
+    artifact_root = root / ".rad-agent-artifacts"
+    target = artifact_root / artifact_value
+    try:
+        artifact_root_resolved = artifact_root.resolve()
+        target_resolved = target.resolve()
+        if (
+            not root.is_dir()
+            or root.is_symlink()
+            or artifact_root.is_symlink()
+            or not target.is_file()
+            or target.is_symlink()
+            or artifact_root_resolved not in target_resolved.parents
+        ):
+            raise AgentRuntimeApiError("downloadable artifact boundary is invalid")
+        body = target.read_bytes()
+    except OSError as exc:
+        raise AgentRuntimeApiError("downloadable artifact could not be read") from exc
+    if not 1 <= len(body) <= 1024 * 1024:
+        raise AgentRuntimeApiError("downloadable artifact size is invalid")
+    try:
+        document = json.loads(body)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AgentRuntimeApiError("downloadable artifact content is invalid") from exc
+    if not isinstance(document, dict) or document.get("tool") != "workspace.write_artifact":
+        raise AgentRuntimeApiError("downloadable artifact provenance is invalid")
+    return target_resolved.relative_to(root), body
