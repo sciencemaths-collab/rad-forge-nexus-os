@@ -1,3 +1,4 @@
+import base64
 import json
 import threading
 
@@ -212,6 +213,34 @@ def test_manual_final_step_automatically_verifies_in_real_browser(
         elif path.endswith("/runtime/verify"):
             calls["verify"] += 1
             fulfill(route, {"passed": True, "session": {"state": "COMPLETED"}})
+        elif path.endswith("/runtime/artifacts/task-1"):
+            fulfill(
+                route,
+                {
+                    "task_id": "task-1",
+                    "name": "result.json",
+                    "bytes": 16,
+                    "sha256": "sha256:" + "d" * 64,
+                    "media_type": "application/json",
+                    "content_base64": base64.b64encode(b'{"result":true}\n').decode(),
+                },
+            )
+        elif path.endswith("/runtime/artifacts"):
+            fulfill(
+                route,
+                {
+                    "run_id": "run-browser-1",
+                    "artifacts": [
+                        {
+                            "task_id": "task-1",
+                            "name": "result.json",
+                            "bytes": 16,
+                            "sha256": "sha256:" + "d" * 64,
+                            "media_type": "application/json",
+                        }
+                    ],
+                },
+            )
         elif path.endswith("/runtime/evidence"):
             fulfill(route, evidence())
         elif path.endswith("/runtime"):
@@ -229,6 +258,11 @@ def test_manual_final_step_automatically_verifies_in_real_browser(
     expect(page.locator("#completion-status")).to_have_text("Verification complete")
     expect(page.locator("#completion-report")).to_contain_text("LOCAL_VERIFIED_NOT_PRODUCTION")
     expect(page.locator("#chain-status")).to_have_text("VERIFIED")
+    expect(page.locator("#artifact-count")).to_have_text("1 artifact")
+    expect(page.locator("#download-report")).to_be_enabled()
+    with page.expect_download() as download_info:
+        page.locator("#artifact-list button").click()
+    assert download_info.value.suggested_filename == "result.json"
     assert calls["verify"] == 1
 
 

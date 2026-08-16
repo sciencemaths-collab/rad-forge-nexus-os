@@ -1228,6 +1228,24 @@ GitHub Actions run 139 passed all 18 portable release gates on 2026-08-16, inclu
 Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
 `sha256:f4c7523c22a26a8959fb2377c0561473aa1461b8b64c2afee99f409213f372f4`.
 
+## RAD Agent Phase 5D verified result downloads (in progress)
+
+This slice turns completed local work into safely downloadable results:
+
+- The authenticated artifact API lists only successful task outputs declared by the immutable
+  runtime graph and stored below the approved `.rad-agent-artifacts` boundary.
+- Each download rechecks real-path confinement, rejects symlinks and traversal, limits content
+  to one MiB, validates JSON and governed-tool provenance, and returns a fresh SHA-256 digest.
+- The browser downloads actual artifact bytes by task identity; it never submits or accepts an
+  arbitrary filesystem path.
+- Operators may separately download the complete verified evidence chain and a stable
+  verification report containing session/run binding, acceptance totals, evidence head, and
+  the explicit `LOCAL_VERIFIED_NOT_PRODUCTION` qualification boundary.
+- Terminal refresh reconstructs the report and artifact manifest without repeating execution or
+  verification mutations.
+
+This does not provide a general file server or authorize downloading undeclared workspace data.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:
