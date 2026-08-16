@@ -296,7 +296,7 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
                 (workspace / ".rad-agent-artifacts/sources.json").read_text(encoding="utf-8")
             )
             assert sources_artifact["tool"] == "research.ingest_local_sources"
-            assert sources_artifact["sources"][0]["locator"].startswith("doi:")
+            assert sources_artifact["sources"][0]["locator"] == "local:research/source-note"
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")
