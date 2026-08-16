@@ -1,11 +1,11 @@
-# NEXUS Agent Product Specification
+# RAD Agent Product Specification
 
 Status: Accepted Phase AH boundary | Normative
 
 ## Purpose
 
-NEXUS Agent is the user-facing product that turns natural-language objectives and
-declared inputs into reviewable candidate specifications. NEXUS OS remains the
+RAD Agent is the user-facing product that turns natural-language objectives and
+declared inputs into reviewable candidate specifications. Its governed runtime remains the
 governing runtime. A reasoning provider supplies untrusted interpretation and
 planning proposals but receives no direct execution authority.
 
@@ -17,7 +17,7 @@ planning proposals but receives no direct execution authority.
 - Only an authenticated authorized actor may approve a candidate specification.
 - Approval binds the canonical candidate digest. Any material change requires a new
   digest and a new approval.
-- No agent or provider may invoke a tool except through NEXUS OS policy, approval,
+- No agent or provider may invoke a tool except through RAD Agent policy, approval,
   sandbox, and typed-tool boundaries.
 - No completion, verification, qualification, or production claim may be inferred
   from model text.

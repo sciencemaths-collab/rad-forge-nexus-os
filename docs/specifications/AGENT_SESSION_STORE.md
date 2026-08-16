@@ -1,4 +1,4 @@
-# Durable NEXUS Agent Session Store
+# Durable RAD Agent Session Store
 
 Status: Accepted Phase AQ boundary | Normative
 

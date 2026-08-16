@@ -1,11 +1,11 @@
-# NEXUS Agent Runtime Handoff
+# RAD Agent Runtime Handoff
 
 Status: Accepted Phase AT boundary | Normative
 
 ## Purpose
 
-Phase AT deterministically compiles an exactly approved NEXUS Agent candidate into a
-validated NEXUS OS mode graph and initializes a durable runtime checkpoint. The handoff
+Phase AT deterministically compiles an exactly approved RAD Agent candidate into a
+validated governed-runtime mode graph and initializes a durable runtime checkpoint. The handoff
 binds session, candidate digest, graph digest, and run identifier without dispatching a
 task or granting a reasoning provider execution authority.
 

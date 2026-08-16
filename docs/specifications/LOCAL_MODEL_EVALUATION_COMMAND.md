@@ -4,7 +4,7 @@ Status: Accepted Phase AN boundary | Normative
 
 ## Purpose
 
-`nexus-model-eval` is the operator-facing composition of the Phase AL loopback
+`rad-model-eval` is the operator-facing composition of the Phase AL loopback
 transport, Phase AI local adapter, Phase AM reference corpus, and Phase AK controlled
 runner. It evaluates one explicitly identified local model and writes a tamper-evident
 manifest for later independent evidence review. It does not qualify the model.

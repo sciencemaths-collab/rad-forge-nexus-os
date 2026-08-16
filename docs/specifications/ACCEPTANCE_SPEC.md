@@ -39,7 +39,7 @@ The CLI and both SDK examples execute against the mock runtime. OpenAPI requests
 and responses validate. MCP tools validate input/output and enforce effect policy.
 A clean install from documented instructions succeeds without undeclared tools.
 
-## NEXUS Agent contract gate AH
+## RAD Agent contract gate AH
 
 - Agent session, candidate specification, agent event, and model qualification
   schemas pass Draft 2020-12 meta-validation.
@@ -48,10 +48,10 @@ A clean install from documented instructions succeeds without undeclared tools.
 - Agent API operations reference existing schemas and require idempotency on mutations.
 - Model proposals cannot represent approval decisions, direct tool execution, verified
   completion, capability promotion, or production authorization.
-- The accepted ADR and product specification preserve NEXUS OS as the execution
+- The accepted ADR and product specification preserve the governed runtime as the execution
   authority and reasoning providers as replaceable untrusted inputs.
 - Passing AH establishes contracts only; it does not establish an implemented or
-  production-ready NEXUS Agent.
+  production-ready RAD Agent.
 
 ## Reference workflow RW-100K
 
