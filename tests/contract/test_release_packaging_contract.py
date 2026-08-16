@@ -21,9 +21,11 @@ def test_alpha_3_versions_and_release_commands_are_aligned() -> None:
 
 def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> None:
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
     assert "@sha256:" in dockerfile
     assert "USER 10001:10001" in dockerfile
     assert "pip install --no-cache-dir /tmp/nexus_os-0.2.0a3-py3-none-any.whl" in dockerfile
+    assert "!dist/nexus_os-0.2.0a3-py3-none-any.whl" in dockerignore
     assert 'ENTRYPOINT ["rad"]' in dockerfile
 
 
