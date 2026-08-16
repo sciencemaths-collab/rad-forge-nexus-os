@@ -140,6 +140,49 @@ class GovernedAgentRuntimeApi:
     def status(self, session_id: UUID) -> Mapping[str, object]:
         return _snapshot(self._snapshot(session_id))
 
+    def pause(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, object]:
+        del identity
+        return _snapshot(
+            self._runtime.pause(
+                self._snapshot(session_id), trace_id=request.trace_id, now=request.occurred_at
+            )
+        )
+
+    def resume_execution(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, object]:
+        del identity
+        return _snapshot(
+            self._runtime.continue_run(
+                self._snapshot(session_id), trace_id=request.trace_id, now=request.occurred_at
+            )
+        )
+
+    def cancel(
+        self, session_id: UUID, identity: AgentIdentity, request: AgentApiRequest
+    ) -> Mapping[str, object]:
+        if not identity.human:
+            raise AgentRuntimeApiError("human cancellation principal is required")
+        snapshot = self._snapshot(session_id)
+        if snapshot.run_state.value != "CANCELLED":
+            snapshot = self._runtime.cancel(
+                snapshot, trace_id=request.trace_id, now=request.occurred_at
+            )
+        session = self._sessions.get(session_id)
+        if session.state.value == "RUNNING":
+            session = self._sessions.cancel_run(
+                session_id,
+                event_id=self._ids.event_id(),
+                actor_id=identity.actor_id,
+                occurred_at=request.occurred_at,
+                expected_sequence=len(session.events),
+            )
+        elif session.state.value != "CANCELLED":
+            raise AgentRuntimeApiError("Agent session cannot accept runtime cancellation")
+        return {"runtime": _snapshot(snapshot), "session": session.to_dict()}
+
     def preview(
         self, session_id: UUID, identity: AgentIdentity, task_id: str | None = None
     ) -> Mapping[str, object]:

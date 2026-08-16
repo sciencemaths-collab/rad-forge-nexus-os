@@ -1206,6 +1206,24 @@ GitHub Actions run 136 passed all 18 portable release gates on 2026-08-15, inclu
 Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
 `sha256:4543d10f19211b5e9b9184e61ced7cbdc48ac5a9c119b80c499181155ef4dde3`.
 
+## RAD Agent Phase 5C durable execution controls (in progress)
+
+This slice exposes runtime lifecycle controls through the supported Agent application:
+
+- Pause is a durable `RUNNING` to `PAUSED` checkpoint transition accepted only between governed
+  task dispatches; it never interrupts a tool mid-call.
+- Resume is a durable `PAUSED` to `RUNNING` transition and restores the exact next prepared,
+  policy-previewed action.
+- Cancel requires an authenticated human, stages every unfinished task to `CANCELLED`, makes the
+  runtime terminal, and records the bound Agent session as `CANCELLED`.
+- Browser cancellation uses an explicit two-click confirmation and removes executable previews
+  after the terminal checkpoint is returned.
+- Task-state cards, exact tool-call preview, runtime revision, and evidence remain inspectable
+  across refresh and resume.
+
+These controls govern the local synchronous runtime. They do not claim operating-system process
+termination or interruption of an already executing external provider call.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:

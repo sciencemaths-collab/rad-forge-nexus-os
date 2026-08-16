@@ -74,6 +74,7 @@ class AgentEventType(StrEnum):
     VERIFICATION_STARTED = "VERIFICATION_STARTED"
     SESSION_COMPLETED = "SESSION_COMPLETED"
     SESSION_FAILED = "SESSION_FAILED"
+    SESSION_CANCELLED = "SESSION_CANCELLED"
 
 
 class AgentActorType(StrEnum):
@@ -603,6 +604,29 @@ class AgentSessionStore:
             AgentEventType.VERIFICATION_STARTED,
             AgentActorType.SYSTEM,
             "Runtime succeeded; acceptance verification started.",
+        )
+
+    def cancel_run(
+        self,
+        session_id: UUID,
+        *,
+        event_id: UUID,
+        actor_id: str,
+        occurred_at: datetime,
+        expected_sequence: int,
+    ) -> AgentSession:
+        """Record terminal operator cancellation after runtime cancellation is durable."""
+        return self._simple_transition(
+            session_id,
+            event_id,
+            actor_id,
+            occurred_at,
+            expected_sequence,
+            AgentState.RUNNING,
+            AgentState.CANCELLED,
+            AgentEventType.SESSION_CANCELLED,
+            AgentActorType.USER,
+            "Governed runtime cancelled by the authenticated operator.",
         )
 
     def complete_verification(

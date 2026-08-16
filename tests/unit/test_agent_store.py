@@ -169,6 +169,54 @@ def test_operator_can_request_immutable_revision_only_during_review(tmp_path) ->
         )
 
 
+def test_running_agent_session_can_be_cancelled_once(tmp_path) -> None:
+    store = AgentSessionStore(tmp_path / "agent.sqlite")
+    created(store)
+    spec = CandidateSpecification.parse(candidate())
+    store.save_candidate(
+        spec,
+        event_id=uid(11),
+        actor_id="qualified-agent",
+        occurred_at=AT,
+        expected_sequence=1,
+    )
+    store.start_review(
+        SESSION_ID,
+        event_id=uid(12),
+        actor_id="agent-service",
+        occurred_at=AT,
+        expected_sequence=2,
+    )
+    store.approve(
+        SESSION_ID,
+        event_id=uid(13),
+        candidate_digest=spec.digest,
+        principal=ReviewPrincipal("owner-user", True, True),
+        occurred_at=AT,
+        expected_sequence=3,
+    )
+    store.start_run(
+        SESSION_ID,
+        event_id=uid(14),
+        run_id=uid(100),
+        candidate_digest=spec.digest,
+        actor_id="agent-service",
+        occurred_at=AT,
+        expected_sequence=4,
+    )
+
+    cancelled = store.cancel_run(
+        SESSION_ID,
+        event_id=uid(15),
+        actor_id="owner-user",
+        occurred_at=AT,
+        expected_sequence=5,
+    )
+
+    assert cancelled.state is AgentState.CANCELLED
+    assert cancelled.events[-1].event_type.value == "SESSION_CANCELLED"
+
+
 def test_stale_sequence_rejected_without_partial_event(tmp_path) -> None:
     store = AgentSessionStore(tmp_path / "agent.sqlite")
     created(store)

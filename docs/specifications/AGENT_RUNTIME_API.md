@@ -76,3 +76,8 @@ must bind the session, run, Agent state, verification outcome, evidence count, v
 head, and an explicit qualification label. Local evidence verification must never be labeled
 production qualification. Resuming a terminal session reconstructs this report from durable
 session and verified evidence reads without repeating the verification mutation.
+
+Runtime control mutations are explicit and idempotent. `/runtime/pause` persists a safe
+between-task pause, `/runtime/resume` continues only a paused checkpoint, and `/runtime/cancel`
+terminally cancels unfinished tasks plus the bound Agent session. Cancellation requires a human
+principal; pause never interrupts an active governed task.
