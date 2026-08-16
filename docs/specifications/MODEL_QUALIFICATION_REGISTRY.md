@@ -34,4 +34,4 @@ or promote any capability to production.
 
 Phase AP does not authenticate registry operators, create or sign attestations, run a
 model, schedule re-evaluation, distribute revocations, expose HTTP/UI endpoints, or
-implement the NEXUS Agent controller.
+implement the RAD Agent controller.

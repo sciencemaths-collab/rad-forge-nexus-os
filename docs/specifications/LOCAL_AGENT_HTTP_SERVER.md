@@ -4,7 +4,7 @@ Status: frozen for Component AY
 
 ## Purpose
 
-Component AY exposes the transport-neutral NEXUS Agent application through an
+Component AY exposes the transport-neutral RAD Agent application through an
 operator-run local HTTP process. It authenticates a human operator without
 requiring a model-provider API key. Model selection and application composition
 remain separate concerns.

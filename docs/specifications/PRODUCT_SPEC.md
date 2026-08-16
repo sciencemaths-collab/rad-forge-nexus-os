@@ -4,7 +4,7 @@ Status: Accepted baseline
 
 ## Purpose
 
-RAD Forge / NEXUS OS turns a user goal, workspace, configuration, policies, and
+RAD Agent turns a user goal, workspace, configuration, policies, and
 acceptance criteria into a bounded, inspectable execution whose outputs can be
 trusted in proportion to deterministic evidence. It is an autonomous work control
 plane, not a model wrapper and not a claim of full autonomy without controls.
@@ -29,20 +29,20 @@ must not encode mode-specific behavior.
 
 The user creates a project configuration containing a goal, mode, workspace,
 provider roles, resource limits, policies, secret references, and acceptance
-criteria. NEXUS validates it, compiles a task graph, previews effects and required
+criteria. RAD Agent validates it, compiles a task graph, previews effects and required
 approvals, executes ready nodes, persists checkpoints and evidence, performs
 bounded repair, verifies outputs, and returns artifacts plus limitations.
 
-For the conversational product boundary, NEXUS Agent is the user-facing objective
-and specification interface, NEXUS OS is the governing runtime, and reasoning
+For the conversational product boundary, RAD Agent is the user-facing objective
+and specification interface, its governed runtime enforces execution, and reasoning
 providers are replaceable untrusted components. The normative separation is defined
-in [`NEXUS_AGENT_SPEC.md`](NEXUS_AGENT_SPEC.md) and ADR-0003.
+in the [RAD Agent product specification](NEXUS_AGENT_SPEC.md) and historical ADR-0003.
 
 ## Non-goals
 
 - Replacing professional judgment or guaranteeing correctness from model output.
 - Allowing unrestricted self-modifying or indefinitely running agents.
-- Serving as a credential vault; NEXUS resolves references through configured
+- Serving as a credential vault; RAD Agent resolves references through configured
   secret backends and minimizes secret exposure.
 - Automatically performing production, destructive, costly, publishing, or
   communication actions.

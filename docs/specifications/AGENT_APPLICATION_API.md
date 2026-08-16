@@ -1,4 +1,4 @@
-# Authenticated NEXUS Agent Application API
+# Authenticated RAD Agent Application API
 
 Status: Accepted Phase AS boundary | Normative
 

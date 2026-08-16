@@ -4,7 +4,7 @@ Status: frozen for Component AZ
 
 ## Purpose
 
-Component AZ lets an operator select the language model used for NEXUS Agent
+Component AZ lets an operator select the language model used for RAD Agent
 reasoning without turning provider availability into execution authority. The
 initial supported product profile is a credential-optional, OpenAI-compatible
 server bound to loopback, including local runtimes such as Ollama, LM Studio, or

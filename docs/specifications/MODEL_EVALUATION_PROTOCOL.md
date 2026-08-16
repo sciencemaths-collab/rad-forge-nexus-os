@@ -37,7 +37,7 @@ passing yields category `PASS`; a mixed category yields `LIMITED`; zero passing 
 The runner cannot create trusted evidence. An independent evidence service must bind
 one unique ledger evidence UUID to each category before the report can become Phase
 AJ `ModelEvaluation` input. The final model qualification remains deterministic and
-does not bypass NEXUS OS policy or approval.
+does not bypass RAD Agent policy or approval.
 
 ## Phase AK non-goals
 

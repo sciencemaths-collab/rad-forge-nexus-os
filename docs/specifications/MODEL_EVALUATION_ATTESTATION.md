@@ -42,7 +42,7 @@ proposal uses and expiry. The attested wrapper binds the manifest digest, eviden
 count/head, attestation time, producer set, qualification object, and canonical
 attestation digest.
 
-Model permissions remain proposal permissions. NEXUS OS policy, typed tools, sandbox,
+Model permissions remain proposal permissions. RAD Agent policy, typed tools, sandbox,
 approval, execution evidence, and production qualification are unaffected.
 
 ## Phase AO non-goals

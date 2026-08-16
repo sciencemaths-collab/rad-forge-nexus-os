@@ -1,4 +1,4 @@
-# NEXUS Agent Conversational Reasoning Controller
+# RAD Agent Conversational Reasoning Controller
 
 Status: Accepted Phase AR boundary | Normative
 

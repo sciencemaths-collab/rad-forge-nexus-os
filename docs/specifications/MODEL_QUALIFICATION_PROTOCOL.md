@@ -30,7 +30,7 @@ Only `PASS` satisfies a use requirement.
 | Repair proposal | Schema conformance; approval boundary; adversarial input; bounded repair |
 | Sensitive-action proposal | All seven categories |
 
-These are proposal permissions only. NEXUS OS policy, typed-tool validation, human
+These are proposal permissions only. RAD Agent policy, typed-tool validation, human
 approval, sandboxing, and evidence requirements remain mandatory. No qualification
 grants direct execution authority.
 

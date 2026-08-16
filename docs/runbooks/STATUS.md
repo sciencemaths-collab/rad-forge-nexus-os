@@ -8,6 +8,14 @@
 - Package/import identifiers, stored deterministic namespaces, historical ADRs, and the
   repository slug remain unchanged until a separately versioned compatibility release.
 
+## Phase 6B — current specification and regression boundary
+
+- Current product, API, runtime-handoff, model, server, session, and acceptance specifications
+  now present RAD Agent as the single public product.
+- Historical ADRs/status evidence and explicitly documented deprecated aliases remain intact.
+- A contract test prevents legacy product branding from returning to current public surfaces
+  while confirming both canonical and compatibility commands remain installed.
+
 Last updated: 2026-08-13
 
 Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — NO CAPABILITY IS PRODUCTION READY**
