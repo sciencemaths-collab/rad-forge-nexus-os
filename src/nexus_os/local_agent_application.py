@@ -39,7 +39,10 @@ from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.policy import PolicyEngine, PolicyRules
 from nexus_os.providers import AgentAdapter
-from nexus_os.research_tools import register_local_research_source_tool
+from nexus_os.research_tools import (
+    register_local_research_extraction_tool,
+    register_local_research_source_tool,
+)
 from nexus_os.retry import RetryEngine, RetryLimits
 from nexus_os.runtime import RuntimeOrchestrator
 from nexus_os.runtime_evidence import (
@@ -318,7 +321,14 @@ def _create_reference_runtime(
     registry = ToolRegistry()
     register_workspace_artifact_tool(registry)
     register_local_research_source_tool(registry)
-    allowed = frozenset({"research.ingest_local_sources", "workspace.write_artifact"})
+    register_local_research_extraction_tool(registry)
+    allowed = frozenset(
+        {
+            "research.extract_source_lines",
+            "research.ingest_local_sources",
+            "workspace.write_artifact",
+        }
+    )
     policy = PolicyEngine(PolicyRules(allowed_operations=allowed))
     ledger = EvidenceLedger(state_dir / "runtime-evidence.sqlite")
     writer = RuntimeEvidenceWriter(ledger)
@@ -363,6 +373,7 @@ def _create_reference_runtime(
         )
     }
     bindings["mode.research.source_acquisition"] = "research.ingest_local_sources"
+    bindings["mode.research.source_extraction"] = "research.extract_source_lines"
     scheduler = GovernedScheduler(
         runtime=runtime,
         registry=registry,

@@ -1364,3 +1364,11 @@ gate digest is `sha256:5f421431215ed66ae25231582db1788ab906ee6a49676a90bce6dd8c0
 The release evidence remains `AUTOMATED_GATES_PASS`, not a production release candidate:
 clean-room qualification, independent review, owner approval, and production authorization are
 still pending.
+# Phase 5G — deterministic local source extraction
+
+- `research.extract_source_lines` now converts verified `sources.json` into exact,
+  line-addressable `extractions.json` records for research in any domain.
+- The tool is bound only to `mode.research.source_extraction`; app creation and data-analysis
+  workflows are unchanged.
+- Source and extraction digests are recomputed, writes are atomic and conflict-safe, and
+  downloadable extraction provenance is validated independently.
