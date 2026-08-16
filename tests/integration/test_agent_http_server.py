@@ -91,6 +91,12 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "Model connection" in html
         assert "Editable candidate plan" in html
         assert "Generate revised plan" in html
+        assert "Biological research workflow" in html
+        assert "Scientific review dossier" in html
+        assert "Source provenance" in html
+        assert "Conflicts and uncertainty" in html
+        assert "Data and publication boundary" in html
+        assert "Model-generated numbers are not authoritative" in html
         assert "Exact next tool call" in html
         assert 'aria-label="Work lifecycle"' in html
         assert "Run safe steps automatically" in html
@@ -116,6 +122,8 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "setLifecycle('proposed')" in script
         assert "setLifecycle('approved')" in script
         assert "/candidate/revisions" in script
+        assert "function renderCandidate(candidate)" in script
+        assert "candidate.mode==='research'" in script
         assert "/runtime/pause" in script
         assert "/runtime/resume" in script
         assert "/runtime/cancel" in script

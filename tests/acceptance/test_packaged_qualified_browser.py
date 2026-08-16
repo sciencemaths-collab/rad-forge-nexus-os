@@ -23,21 +23,24 @@ PASSWORD = "correct horse battery staple"  # noqa: S105 - inert acceptance fixtu
 
 def proposal() -> dict[str, object]:
     return {
-        "objective": "Create a reviewed local plan.",
-        "mode": "app_build",
+        "objective": "Review a protein-interaction hypothesis with traceable evidence.",
+        "mode": "research",
         "inputs": [],
-        "constraints": ["No external publication."],
+        "constraints": [
+            "Retain contradictory findings and explicit limitations.",
+            "No external publication.",
+        ],
         "acceptance_criteria": [
             {
-                "acceptance_id": "AC-PLAN_READY",
-                "statement": "The plan is reviewable.",
+                "acceptance_id": "AC-CLAIM_TRACEABILITY",
+                "statement": "Every biological claim links to a source span or artifact.",
                 "verification_method": "runtime_task_evidence",
             }
         ],
-        "required_capabilities": ["app_build.planning"],
+        "required_capabilities": ["research.planning"],
         "risk_summary": {
             "highest_effect": "WORKSPACE_WRITE",
-            "reasons": ["Execution requires separately registered tools."],
+            "reasons": ["Scientific outputs require evidence and human interpretation."],
         },
         "unresolved_questions": [],
         "review_ready": True,
@@ -231,9 +234,18 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             page.locator("#password").fill(PASSWORD)
             page.locator("#login-form button").click()
             page.locator("#project").fill("qualified_browser")
-            page.locator("#objective").fill("Create a reviewed local plan.")
+            page.locator("#objective").fill(
+                "Review a protein-interaction hypothesis with traceable evidence."
+            )
             page.locator("#goal-form button").click()
             expect(page.locator("#review")).to_be_visible(timeout=15_000)
+            expect(page.locator("#research-review")).to_be_visible()
+            expect(page.locator("#research-question")).to_contain_text("protein-interaction")
+            expect(page.locator("#research-acceptance")).to_contain_text("AC-CLAIM_TRACEABILITY")
+            expect(page.locator("#research-risk")).to_contain_text("WORKSPACE_WRITE")
+            expect(page.locator("#research-review")).to_contain_text(
+                "External submission or publication is never automatic"
+            )
             page.locator("#approve").click()
             expect(page.locator("#runtime-setup")).to_be_visible()
             page.locator("#workspace-root").fill(str(workspace))
