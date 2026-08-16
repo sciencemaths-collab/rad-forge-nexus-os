@@ -8,14 +8,14 @@
 3. Download the target release, `SHA256SUMS`, and GitHub provenance attestation.
 4. Verify the checksum and attestation before installation.
 
-## Upgrade to Alpha 2
+## Upgrade to Alpha 3
 
 ```bash
 pipx upgrade nexus-os
 rad doctor
 ```
 
-The Alpha 2 project configuration schema remains `1.0`. To validate and materialize a private,
+The Alpha 3 project configuration schema remains `1.0`. To validate and materialize a private,
 canonical copy without overwriting the source:
 
 ```bash

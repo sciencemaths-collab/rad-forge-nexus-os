@@ -1,6 +1,6 @@
 # Release Packaging
 
-Status: implemented for RAD Agent Alpha 2.
+Status: implemented for RAD Agent Alpha 3.
 
 ## Contract
 
