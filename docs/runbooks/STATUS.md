@@ -1206,7 +1206,7 @@ GitHub Actions run 136 passed all 18 portable release gates on 2026-08-15, inclu
 Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
 `sha256:4543d10f19211b5e9b9184e61ced7cbdc48ac5a9c119b80c499181155ef4dde3`.
 
-## RAD Agent Phase 5C durable execution controls (in progress)
+## RAD Agent Phase 5C durable execution controls (accepted)
 
 This slice exposes runtime lifecycle controls through the supported Agent application:
 
@@ -1223,6 +1223,10 @@ This slice exposes runtime lifecycle controls through the supported Agent applic
 
 These controls govern the local synchronous runtime. They do not claim operating-system process
 termination or interruption of an already executing external provider call.
+
+GitHub Actions run 139 passed all 18 portable release gates on 2026-08-16, including Chromium,
+Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
+`sha256:f4c7523c22a26a8959fb2377c0561473aa1461b8b64c2afee99f409213f372f4`.
 
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
