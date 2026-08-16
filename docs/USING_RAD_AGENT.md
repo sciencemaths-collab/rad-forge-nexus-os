@@ -314,7 +314,8 @@ result. Deterministic code and registered verifiers remain authoritative.
 
 ### Startup says the model configuration is missing
 
-Set `NEXUS_AGENT_MODEL_CONFIG` to an existing YAML or JSON profile.
+Set `RAD_AGENT_MODEL_CONFIG` to an existing YAML or JSON profile. The deprecated
+`NEXUS_AGENT_MODEL_CONFIG` name remains a compatibility alias.
 
 ### The endpoint is rejected
 

@@ -1,4 +1,4 @@
-"""Deterministic, approval-bound handoff from NEXUS Agent to NEXUS OS."""
+"""Deterministic, approval-bound handoff from RAD Agent to its governed runtime."""
 
 from __future__ import annotations
 
@@ -156,7 +156,7 @@ def _project_config(
     document = {
         "schema_version": "1.0",
         "project_id": project_id,
-        "name": "NEXUS Agent approved run",
+        "name": "RAD Agent approved run",
         "mode": candidate["mode"],
         "goal": candidate["objective"],
         "workspace": {"root": workspace_root, "read_only": False, "network_allowlist": []},

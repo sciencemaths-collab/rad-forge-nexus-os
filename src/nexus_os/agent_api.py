@@ -1,4 +1,4 @@
-"""Authenticated transport-neutral application API for NEXUS Agent."""
+"""Authenticated transport-neutral application API for RAD Agent."""
 
 from __future__ import annotations
 

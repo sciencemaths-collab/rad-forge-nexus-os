@@ -1,4 +1,4 @@
-"""Proposal-only conversational reasoning controller for NEXUS Agent."""
+"""Proposal-only conversational reasoning controller for RAD Agent."""
 
 from __future__ import annotations
 

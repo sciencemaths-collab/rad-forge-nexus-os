@@ -1,4 +1,4 @@
-"""Production composition root for the local NEXUS Agent planning application."""
+"""Production composition root for the local RAD Agent application."""
 
 from __future__ import annotations
 

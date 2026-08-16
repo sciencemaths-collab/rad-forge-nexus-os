@@ -2,7 +2,7 @@
 
 Status: SPECIFIED | Live status: NOT RUN | Boundary contract: 1.0
 
-Component AN provides the installed `nexus-model-eval` entry point and a public local
+Component AN provides the installed `rad-model-eval` entry point and a public local
 evaluation manifest schema. It composes already qualified boundaries rather than
 adding model authority.
 

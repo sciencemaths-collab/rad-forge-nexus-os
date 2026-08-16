@@ -5,13 +5,15 @@ Status: TESTED | Contract version: project schema 1.0
 ## Responsibility and boundary
 
 `nexus_os.config` reads one explicitly selected YAML or JSON project file, applies
-explicit caller-supplied `NEXUS__...` overlays, materializes schema defaults,
+explicit caller-supplied `RAD_AGENT__...` overlays, materializes schema defaults,
 validates the result, and returns a canonical configuration plus SHA-256 digest.
 It does not resolve secrets, inspect the process environment implicitly, access a
 workspace, invoke a provider, or perform any external side effect.
 
 Environment overlay names are deterministic paths separated by double
-underscores, for example `NEXUS__POLICY__MAX_ATTEMPTS=7`. An overlay may replace
+underscores, for example `RAD_AGENT__POLICY__MAX_ATTEMPTS=7`. Deprecated `NEXUS__...`
+names remain compatibility aliases; when both names target the same field, `RAD_AGENT__...`
+wins. An overlay may replace
 only a key already present in the input document. Overlay values use YAML scalar
 typing and the final document must pass the authoritative JSON Schema.
 
