@@ -1228,7 +1228,7 @@ GitHub Actions run 139 passed all 18 portable release gates on 2026-08-16, inclu
 Firefox, and the packaged qualified-provider journey. The release-evidence artifact digest is
 `sha256:f4c7523c22a26a8959fb2377c0561473aa1461b8b64c2afee99f409213f372f4`.
 
-## RAD Agent Phase 5D verified result downloads (in progress)
+## RAD Agent Phase 5D verified result downloads (accepted)
 
 This slice turns completed local work into safely downloadable results:
 
@@ -1245,6 +1245,11 @@ This slice turns completed local work into safely downloadable results:
   verification mutations.
 
 This does not provide a general file server or authorize downloading undeclared workspace data.
+
+GitHub Actions run 143 passed all 18 portable release gates on 2026-08-16, including Chromium,
+Firefox, and actual artifact-byte downloads through the packaged qualified-provider journey. The
+release-evidence artifact digest is
+`sha256:bb9096092d056b4c2d7893259ef70df01dfb534a1b92bce39bd6936dd4b12b5b`.
 
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
