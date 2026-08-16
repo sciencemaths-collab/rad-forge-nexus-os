@@ -63,16 +63,17 @@ jobs:
       - name: Build and push pinned RAD Agent image
         id: image
         env:
+          IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/rad-agent
           IMAGE: ghcr.io/${{ github.repository_owner }}/rad-agent:${{ github.ref_name }}
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             --provenance=mode=max --sbom=true --tag "${IMAGE}" --push .
           digest="$(docker buildx imagetools inspect "${IMAGE}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
-          echo "image=${IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "subject=${IMAGE_REPOSITORY}" >> "${GITHUB_OUTPUT}"
           echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
       - uses: actions/attest-build-provenance@v3
         with:
-          subject-name: ${{ steps.image.outputs.image }}
+          subject-name: ${{ steps.image.outputs.subject }}
           subject-digest: ${{ steps.image.outputs.digest }}
           push-to-registry: true
       - name: Publish immutable GitHub release
