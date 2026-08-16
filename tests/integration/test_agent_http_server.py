@@ -121,6 +121,7 @@ def test_operator_ui_is_local_static_accessible_and_hardened(tmp_path) -> None:
         assert "/runtime/cancel" in script
         assert "/runtime/artifacts" in script
         assert "content_base64" in script
+        assert r"+'\n'" in script
         assert "limit>100" in script
         assert "last.outcome!=='SUCCEEDED'" in script
         assert "stopRequested" in script
