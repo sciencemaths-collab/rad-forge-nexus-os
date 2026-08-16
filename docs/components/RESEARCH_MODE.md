@@ -28,3 +28,13 @@ reproducibility gates, sensitive-data controls, publication boundaries, acceptan
 and the proposed risk effect. The dossier is derived from the immutable candidate and uses
 text-only DOM assignment for model-originated content. It does not infer scientific validity
 or replace review of the complete digest-bound candidate.
+
+## Local source ingestion
+
+The bundled qualified runtime binds `mode.research.source_acquisition` to
+`research.ingest_local_sources`. An operator supplies bounded UTF-8 `.txt` or `.md` sources
+and a strict provenance manifest under the approved workspace's `research-sources/` directory.
+The tool performs no network access, rejects unsafe paths, symlinks, secret-like content, and
+oversized inputs, then writes a deterministic `sources.json` artifact containing normalized
+text and digest-bound provenance. Later research stages remain separately governed and do not
+gain authority to fetch, publish, or declare scientific validity.

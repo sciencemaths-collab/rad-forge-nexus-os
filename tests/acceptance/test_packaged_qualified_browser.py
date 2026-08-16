@@ -209,6 +209,28 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
         diagnostic.write_text("stage=qualification-configured\n", encoding="utf-8")
         workspace = tmp_path / "workspace"
         workspace.mkdir()
+        research_sources = workspace / "research-sources"
+        research_sources.mkdir()
+        (research_sources / "protein-study.md").write_text(
+            "# Protein interaction\nThe local assay report records binding.\n",
+            encoding="utf-8",
+        )
+        (research_sources / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "sources": [
+                        {
+                            "path": "protein-study.md",
+                            "locator": "doi:10.0000/rad.browser.example",
+                            "retrieved_at": "2026-08-16T00:00:00Z",
+                            "license_access": "Operator-supplied local acceptance source",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
         port = _free_port()
         with log_path.open("wb") as log:
             process = subprocess.Popen(  # noqa: S603 - fixed installed RAD executable
@@ -270,6 +292,11 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             assert downloaded.suggested_filename.endswith(".json")
             assert downloaded.path().read_bytes().endswith(b"\n")
             assert tuple((workspace / ".rad-agent-artifacts").glob("*.json"))
+            sources_artifact = json.loads(
+                (workspace / ".rad-agent-artifacts/sources.json").read_text(encoding="utf-8")
+            )
+            assert sources_artifact["tool"] == "research.ingest_local_sources"
+            assert sources_artifact["sources"][0]["locator"].startswith("doi:")
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")

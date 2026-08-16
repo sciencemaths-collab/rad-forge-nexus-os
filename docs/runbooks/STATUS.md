@@ -1273,6 +1273,29 @@ Firefox, and the packaged qualified-provider protein-interaction research journe
 release-evidence artifact digest is
 `sha256:51f70f313e8740fb159e830bade07105f5904e55d9aba82f02347df70712ca27`.
 
+## RAD Agent Phase 5F local research source ingestion (accepted)
+
+This slice replaces the research source-acquisition placeholder with one real governed tool:
+
+- `research.ingest_local_sources` reads only manifest-declared `.txt` and `.md` files below
+  the approved workspace's real `research-sources/` directory and performs no network access.
+- Strict limits cover manifest size, source count, per-source bytes, aggregate bytes, output
+  bytes, UTF-8 decoding, duplicate paths/locators, traversal, symlinks, and secret-like content.
+- `sources.json` retains original locators, retrieval timestamps, access notes, normalized text,
+  raw/text digests, stable source identifiers, counts, extractor version, manifest provenance,
+  and a source-set digest.
+- Writes are atomic and conflict-safe; identical output is recognized without overwriting.
+- The packaged protein-interaction browser journey supplies a local literature fixture and must
+  verify the real provenance artifact through governed execution and downloads.
+
+This does not fetch literature, parse PDF/DOCX, construct or validate biological claims,
+evaluate scientific quality, authorize egress, or publish.
+
+GitHub Actions run 150 passed all 18 portable release gates on 2026-08-16, including Chromium,
+Firefox, and the installed-wheel protein-study ingestion, provenance verification, governed
+execution, and artifact-download journey. The release-evidence artifact digest is
+`sha256:ea057f5f6f08af3b5c16601ff48163378afde12830d63d47de741741d4aa00e1`.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:

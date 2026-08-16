@@ -3,6 +3,7 @@ import json
 import pytest
 
 from nexus_os.agent_runtime_api import AgentRuntimeApiError, _artifact_file
+from nexus_os.research_tools import ingest_local_research_sources
 
 
 def artifact_body() -> bytes:
@@ -51,3 +52,39 @@ def test_artifact_download_rejects_escape_symlink_and_wrong_provenance(tmp_path)
         _artifact_file({"workspace_root": str(root), "expected_artifact": "linked.json"})
     with pytest.raises(AgentRuntimeApiError, match="provenance"):
         _artifact_file({"workspace_root": str(root), "expected_artifact": "wrong.json"})
+
+
+def test_research_source_download_revalidates_nested_provenance(tmp_path) -> None:
+    root = tmp_path / "workspace"
+    sources = root / "research-sources"
+    sources.mkdir(parents=True)
+    (sources / "paper.md").write_text("# Finding\nObserved binding.\n")
+    (sources / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "sources": [
+                    {
+                        "path": "paper.md",
+                        "locator": "doi:10.0000/download.example",
+                        "retrieved_at": "2026-08-16T00:00:00Z",
+                        "license_access": "Local fixture",
+                    }
+                ],
+            }
+        )
+    )
+    __import__("asyncio").run(
+        ingest_local_research_sources(
+            {"workspace_root": str(root), "expected_artifact": "sources.json"}
+        )
+    )
+    task_input = {"workspace_root": str(root), "expected_artifact": "sources.json"}
+    assert _artifact_file(task_input) is not None
+
+    target = root / ".rad-agent-artifacts/sources.json"
+    document = json.loads(target.read_text())
+    document["sources"][0]["text"] = "tampered"
+    target.write_text(json.dumps(document))
+    with pytest.raises(AgentRuntimeApiError, match="provenance"):
+        _artifact_file(task_input)
