@@ -6,7 +6,7 @@ and a running local model server.
 ## 1. Install
 
 ```bash
-pipx install nexus-os==0.2.0a2
+pipx install nexus-os==0.2.0a3
 rad --help
 ```
 
@@ -14,7 +14,7 @@ Until the package is available from PyPI, install the attested wheel downloaded 
 GitHub release after verifying it against `SHA256SUMS`:
 
 ```bash
-pipx install ./nexus_os-0.2.0a2-py3-none-any.whl
+pipx install ./nexus_os-0.2.0a3-py3-none-any.whl
 ```
 
 ## 2. Configure and verify
