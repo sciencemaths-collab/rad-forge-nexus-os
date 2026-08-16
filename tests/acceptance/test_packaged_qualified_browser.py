@@ -241,9 +241,7 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             expect(page.locator("#review")).to_be_visible(timeout=15_000)
             expect(page.locator("#research-review")).to_be_visible()
             expect(page.locator("#research-question")).to_contain_text("protein-interaction")
-            expect(page.locator("#research-acceptance")).to_contain_text(
-                "AC-CLAIM_TRACEABILITY"
-            )
+            expect(page.locator("#research-acceptance")).to_contain_text("AC-CLAIM_TRACEABILITY")
             expect(page.locator("#research-risk")).to_contain_text("WORKSPACE_WRITE")
             expect(page.locator("#research-review")).to_contain_text(
                 "External submission or publication is never automatic"
