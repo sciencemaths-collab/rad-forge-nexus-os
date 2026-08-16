@@ -38,3 +38,8 @@ The tool performs no network access, rejects unsafe paths, symlinks, secret-like
 oversized inputs, then writes a deterministic `sources.json` artifact containing normalized
 text and digest-bound provenance. Later research stages remain separately governed and do not
 gain authority to fetch, publish, or declare scientific validity.
+
+The following `mode.research.source_extraction` stage uses
+`research.extract_source_lines` to produce deterministic one-based line records with exact
+text and digests. This provides a domain-neutral citation substrate; it does not create or
+assess claims.

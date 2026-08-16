@@ -478,6 +478,8 @@ def _valid_download_provenance(document: dict[str, object]) -> bool:
         return document.get("schema_version") == "1.0" and isinstance(
             document.get("task_input"), dict
         )
+    if tool == "research.extract_source_lines":
+        return _valid_research_extractions(document)
     if tool != "research.ingest_local_sources" or document.get("schema_version") != "1.0":
         return False
     sources = document.get("sources")
@@ -498,6 +500,37 @@ def _valid_download_provenance(document: dict[str, object]) -> bool:
         sources, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
     ).encode()
     return source_set_digest == "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def _valid_research_extractions(document: dict[str, object]) -> bool:
+    extractions = document.get("extractions")
+    if document.get("schema_version") != "1.0" or not isinstance(extractions, list):
+        return False
+    if not 1 <= len(extractions) <= 32 or document.get("source_count") != len(extractions):
+        return False
+    total = 0
+    for extraction in extractions:
+        if not isinstance(extraction, dict) or not _sha256(extraction.get("source_id")):
+            return False
+        lines = extraction.get("lines")
+        if not isinstance(lines, list) or extraction.get("line_count") != len(lines):
+            return False
+        for number, line in enumerate(lines, start=1):
+            if (
+                not isinstance(line, dict)
+                or line.get("line") != number
+                or not isinstance(line.get("text"), str)
+            ):
+                return False
+            digest = "sha256:" + hashlib.sha256(line["text"].encode()).hexdigest()
+            if line.get("text_digest") != digest:
+                return False
+        total += len(lines)
+    encoded = json.dumps(
+        extractions, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+    ).encode()
+    expected = "sha256:" + hashlib.sha256(encoded).hexdigest()
+    return document.get("line_count") == total and document.get("extraction_set_digest") == expected
 
 
 def _valid_research_source(value: object, manifest_digest: object) -> bool:

@@ -297,6 +297,11 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             )
             assert sources_artifact["tool"] == "research.ingest_local_sources"
             assert sources_artifact["sources"][0]["locator"] == "local:research/source-note"
+            extractions_artifact = json.loads(
+                (workspace / ".rad-agent-artifacts/extractions.json").read_text(encoding="utf-8")
+            )
+            assert extractions_artifact["tool"] == "research.extract_source_lines"
+            assert extractions_artifact["extractions"][0]["lines"][0]["text"]
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")

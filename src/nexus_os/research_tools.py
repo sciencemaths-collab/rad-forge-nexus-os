@@ -22,6 +22,7 @@ _MAX_TOTAL_SOURCE_BYTES = 768 * 1024
 _MAX_ARTIFACT_BYTES = 1024 * 1024
 _MAX_SOURCES = 32
 _EXTRACTOR_VERSION = "rad.local-text/1.0"
+_LINE_EXTRACTOR_VERSION = "rad.source-lines/1.0"
 
 
 def register_local_research_source_tool(registry: ToolRegistry) -> None:
@@ -71,6 +72,105 @@ def register_local_research_source_tool(registry: ToolRegistry) -> None:
     )
     registry.register(descriptor)
     registry.bind(descriptor.name, ingest_local_research_sources)
+
+
+def register_local_research_extraction_tool(registry: ToolRegistry) -> None:
+    """Register deterministic, line-addressable extraction from sources.json."""
+    descriptor = ToolDescriptor(
+        name="research.extract_source_lines",
+        description=(
+            "Create exact, line-addressable extractions from the verified local source artifact."
+        ),
+        effect=ActionEffect.WORKSPACE_WRITE,
+        timeout_seconds=10,
+        idempotent=False,
+        approval_required=False,
+        input_schema={
+            "type": "object",
+            "required": ["workspace_root", "expected_artifact"],
+            "properties": {
+                "workspace_root": {"type": "string", "minLength": 1, "maxLength": 4096},
+                "expected_artifact": {"const": "extractions.json"},
+            },
+            "additionalProperties": True,
+        },
+        output_schema={
+            "type": "object",
+            "required": ["path", "sha256", "bytes", "created", "source_count", "line_count"],
+            "properties": {
+                "path": {"const": ".rad-agent-artifacts/extractions.json"},
+                "sha256": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+                "bytes": {"type": "integer", "minimum": 1, "maximum": _MAX_ARTIFACT_BYTES},
+                "created": {"type": "boolean"},
+                "source_count": {"type": "integer", "minimum": 1, "maximum": _MAX_SOURCES},
+                "line_count": {"type": "integer", "minimum": 0},
+            },
+            "additionalProperties": False,
+        },
+    )
+    registry.register(descriptor)
+    registry.bind(descriptor.name, extract_local_source_lines)
+
+
+async def extract_local_source_lines(payload: dict[str, Any]) -> dict[str, Any]:
+    root_value = payload.get("workspace_root")
+    if not isinstance(root_value, str) or payload.get("expected_artifact") != "extractions.json":
+        raise ToolError("research source extraction input is invalid")
+    supplied_root = Path(root_value)
+    if supplied_root.is_symlink():
+        raise ToolError("approved workspace root must be an existing real directory")
+    root = supplied_root.resolve()
+    if not root.is_dir():
+        raise ToolError("approved workspace root must be an existing real directory")
+    source_path = _artifact_target(root, "sources.json", create=False)
+    source_body = _read_bounded(source_path, _MAX_ARTIFACT_BYTES, "research source artifact")
+    try:
+        source_document = json.loads(source_body)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ToolError("research source artifact must be valid UTF-8 JSON") from exc
+    if not valid_source_artifact(source_document):
+        raise ToolError("research source artifact provenance is invalid")
+    extractions = []
+    line_count = 0
+    for source in source_document["sources"]:
+        lines = [
+            {"line": number, "text": text, "text_digest": _digest(text.encode())}
+            for number, text in enumerate(source["text"].splitlines(), start=1)
+        ]
+        line_count += len(lines)
+        extractions.append(
+            {
+                "source_id": source["source_id"],
+                "locator": source["locator"],
+                "extracted_text_digest": source["extracted_text_digest"],
+                "line_count": len(lines),
+                "lines": lines,
+            }
+        )
+    document = {
+        "schema_version": "1.0",
+        "tool": "research.extract_source_lines",
+        "extractor_version": _LINE_EXTRACTOR_VERSION,
+        "sources_artifact_digest": _digest(source_body),
+        "source_set_digest": source_document["source_set_digest"],
+        "source_count": len(extractions),
+        "line_count": line_count,
+        "extraction_set_digest": _digest(_canonical(extractions)),
+        "extractions": extractions,
+    }
+    body = _canonical(document) + b"\n"
+    if len(body) > _MAX_ARTIFACT_BYTES:
+        raise ToolError("research extraction artifact is oversized")
+    target = _artifact_target(root, "extractions.json")
+    created = _write_once(target, body)
+    return {
+        "path": ".rad-agent-artifacts/extractions.json",
+        "sha256": _digest(body),
+        "bytes": len(body),
+        "created": created,
+        "source_count": len(extractions),
+        "line_count": line_count,
+    }
 
 
 async def ingest_local_research_sources(payload: dict[str, Any]) -> dict[str, Any]:
@@ -156,7 +256,7 @@ async def ingest_local_research_sources(payload: dict[str, Any]) -> dict[str, An
     body = _canonical(document) + b"\n"
     if len(body) > _MAX_ARTIFACT_BYTES:
         raise ToolError("research source artifact is oversized")
-    target = _artifact_target(root)
+    target = _artifact_target(root, "sources.json")
     created = _write_once(target, body)
     return {
         "path": ".rad-agent-artifacts/sources.json",
@@ -257,15 +357,52 @@ def _validate_source_path(
         raise ToolError("research source escapes the approved source directory")
 
 
-def _artifact_target(root: Path) -> Path:
+def _artifact_target(root: Path, name: str, *, create: bool = True) -> Path:
     artifact_root = root / ".rad-agent-artifacts"
-    artifact_root.mkdir(mode=0o700, exist_ok=True)
+    if create:
+        artifact_root.mkdir(mode=0o700, exist_ok=True)
     if artifact_root.is_symlink() or artifact_root.resolve().parent != root:
         raise ToolError("research artifact directory is unsafe")
-    target = artifact_root / "sources.json"
+    target = artifact_root / name
     if target.is_symlink():
         raise ToolError("research source artifact target is unsafe")
     return target
+
+
+def valid_source_artifact(value: object) -> bool:
+    """Verify nested source provenance before extraction or download."""
+    if not isinstance(value, dict) or value.get("schema_version") != "1.0":
+        return False
+    sources, manifest_digest = value.get("sources"), value.get("manifest_digest")
+    if not isinstance(sources, list) or not 1 <= len(sources) <= _MAX_SOURCES:
+        return False
+    if value.get("source_count") != len(sources) or not _is_digest(manifest_digest):
+        return False
+    for source in sources:
+        if not isinstance(source, dict) or not isinstance(source.get("text"), str):
+            return False
+        locator, content_digest, provenance = (
+            source.get("locator"),
+            source.get("content_digest"),
+            source.get("provenance"),
+        )
+        if (
+            not isinstance(locator, str)
+            or not _is_digest(content_digest)
+            or not isinstance(provenance, dict)
+        ):
+            return False
+        if provenance.get("manifest_digest") != manifest_digest:
+            return False
+        if source.get("extracted_text_digest") != _digest(source["text"].encode()):
+            return False
+        if source.get("source_id") != _digest(f"{locator}\n{content_digest}".encode()):
+            return False
+    return value.get("source_set_digest") == _digest(_canonical(sources))
+
+
+def _is_digest(value: object) -> bool:
+    return isinstance(value, str) and bool(re.fullmatch(r"sha256:[a-f0-9]{64}", value))
 
 
 def _write_once(target: Path, body: bytes) -> bool:

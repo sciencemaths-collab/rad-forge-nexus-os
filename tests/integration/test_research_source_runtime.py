@@ -65,7 +65,7 @@ def test_research_source_stage_executes_real_ingestion_with_evidence(tmp_path) -
     )
     assert started["run_state"] == "READY"
 
-    for number in (2, 3):
+    for number in (2, 3, 4):
         result = asyncio.run(
             facade.tick(
                 SESSION,
@@ -87,6 +87,11 @@ def test_research_source_stage_executes_real_ingestion_with_evidence(tmp_path) -
     artifact = json.loads((workspace / ".rad-agent-artifacts/sources.json").read_text())
     assert artifact["tool"] == "research.ingest_local_sources"
     assert artifact["source_count"] == 1
+    extraction = json.loads((workspace / ".rad-agent-artifacts/extractions.json").read_text())
+    assert extraction["tool"] == "research.extract_source_lines"
+    assert extraction["extractions"][0]["lines"][1]["text"] == (
+        "The report presents two interpretations."
+    )
     evidence = facade.evidence(SESSION)
     assert evidence["chain_status"] == "VERIFIED"
-    assert evidence["record_count"] == 2
+    assert evidence["record_count"] == 3
