@@ -11,7 +11,7 @@ from tests.contract.test_agent_handoff_contract import NOW, SESSION, TRACE, _app
 def _research_document() -> dict:
     document = _document(capabilities=("research.planning",))
     document.update(
-        objective="Evaluate a protein-interaction hypothesis from local literature.",
+        objective="Evaluate competing explanations from local research sources.",
         mode="research",
         required_capabilities=["research.planning"],
     )
@@ -25,7 +25,9 @@ def test_research_source_stage_executes_real_ingestion_with_evidence(tmp_path) -
     workspace = tmp_path / "workspace"
     sources = workspace / "research-sources"
     sources.mkdir(parents=True)
-    (sources / "study.md").write_text("# Protein interaction\nThe assay reported binding.\n")
+    (sources / "study.md").write_text(
+        "# Competing explanations\nThe report presents two interpretations.\n"
+    )
     (sources / "manifest.json").write_text(
         json.dumps(
             {
