@@ -18,3 +18,13 @@ emitted. This compiler does not acquire sources, classify sensitive data, execut
 judge scientific quality, or authorize egress. Those operations must still pass the shared
 runtime controls, and publication or messaging always requires a separately policy-gated
 action and human approval.
+
+## Operator review surface
+
+When a qualified candidate selects `research` mode, the browser presents a scientific review
+dossier before approval. It separates the biological question, source-provenance obligations,
+claim and deterministic-computation grounding, contradictory evidence, citation and
+reproducibility gates, sensitive-data controls, publication boundaries, acceptance criteria,
+and the proposed risk effect. The dossier is derived from the immutable candidate and uses
+text-only DOM assignment for model-originated content. It does not infer scientific validity
+or replace review of the complete digest-bound candidate.

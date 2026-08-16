@@ -1251,6 +1251,23 @@ Firefox, and actual artifact-byte downloads through the packaged qualified-provi
 release-evidence artifact digest is
 `sha256:bb9096092d056b4c2d7893259ef70df01dfb534a1b92bce39bd6936dd4b12b5b`.
 
+## RAD Agent Phase 5E biological research review (in progress)
+
+This slice re-centers the operator experience on RAD Agent's scientific-research application:
+
+- Qualified `research` candidates receive a dedicated scientific review dossier before human
+  approval while retaining the complete immutable candidate and digest.
+- The dossier makes the biological question, source provenance, claim/artifact grounding,
+  contradictions, uncertainty, citations, reproducibility, sensitive-data handling,
+  publication boundary, acceptance checks, and governed risk effect explicit.
+- Model-originated objective, acceptance, and risk text uses text-only DOM assignment.
+- The packaged qualified-provider browser journey uses a protein-interaction research objective
+  and must pass from dossier review through governed execution, verification, and result download.
+
+This surface does not acquire literature, execute molecular simulation, assess biological
+truth, or authorize publication. Those require separately registered research tools and
+deterministic verifiers through the shared governed boundary.
+
 ## RAD Agent Phase 3E ordinary-user browser acceptance (in progress)
 
 This slice closes browser behavior gaps without adding a new execution path:
