@@ -1,5 +1,16 @@
 # Engineering Status
 
+## Phase 7 — Alpha 2 packaging and release
+
+- Versioned Python and TypeScript packages identify RAD Agent Alpha 2.
+- `pipx` and attested-wheel installation, a five-minute quick start, and explicit
+  upgrade/rollback procedures are documented.
+- A digest-pinned, non-root, wheel-only Docker image is reproducibly built for amd64/arm64.
+- Tag releases rerun every qualification/audit gate, emit checksums and deterministic evidence,
+  generate SBOM/provenance, attest distributions and the OCI digest, and publish through GitHub.
+- `rad-config-migrate` validates the explicit schema path and writes a private canonical copy
+  without overwriting source or destination data.
+
 ## Phase 6A — public RAD Agent naming and compatibility boundary
 
 - Canonical product, CLI help, API/SDK errors, and current architecture labels use RAD Agent.

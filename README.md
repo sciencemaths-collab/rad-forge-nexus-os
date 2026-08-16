@@ -94,6 +94,8 @@ troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
 
 ## Local quick start
 
+For the shortest installed-user path, see the **[five-minute quick start](docs/QUICKSTART_5_MINUTES.md)**.
+
 ### Requirements
 
 - Python 3.12 or newer
@@ -131,6 +133,10 @@ uv run rad setup --mode qualified --attestation /path/to/current-attestation.jso
 
 Existing `nexus-*` commands and `NEXUS_AGENT_*` variables remain compatibility aliases.
 New integrations should use `rad` and `RAD_AGENT_*`.
+
+Release tags provide an attested Python wheel, source archive, checksums, evidence bundle, and
+multi-architecture OCI image. Operational upgrades and recovery are documented in
+**[Upgrade and rollback](docs/UPGRADE_AND_ROLLBACK.md)**.
 
 ### Usage
 
