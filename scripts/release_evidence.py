@@ -255,23 +255,25 @@ def _write_bundle(output: Path, report: dict[str, object], root: Path) -> None:
             raise ReleaseEvidenceError("release report gate is invalid")
         lines.append(f"- {gate['gate_id']}: {gate['outcome']} (`{gate['output_digest']}`)")
     lines.extend(
-        ["", "Release candidate: NO — clean-room qualification and owner approval pending.", ""]
+        ["", "Release candidate: NO — automated evidence cannot grant release authorization.", ""]
     )
     (output / "final-evidence-report.md").write_text("\n".join(lines))
     (output / "KNOWN_LIMITATIONS.md").write_text(
         "# Known Limitations\n\n"
-        "- No component is production-qualified.\n"
-        "- Live providers, production HTTP/MCP hosting, deployment, and package publication "
-        "are unverified.\n"
+        "- No universal production qualification is claimed; qualification is exact to a "
+        "capability, provider, model, adapter, and permitted use.\n"
+        "- A live provider requires its own current qualification evidence; deterministic and "
+        "fake-provider evidence is not live-model evidence.\n"
         "- RW-100K is runtime-only; virtual-grid and browser performance are unimplemented.\n"
-        "- Clean-room qualification and independent review remain Component AG.\n"
+        "- Automated evidence does not grant owner approval, deployment authority, or release "
+        "authorization.\n"
     )
     (output / "RELEASE_CANDIDATE_CHECKLIST.md").write_text(
         "# Release Candidate Checklist\n\n"
         "- [x] Automated gates recorded\n"
         "- [x] Evidence report digest generated\n"
-        "- [ ] Clean-room qualification completed\n"
-        "- [ ] Independent review completed\n"
+        "- [ ] Current commit clean-room qualification completed\n"
+        "- [ ] Current commit independently reviewed\n"
         "- [ ] Owner approval bound to final artifact digest\n"
         "- [ ] Production release authorized\n"
     )
