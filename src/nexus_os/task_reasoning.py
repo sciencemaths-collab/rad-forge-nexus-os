@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -25,6 +26,7 @@ _FIELDS = {
     "evidence_notes",
     "unresolved_questions",
 }
+_FILE_CHANGE_FIELDS = {"path", "expected_sha256", "content"}
 _SYSTEM = (
     "Return one JSON object only for the approved task. Propose bounded artifact content; "
     "do not call tools, execute actions, claim success, alter the task, include credentials, "
@@ -59,6 +61,7 @@ class ReasonedTaskArtifact:
     sections: tuple[tuple[str, str], ...]
     evidence_notes: tuple[str, ...]
     unresolved_questions: tuple[str, ...]
+    file_changes: tuple[tuple[str, str | None, str], ...] = ()
     schema_version: str = "1.0"
 
     def __post_init__(self) -> None:
@@ -79,11 +82,22 @@ class ReasonedTaskArtifact:
             _text(item, 1000)
         for item in self.unresolved_questions:
             _text(item, 2000)
+        total_change_bytes = 0
+        for path, expected_sha256, content in self.file_changes:
+            _text(path, 240)
+            if expected_sha256 is not None and not re.fullmatch(
+                r"sha256:[a-f0-9]{64}", expected_sha256
+            ):
+                raise TaskReasoningError("reasoned file change digest is invalid")
+            _text(content, 262_144)
+            total_change_bytes += len(content.encode())
+        if len(self.file_changes) > 32 or total_change_bytes > 1024 * 1024:
+            raise TaskReasoningError("reasoned file changes exceed limits")
         if redact(self.to_dict()) != self.to_dict():
             raise TaskReasoningError("reasoned task artifact contains secret-like material")
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "schema_version": self.schema_version,
             "title": self.title,
             "summary": self.summary,
@@ -93,6 +107,12 @@ class ReasonedTaskArtifact:
             "evidence_notes": list(self.evidence_notes),
             "unresolved_questions": list(self.unresolved_questions),
         }
+        if self.file_changes:
+            result["file_changes"] = [
+                {"path": path, "expected_sha256": expected, "content": content}
+                for path, expected, content in self.file_changes
+            ]
+        return result
 
     @property
     def digest(self) -> str:
@@ -192,6 +212,12 @@ class QualifiedTaskReasoner:
                 prompt += "\nVerified project context:\n" + json.dumps(
                     context, sort_keys=True, separators=(",", ":"), ensure_ascii=True
                 )
+        if task.kind == "mode.app_build.implementation":
+            prompt += (
+                "\nFor this implementation task, include file_changes as an array of exact "
+                "path, expected_sha256, and complete replacement content objects. Use null "
+                "expected_sha256 only for a new file. Do not delete files."
+            )
         prompt += (
             "\nPrevious response failed validation. Return a corrected object."
             if repair
@@ -232,7 +258,8 @@ def _artifact(output: str) -> ReasonedTaskArtifact:
         )
         if (
             not isinstance(value, dict)
-            or set(value) != _FIELDS
+            or not _FIELDS <= set(value)
+            or set(value) - (_FIELDS | {"file_changes"})
             or value.get("schema_version") != "1.0"
             or redact(value) != value
         ):
@@ -249,7 +276,8 @@ def _artifact(output: str) -> ReasonedTaskArtifact:
             sections.append((_text(raw["heading"], 200), _text(raw["content"], 8000)))
         evidence = _texts(value.get("evidence_notes"), 32, 1000)
         questions = _texts(value.get("unresolved_questions"), 32, 2000)
-        return ReasonedTaskArtifact(title, summary, tuple(sections), evidence, questions)
+        changes = _file_changes(value.get("file_changes", []))
+        return ReasonedTaskArtifact(title, summary, tuple(sections), evidence, questions, changes)
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise TaskReasoningError("model task proposal failed strict validation") from exc
 
@@ -258,6 +286,22 @@ def _texts(value: object, maximum_items: int, maximum_length: int) -> tuple[str,
     if not isinstance(value, list) or len(value) > maximum_items:
         raise ValueError
     return tuple(_text(item, maximum_length) for item in value)
+
+
+def _file_changes(value: object) -> tuple[tuple[str, str | None, str], ...]:
+    if not isinstance(value, list) or len(value) > 32:
+        raise ValueError
+    changes: list[tuple[str, str | None, str]] = []
+    for item in value:
+        if not isinstance(item, Mapping) or set(item) != _FILE_CHANGE_FIELDS:
+            raise ValueError
+        expected = item["expected_sha256"]
+        if expected is not None and not isinstance(expected, str):
+            raise ValueError
+        changes.append((_text(item["path"], 240), expected, _text(item["content"], 262_144)))
+    if len({item[0] for item in changes}) != len(changes):
+        raise ValueError
+    return tuple(changes)
 
 
 def _text(value: object, maximum: int) -> str:
