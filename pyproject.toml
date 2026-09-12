@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexus-os"
-version = "0.2.0a3"
+version = "0.2.0a4"
 description = "Provider-neutral, evidence-driven autonomous work runtime"
 readme = "README.md"
 license = "MIT"

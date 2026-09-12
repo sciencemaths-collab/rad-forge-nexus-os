@@ -57,6 +57,7 @@ Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — N
 | Phase 3. RAD Optimization Engine | AUTOMATED GATES PASS | PathWoven-DCGO 0.2.0 / adapter 1.0.0, pinned 50-case qualification attestation, strict bounded data contract, real-engine RAD Node acceptance, 592 passing tests, and all 18 release-evidence gates pass |
 | Phase 4. RAD Decision Engine | AUTOMATED GATES PASS | Financial Algorithm 0.2.0 / adapter 1.0.0, pinned 25-case qualification attestation, approval-required non-transactional capability, real-engine RAD Node acceptance, 602 passing tests, and all 18 release-evidence gates pass |
 | Phase 5. RAD Compute Engine | AUTOMATED GATES PASS | vQPU 0.5.0 / adapter 1.0.0, pinned 15-case local CPU qualification, approval-required execution, exact plan/result binding, 605 passing tests, all 18 release gates, and no QPU fallback |
+| Industrial pivot Phase 6. RAD Capital Planning | LOCAL QUALIFICATION IN PROGRESS | Current-source contract, exact approval, qualified Financial Algorithm routing through RAD Node, baseline/feasibility verification, non-executing dossier, and tamper-evident export; hosted CI and release pending |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
@@ -1509,3 +1510,25 @@ external validation gap, not a packaged-app failure.
 - The packaged-provider fixture now binds an operating-system-assigned loopback port instead of
   fixed port 11434. Two immediate consecutive Chromium/Firefox runs passed, removing confirmed
   `EADDRINUSE` rerun failures without changing any acceptance assertion.
+
+## Phase 6 — first commercial solution: RAD Capital Planning
+
+- A strict current-snapshot contract accepts operator-supplied asset observations and rejects
+  stale, future, malformed, duplicate-key, unbounded, dimensionally invalid, or non-positive-
+  semidefinite inputs before routing.
+- A deterministic plan binds source digest, exact Financial Decision Engine capability/version,
+  denied network scope, policy parameters, and five acceptance checks.
+- Execution consumes a one-use `SENSITIVE` approval for the exact plan digest, routes through RAD
+  Node, verifies engine/request identity, allocation feasibility, baseline utility, and denied
+  transaction authority, then exports a four-record tamper-evident dossier.
+- PathWoven and vQPU are not invoked: their present qualifications do not cover financial
+  allocation. GPU, HPC, cloud, and physical QPU execution remain Phase 7.
+- This phase supplies a locally qualified product kernel. Governed live connectors, independent
+  source authenticity, real-organization outcome validation, multi-tenant production, and any
+  external transaction remain unqualified and unavailable.
+- Fresh Ollama discovery/evaluation on 2026-09-12 used provider `local_openai`, exact model
+  `qwen3:4b`, and adapter `1.0`. The anchored 14-case corpus produced one pass, five exact-rubric
+  mismatches, and eight bounded timeouts; every required category remained `FAIL` except
+  `schema_conformance: LIMITED`. Report digest:
+  `sha256:f61d913e80c79c8384819b2ebc904fb0143d22d42a27c9670aca940ea5500987`.
+  Qualification is `NOT_QUALIFIED`; no live-model workflow execution or attestation is claimed.

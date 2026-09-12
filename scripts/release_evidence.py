@@ -83,6 +83,7 @@ GATES: Final = (
     Gate("contract", ("uv", "run", "pytest", "-q", "tests/contract")),
     Gate("integration", ("uv", "run", "pytest", "-q", "tests/integration")),
     Gate("security", ("uv", "run", "pytest", "-q", "tests/security")),
+    Gate("clean_dist", ("uv", "run", "python", "scripts/clean_dist.py")),
     Gate("build", ("uv", "build", "--offline")),
     Gate("clean_wheel", ("uv", "run", "python", "scripts/clean_wheel_acceptance.py")),
     Gate(

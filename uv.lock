@@ -741,7 +741,7 @@ wheels = [
 
 [[package]]
 name = "nexus-os"
-version = "0.2.0a3"
+version = "0.2.0a4"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema", extra = ["format"] },

@@ -18,6 +18,7 @@ def test_release_gate_contract_has_required_order_and_version() -> None:
         "contract",
         "integration",
         "security",
+        "clean_dist",
         "build",
         "clean_wheel",
         "browser_acceptance",
