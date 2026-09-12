@@ -1,5 +1,22 @@
 # Engineering Status
 
+## Phase 11 — Operator plugin experience and Alpha 4 release
+
+- `rad plugins inspect` verifies publisher signature and package integrity and renders exact
+  permissions, capabilities, compatibility, runtime limits, qualification binding, and activation
+  eligibility without installing or executing the payload.
+- `rad plugins install --enable` provides one explicit qualified activation path. Failed runtime
+  readiness leaves the package safely installed and disabled.
+- `rad plugins doctor` rechecks managed payload integrity and enabled WebAssembly adapter readiness
+  without invoking plugin operations.
+- Installed-plugin status distinguishes configured activation from current execution authority;
+  only successful install-time or doctor-time runtime validation reports execution authorization.
+- The public README, five-minute install, upgrade guide, plugin specification, product map, release
+  version, container examples, and visual product introduction are synchronized for Alpha 4.
+- Beta promotion remains blocked on a formally qualified supported LLM, an operational signed
+  catalog with at least one qualified plugin, browser installation/permission review, and hosted
+  upgrade/rollback acceptance. Privileged connectors remain separately qualified products.
+
 ## Phase 10 — Sandboxed plugin runtime
 
 - Enabled signed `wasm-v1` packages can expose one exact qualified RAD Node capability.
@@ -17,7 +34,8 @@
 - Private atomic install, disabled-by-default state, list/enable/disable/uninstall, audit events,
   side-by-side updates, and rollback selection are exposed through `rad plugins`.
 - Packages remain non-executable; runtime isolation/loading and a public marketplace catalog are
-  explicitly deferred and fail closed.
+  explicitly deferred and fail closed in Phase 9; Phase 10 supersedes the runtime portion for
+  qualified zero-permission `wasm-v1` packages.
 
 ## Phase 8 — RAD Warehouse Operations
 

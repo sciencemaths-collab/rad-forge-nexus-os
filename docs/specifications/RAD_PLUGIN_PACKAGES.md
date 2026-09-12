@@ -1,6 +1,7 @@
 # RAD Plugin Packages 1.0
 
-Status: implemented local installer and lifecycle; no public marketplace catalog.
+Status: implemented local inspection, installer, executable sandbox, diagnostics, and lifecycle;
+no public marketplace catalog.
 
 ## Package and trust contract
 
@@ -28,6 +29,17 @@ A trust store is explicit local policy, not package content:
 
 ## Installation and lifecycle
 
+Verify and review a package without installing it:
+
+```bash
+rad plugins inspect example.radplug \
+  --trust-store ~/.config/rad/trusted-publishers.json
+```
+
+The review document reports the verified publisher, package digest, RAD compatibility bounds,
+permissions, capabilities, runtime limits, qualification binding, and whether the package is
+eligible for the current executable runtime.
+
 Installers must repeat every requested permission exactly. No permission is inferred:
 
 ```bash
@@ -41,6 +53,22 @@ rad plugins enable example.plugin 1.0.0
 rad plugins disable example.plugin 1.0.0
 rad plugins uninstall example.plugin 1.0.0
 ```
+
+For a qualified zero-permission plugin, `--enable` combines verified installation with explicit
+activation. Activation is attempted only after installation; if readiness validation fails, RAD
+returns a safe error and leaves the package disabled:
+
+```bash
+rad plugins install example.radplug \
+  --trust-store ~/.config/rad/trusted-publishers.json \
+  --qualification ./qualification.json \
+  --enable
+rad plugins doctor
+```
+
+`rad plugins doctor` revalidates every managed payload and constructs each enabled runtime adapter
+to check its qualification, WebAssembly module, imports, and declared limits. It never invokes a
+plugin operation.
 
 Installation verifies and atomically copies the payload into private managed storage. It begins
 `DISABLED`. Enable, disable, and uninstall are explicit audited transitions. Enabling one version

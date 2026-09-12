@@ -40,7 +40,7 @@ jobs:
           docker run --rm rad-agent:ci --version
           docker run --rm rad-agent:ci --help
           docker run --rm --entrypoint python rad-agent:ci -c \
-            'import os, nexus_os; assert os.getuid() == 10001; assert nexus_os.__version__ == "0.2.0a9"'
+            'import os, nexus_os; assert os.getuid() == 10001; assert nexus_os.__version__ == "0.2.0a10"'
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

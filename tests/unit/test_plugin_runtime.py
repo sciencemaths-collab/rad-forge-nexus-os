@@ -70,6 +70,9 @@ def activated(tmp_path, payload):
 
 def test_wasm_plugin_executes_canonical_json_without_host_access(tmp_path):
     store = activated(tmp_path, wasm_result({"accepted": True, "source": "wasm"}))
+    status = store.get("acme.warehouse", "1.2.3").public_dict()
+    assert status["activation_configured"] is True
+    assert status["execution_authorized"] is False
     adapter = WasmPluginAdapter(store, "acme.warehouse", "1.2.3")
     assert adapter.manifest().network_access.value == "DENIED"
     import asyncio

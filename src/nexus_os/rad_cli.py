@@ -24,7 +24,8 @@ from nexus_os import __version__
 from nexus_os.agent_model_config import AgentModelConfigError, load_agent_model_config
 from nexus_os.agent_server_cli import run as run_server
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
-from nexus_os.plugins import PluginError, PluginStore
+from nexus_os.plugin_runtime import PluginRuntimeError, WasmPluginAdapter
+from nexus_os.plugins import PluginError, PluginStore, inspect_plugin_package
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 
 _DEFAULT_ENDPOINTS = (
@@ -102,7 +103,22 @@ def parser() -> argparse.ArgumentParser:
     install.add_argument("--trust-store", type=Path, required=True)
     install.add_argument("--qualification", type=Path)
     install.add_argument("--approve-permission", action="append", default=[])
+    install.add_argument(
+        "--enable",
+        action="store_true",
+        help="Enable immediately after verified installation when runtime-qualified",
+    )
     install.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    inspect = plugin_commands.add_parser(
+        "inspect", help="Verify a package and show permissions before installation"
+    )
+    inspect.add_argument("package", type=Path)
+    inspect.add_argument("--trust-store", type=Path, required=True)
+    inspect.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    plugin_doctor = plugin_commands.add_parser(
+        "doctor", help="Recheck installed plugin integrity and executable readiness"
+    )
+    plugin_doctor.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     for action in ("enable", "disable", "uninstall"):
         command = plugin_commands.add_parser(action, help=f"{action.title()} an installed plugin")
         command.add_argument("plugin_id")
@@ -391,9 +407,34 @@ def plugins_local(values: argparse.Namespace) -> dict[str, Any]:
     """Run one local plugin lifecycle command without loading plugin code."""
     store = PluginStore(values.config_dir.resolve() / "plugins", rad_version=__version__)
     now = datetime.now(UTC)
+    execution_authorized = False
     try:
         if values.plugins_command == "list":
             return {"plugins": [item.public_dict() for item in store.list()]}
+        if values.plugins_command == "inspect":
+            review = inspect_plugin_package(values.package.resolve(), values.trust_store.resolve())
+            review["compatible"] = _plugin_compatible(review["rad_version"])
+            return review
+        if values.plugins_command == "doctor":
+            checks: list[dict[str, Any]] = []
+            for item in store.list():
+                check = item.public_dict()
+                check["integrity"] = "PASS"
+                if item.state == "ENABLED":
+                    try:
+                        WasmPluginAdapter(store, item.plugin_id, item.version)
+                        check["runtime_readiness"] = "PASS"
+                        check["execution_authorized"] = True
+                    except PluginRuntimeError as exc:
+                        check["runtime_readiness"] = "FAIL"
+                        check["message"] = str(exc)
+                else:
+                    check["runtime_readiness"] = "DISABLED"
+                checks.append(check)
+            return {
+                "healthy": all(item["runtime_readiness"] != "FAIL" for item in checks),
+                "plugins": checks,
+            }
         if values.plugins_command == "install":
             record = store.install(
                 values.package.resolve(),
@@ -405,6 +446,19 @@ def plugins_local(values: argparse.Namespace) -> dict[str, Any]:
                     None if values.qualification is None else values.qualification.resolve()
                 ),
             )
+            if values.enable:
+                record = store.enable(
+                    record.plugin_id, record.version, actor="local.operator", at=now
+                )
+                try:
+                    WasmPluginAdapter(store, record.plugin_id, record.version)
+                    execution_authorized = True
+                except PluginRuntimeError as exc:
+                    store.disable(record.plugin_id, record.version, actor="local.operator", at=now)
+                    # The package remains safely installed and disabled for review or repair.
+                    raise PluginRuntimeError(
+                        "plugin activation readiness failed; package remains disabled"
+                    ) from exc
         elif values.plugins_command == "enable":
             record = store.enable(values.plugin_id, values.version, actor="local.operator", at=now)
         elif values.plugins_command == "disable":
@@ -418,7 +472,9 @@ def plugins_local(values: argparse.Namespace) -> dict[str, Any]:
             }
         else:
             raise PluginError("unsupported plugin command")
-        return record.public_dict()
+        result = record.public_dict()
+        result["execution_authorized"] = execution_authorized
+        return result
     finally:
         store.close()
 
@@ -456,9 +512,21 @@ def run(
             _emit(plugins_local(values))
             return 0
         raise RadCliError("unsupported RAD command")
-    except (RadCliError, AgentModelConfigError, PluginError) as exc:
+    except (RadCliError, AgentModelConfigError, PluginError, PluginRuntimeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+
+
+def _plugin_compatible(bounds: object) -> bool:
+    if not isinstance(bounds, dict):
+        return False
+    try:
+        current = tuple(int(item) for item in __version__.split("a", 1)[0].split(".")[:3])
+        minimum = tuple(int(item) for item in str(bounds["minimum"]).split(".")[:3])
+        maximum = tuple(int(item) for item in str(bounds["maximum_exclusive"]).split(".")[:3])
+    except (KeyError, TypeError, ValueError):
+        return False
+    return minimum <= current < maximum
 
 
 def main() -> None:
