@@ -41,6 +41,19 @@ def test_runs_exact_allowlisted_pytest_and_records_output(tmp_path: Path) -> Non
     assert "1 passed" in document["output"]
 
 
+def test_tests_can_import_only_from_the_approved_workspace(tmp_path: Path) -> None:
+    tests = tmp_path / "tests/unit"
+    tests.mkdir(parents=True)
+    (tmp_path / "app.py").write_text("value = 42\n", encoding="utf-8")
+    (tests / "test_app.py").write_text(
+        "from app import value\n\ndef test_value():\n    assert value == 42\n", encoding="utf-8"
+    )
+    result = asyncio.run(
+        run_python_verification(_payload(tmp_path, ["python", "-m", "pytest", "-q", "tests/unit"]))
+    )
+    assert result["passed"] is True
+
+
 def test_rejects_shell_arbitrary_modules_and_missing_targets(tmp_path: Path) -> None:
     for command in (
         ["sh", "-c", "echo", "x", "tests/unit"],

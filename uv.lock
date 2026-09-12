@@ -735,6 +735,7 @@ version = "0.2.0a3"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema", extra = ["format"] },
+    { name = "pytest" },
     { name = "pyyaml" },
 ]
 
@@ -754,6 +755,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", extras = ["format"], specifier = ">=4.23,<5" },
+    { name = "pytest", specifier = ">=9.0.3,<10" },
     { name = "pyyaml", specifier = ">=6.0.2,<7" },
 ]
 

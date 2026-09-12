@@ -26,6 +26,7 @@ from pathlib import Path
 root = Path(sys.argv[1]).resolve()
 module = sys.argv[2]
 args = sys.argv[3:]
+sys.path.insert(0, str(root))
 def audit(event, values):
     blocked = {"socket.connect", "socket.bind", "socket.getaddrinfo",
                "subprocess.Popen", "os.system"}
