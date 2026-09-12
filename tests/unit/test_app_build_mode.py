@@ -53,12 +53,24 @@ def test_app_build_compiles_required_fail_fast_sequence(tmp_path: Path) -> None:
         "failure_test",
         "evidence_report",
     )
+    sensitive = {"implementation", "unit_test", "integration_test", "security_test", "failure_test"}
     assert all(
         task.effect is ActionEffect.WORKSPACE_WRITE
         for task in result.graph.tasks
-        if str(task.task_id) != "implementation"
+        if str(task.task_id) not in sensitive
     )
-    assert result.graph.tasks[3].effect is ActionEffect.SENSITIVE
+    assert all(
+        task.effect is ActionEffect.SENSITIVE
+        for task in result.graph.tasks
+        if str(task.task_id) in sensitive
+    )
+    assert result.graph.tasks[4].input["verification_command"] == (
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/unit",
+    )
     assert result.graph.tasks[2].max_attempts == 1
     assert result.graph.tasks[3].max_attempts == 3
     assert result.graph.tasks[-1].acceptance_ids == ("APP_TESTED",)
