@@ -34,7 +34,9 @@ def test_quickstart_uses_real_release_channels_and_documents_container_boundary(
     quickstart = (ROOT / "docs/QUICKSTART_5_MINUTES.md").read_text(encoding="utf-8")
     assert "pipx install nexus-os==" not in quickstart
     assert "gh release download v0.2.0a3" in quickstart
-    assert "gh attestation verify nexus_os-0.2.0a3-py3-none-any.whl" in quickstart
+    assert "--dir dist" in quickstart
+    assert "sha256sum --check dist/SHA256SUMS" in quickstart
+    assert "gh attestation verify dist/nexus_os-0.2.0a3-py3-none-any.whl" in quickstart
     assert "ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a3" in quickstart
     assert "--network host" in quickstart
     assert "without a moving `latest` tag" in quickstart
@@ -45,6 +47,8 @@ def test_tag_release_requires_qualification_checksums_attestations_and_sbom() ->
     text = str(workflow)
     assert "scripts/release_evidence.py" in text
     assert "SHA256SUMS" in text
+    assert "sha256sum nexus_os-*.whl nexus_os-*.tar.gz release-evidence.tar.gz" in text
+    assert "sha256sum dist/*" not in text
     assert "actions/attest-build-provenance@v3" in text
     assert "--sbom=true" in text
     assert "steps.image.outputs.subject" in text

@@ -9,17 +9,19 @@ RAD Agent is not published on PyPI. Download the signed Alpha 3 wheel, checksum 
 evidence archive from the [GitHub release](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases/tag/v0.2.0a3):
 
 ```bash
-gh release download v0.2.0a3 --repo sciencemaths-collab/rad-forge-nexus-os
-sha256sum --check SHA256SUMS --ignore-missing
-gh attestation verify nexus_os-0.2.0a3-py3-none-any.whl \
+mkdir -p dist
+gh release download v0.2.0a3 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
+sha256sum --check dist/SHA256SUMS --ignore-missing
+gh attestation verify dist/nexus_os-0.2.0a3-py3-none-any.whl \
   --repo sciencemaths-collab/rad-forge-nexus-os
-pipx install ./nexus_os-0.2.0a3-py3-none-any.whl
+pipx install ./dist/nexus_os-0.2.0a3-py3-none-any.whl
 rad --version
 rad --help
 ```
 
-On macOS, use `shasum -a 256 nexus_os-0.2.0a3-py3-none-any.whl` and compare it with the
-wheel entry in `SHA256SUMS`.
+On macOS, run `shasum -a 256 -c dist/SHA256SUMS` from the directory containing `dist/`.
+Alpha 3's checksum entries include that directory prefix; later releases use portable
+base filenames.
 
 ## 2. Configure and verify
 
