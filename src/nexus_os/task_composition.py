@@ -129,14 +129,19 @@ def _canonical(value: object) -> str:
 
 
 def _artifact(value: object) -> ReasonedTaskArtifact:
-    if not isinstance(value, dict) or set(value) != {
+    required = {
         "schema_version",
         "title",
         "summary",
         "sections",
         "evidence_notes",
         "unresolved_questions",
-    }:
+    }
+    if (
+        not isinstance(value, dict)
+        or not required <= set(value)
+        or set(value) - (required | {"file_changes"})
+    ):
         raise ValueError
     sections, evidence, questions = (
         value["sections"],
@@ -150,6 +155,11 @@ def _artifact(value: object) -> ReasonedTaskArtifact:
         )
         or not isinstance(evidence, list)
         or not isinstance(questions, list)
+        or not isinstance(value.get("file_changes", []), list)
+        or not all(
+            isinstance(item, dict) and set(item) == {"path", "expected_sha256", "content"}
+            for item in value.get("file_changes", [])
+        )
     ):
         raise ValueError
     return ReasonedTaskArtifact(
@@ -158,5 +168,9 @@ def _artifact(value: object) -> ReasonedTaskArtifact:
         tuple((item["heading"], item["content"]) for item in sections),
         tuple(evidence),
         tuple(questions),
+        tuple(
+            (item["path"], item["expected_sha256"], item["content"])
+            for item in value.get("file_changes", [])
+        ),
         value["schema_version"],
     )
