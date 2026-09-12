@@ -2,192 +2,144 @@
 
 ![RAD Agent applied across warehouse, software, finance, and manufacturing work](docs/assets/rad-agent-use-cases.jpg)
 
-**Reasoning, Action, and Decision for governed AI-assisted work.**
+[![CI](https://github.com/sciencemaths-collab/rad-forge-nexus-os/actions/workflows/ci.yml/badge.svg)](https://github.com/sciencemaths-collab/rad-forge-nexus-os/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/sciencemaths-collab/rad-forge-nexus-os?include_prereleases&label=release)](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases)
+[![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**RAD Agent** stands for **Reasoning, Action, and Decision Agent**. It turns a natural-language objective into a structured, reviewable plan and carries approved work through a governed execution process.
+**Governed AI-assisted work, from reasoning to verified results.**
 
-The **RAD Forge Runtime** is the engine beneath the agent. It provides model qualification, policy evaluation, human approvals, bounded recovery, durable state, typed tools, and tamper-evident evidence.
+RAD Agent turns a natural-language objective into a structured plan, gives people a clear approval
+point, executes only through qualified capabilities, and records evidence of what happened. The
+RAD Forge Runtime provides the policy, approval, recovery, tool, and verification controls beneath
+that experience.
 
-The project is designed for work where an AI model should help reason and plan, but
-should not be trusted to decide its own permissions or declare its own success.
+[Get started](#quick-start) · [See practical applications](docs/RAD_FOR_EVERYONE.md) ·
+[Read the user guide](docs/USING_RAD_AGENT.md) · [Review security](SECURITY.md)
 
-**Release maturity:** Alpha 4. The runtime is extensively gated, but Beta promotion requires the
-complete evidence listed in **[Beta readiness](docs/BETA_READINESS.md)**; it is not inferred from
-feature count or branding.
+> **Current release:** Alpha 4 (`v0.2.0a10`). Suitable for evaluation, local integration, and
+> qualified workflows within the documented boundaries. See [release status](docs/runbooks/STATUS.md)
+> and [Beta readiness](docs/BETA_READINESS.md) for the evidence behind that designation.
 
-## Why RAD Agent exists
+## Why teams use RAD Agent
 
-Most agent frameworks begin with a model and a loop: prompt, choose a tool, observe the
-result, and repeat. RAD Agent separates reasoning, governed decisions, and execution.
+AI models are useful planners, but reliable work needs more than a prompt-and-tool loop. RAD Agent
+separates responsibilities so each part can be inspected and tested:
 
-- The **language model** interprets goals and proposes structured plans.
-- **RAD Agent** manages conversation, clarification, review, and approval.
-- The **RAD Forge Runtime** governs state transitions, tools, policy, permissions, recovery, and evidence.
-- **Deterministic code** validates contracts and performs deterministic computation.
-- The **human operator** remains the authority for consequential actions.
+- A language model interprets the goal and proposes a typed plan.
+- The runtime validates the plan and calculates the exact action digest.
+- A person reviews and approves consequential work.
+- Qualified engines, tools, or sandboxed plugins perform declared operations.
+- Independent checks evaluate acceptance criteria and generate tamper-evident evidence.
 
-Model output is always untrusted input. Availability does not imply qualification, a
-generated plan does not imply approval, and task completion does not imply verified success.
+This design supports provider choice without allowing a model to grant itself permissions or mark
+its own output as verified.
 
-## Applications
+## Practical applications
 
-| Application | Typical use | RAD Agent contribution |
+| Team | Example outcome | Current RAD capability |
 |---|---|---|
-| Software engineering | Turn requirements into an implementation and verification plan | Contract-first task graphs, approvals, recovery, and evidence |
-| Scientific research | Structure questions, sources, calculations, claims, and citations | Provenance, contradiction tracking, deterministic analysis, and review |
-| Data analysis | Plan ingestion, quality checks, statistics, charts, and persistence | Reproducible stages, typed computation, and acceptance criteria |
-| Internal operations | Coordinate approved tools and repeatable workflows | Policy-scoped actions, durable checkpoints, and audit records |
-| Capital planning | Review bounded allocation recommendations without executing transactions | Current-data validation, exact-plan approval, baseline comparison, and downloadable evidence |
-| Warehouse operations | Allocate bounded inventory to priority orders without writing to a WMS | Integer feasibility, distance-cost comparison, exact-plan approval, shortages, and downloadable evidence |
-| Domain-specific agents | Build controlled agents for a laboratory, company, or team | Provider-neutral models plus explicitly registered tools and verifiers |
+| Software engineering | Build or repair an application from requirements | Structured planning, bounded source editing, governed tests, verification, and evidence |
+| Warehouse operations | Allocate available inventory to prioritized orders | Qualified integer allocation, shortage reporting, travel-cost comparison, and evidence export |
+| Financial planning | Compare capital allocations within defined risk limits | Qualified recommendation workflow using operator-approved snapshots; no transaction execution |
+| Data and operations | Turn repeatable work into reviewable workflows | Typed inputs, policies, approvals, durable checkpoints, and acceptance criteria |
+| Manufacturing and infrastructure | Evaluate schedules or compute placements | Extensible capability contracts; each real backend requires its own qualification |
+| Evidence review | Organize local sources, claims, calculations, and citations | Provenance-aware planning and deterministic local extraction within approved workspaces |
 
-The included RAD Agent application supports governed planning and human review. Execution is
-enabled by registering real typed tools, policies, capabilities, and acceptance verifiers
-for the intended domain.
-
-Phase 6 includes the first product vertical, **RAD Capital Planning**. It turns an
-operator-supplied, time-bounded capital snapshot into an approval-gated recommendation through the
-qualified Financial Decision Engine and RAD Node. It verifies feasibility and baseline utility,
-denies transaction authority, and exports a digest-bound evidence dossier. See
-[`RAD_CAPITAL_PLANNING.md`](docs/specifications/RAD_CAPITAL_PLANNING.md) for its exact contract and
-current limitations.
-
-Phase 7 adds qualified heterogeneous compute routing. A real Apple Metal GPU is available as
-`rad.compute.apple_gpu@0.6.0` for bounded float32 matrix multiplication through vQPU and MLX;
-every request remains plan-bound, approval-gated, qualification-gated, local-only, and
-fallback-denied. HPC, cloud, and physical QPU targets remain fail-closed until separately tested
-on real infrastructure. See [`RAD_COMPUTE_ENGINE.md`](docs/components/RAD_COMPUTE_ENGINE.md).
-
-Phase 8 adds **RAD Warehouse Operations**, the first discrete operations kernel. It accepts a
-strict operator-supplied inventory/order snapshot, creates a digest-bound allocation plan,
-requires one-use human approval, routes only the qualified local warehouse engine, verifies the
-integer allocation and baseline travel cost, and exports a four-record tamper-evident dossier.
-It cannot write to a WMS or ERP. See
-[`RAD_WAREHOUSE_OPERATIONS.md`](docs/specifications/RAD_WAREHOUSE_OPERATIONS.md).
+RAD Agent provides the shared control plane. Domain products and integrations add the appropriate
+data contracts, algorithms, policies, and qualified connectors.
 
 ## How it works
 
 ```text
-Operator goal
-    ↓
-RAD Agent — reasoning, clarification, and structured proposal
-    ↓
-Schema validation and exact model qualification
-    ↓
+Goal and approved data
+        ↓
+Model-generated structured plan
+        ↓
+Schema, policy, and qualification checks
+        ↓
 Human review and digest-bound approval
-    ↓
-RAD Forge Runtime — governed decisions, actions, checkpoints, recovery
-    ↓
-Acceptance verification and tamper-evident evidence
+        ↓
+Bounded tools, engines, or sandboxed plugins
+        ↓
+Acceptance verification and evidence
 ```
 
-The model proposes. The runtime governs. Tools perform declared operations. Verifiers
-evaluate acceptance criteria. Evidence records what actually occurred.
+## Quick start
 
-## Core capabilities
+The simplest desktop installation uses the signed wheel from the current GitHub release. You need
+Python 3.12 or newer, [`pipx`](https://pipx.pypa.io/stable/installation/), GitHub CLI, and a running
+local OpenAI-compatible model server such as Ollama or LM Studio.
 
-- Provider-neutral model and tool interfaces
-- Local OpenAI-compatible model support without a mandatory API key
-- Adapters for OpenAI/Codex and Anthropic-style providers
-- Exact provider, model, and adapter qualification bindings
-- Strict validation of model output, API messages, and tool payloads
-- Human approvals bound to the exact action digest
-- Deny-by-default workspace and network boundaries
-- Atomic checkpoints and restart-safe workflow recovery
-- Bounded retry and repair by attempt, time, repetition, and cost
-- Opaque secret references with scoped resolution and redaction
-- Tamper-evident evidence chains and acceptance verification
-- Python and TypeScript SDK surfaces
-- Local browser interface for login, goal entry, review, and approval
-- Signed, compatibility-checked plugin installation with explicit permission review and lifecycle
+```bash
+mkdir -p rad-download && cd rad-download
+gh release download v0.2.0a10 \
+  --repo sciencemaths-collab/rad-forge-nexus-os
+sha256sum --check SHA256SUMS --ignore-missing
+gh attestation verify nexus_os-0.2.0a10-py3-none-any.whl \
+  --repo sciencemaths-collab/rad-forge-nexus-os
+pipx install ./nexus_os-0.2.0a10-py3-none-any.whl
+```
 
-## Ways to use RAD Agent
+On macOS, use `shasum -a 256 -c SHA256SUMS` for the checksum step.
 
-| Path | Best for | What is available now |
+With the model server running:
+
+```bash
+rad setup
+rad models list
+rad models test
+rad doctor
+rad serve
+```
+
+Open [http://127.0.0.1:8765](http://127.0.0.1:8765), sign in with the operator password created
+during setup, describe the desired outcome and constraints, review the proposed plan, and approve
+only the exact plan you intend to run.
+
+Setup begins in development mode, which supports planning and review. Qualified execution requires
+a current attestation for the exact provider, model, adapter version, and intended model use:
+
+```bash
+rad setup --mode qualified --attestation /path/to/current-attestation.json --force
+```
+
+The [five-minute guide](docs/QUICKSTART_5_MINUTES.md) covers desktop and container installation.
+The [complete user guide](docs/USING_RAD_AGENT.md) explains model selection, evaluation,
+qualification, authenticated APIs, workflow execution, evidence download, and troubleshooting.
+
+## Container
+
+Versioned Linux images are published for `amd64` and `arm64`. Pin a release tag or immutable
+digest; the project does not publish a moving `latest` tag.
+
+```bash
+docker pull ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10
+docker run --rm ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10 --version
+```
+
+The browser application and local model endpoint are loopback-only. See the
+[container instructions](docs/QUICKSTART_5_MINUTES.md#container-image) for persisted data and host
+networking requirements.
+
+## Model providers
+
+| Provider path | Connection support | Execution requirement |
 |---|---|---|
-| Local browser application | Individual operators | Governed planning, candidate review, and exact-digest approval |
-| Local authenticated API | Applications on the same computer | Loopback-only access to the planning and review workflow |
-| Local OpenAI-compatible model | Private or no-subscription model use | Qualified Ollama-, LM Studio-, or self-hosted compatible endpoints |
-| Python or TypeScript integration | Developers embedding the control plane | Typed SDK contracts with application-supplied transport and authentication |
-| Custom provider adapter | Teams adding another model backend | Provider-neutral adapter and conformance boundaries |
-| Domain-specific agent | Laboratories, engineering teams, and organizations | Runtime components for registered tools, policy, recovery, approvals, and evidence |
+| Ollama, LM Studio, or another loopback OpenAI-compatible server | Local discovery and connection testing | Current qualification for the exact provider/model/adapter binding |
+| OpenAI | Official-host adapter with opaque credential references | Explicit cloud authorization and current qualification |
+| Anthropic | Official-host adapter with opaque credential references | Explicit cloud authorization and current qualification |
+| Custom provider | Provider-neutral adapter and conformance contracts | Conformance testing and formal qualification |
 
-The bundled application currently supports local governed planning and human review.
-Direct OpenAI and Anthropic setup is available with opaque credential references. Cloud
-model use still requires explicit qualification in qualified mode, and domain-specific
-execution is not enabled merely by adding an API key.
+Model discovery confirms availability only. It does not qualify a model or authorize tool use.
+Credentials are stored as references such as `env:OPENAI_API_KEY`; resolved values are excluded
+from configuration, session state, browser storage, and evidence.
 
-For the complete walkthrough—including local setup, authenticated API examples, safe
-credential references, SDK integration, provider porting, execution requirements, and
-troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
+## Plugins and domain capabilities
 
-Signed plugin packages can be inspected before installation, installed disabled, reviewed,
-enabled, diagnosed, rolled back, and uninstalled with `rad plugins`. Qualified zero-permission
-`wasm-v1` plugins execute in a fuel- and memory-bounded Wasmtime sandbox with no host imports;
-permissions such as filesystem, network, secrets, or external actions remain unavailable. See
-**[RAD Plugin Packages](docs/specifications/RAD_PLUGIN_PACKAGES.md)**.
-
-For concrete examples across operations, finance, software, research, education, manufacturing,
-and cloud planning, see **[What People Can Do With RAD](docs/RAD_FOR_EVERYONE.md)**.
-
-## Local quick start
-
-For the shortest installed-user path, see the **[five-minute quick start](docs/QUICKSTART_5_MINUTES.md)**.
-
-RAD Agent is currently distributed through signed
-[GitHub releases](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases) and the
-versioned [`rad-agent` container](https://github.com/sciencemaths-collab/rad-forge-nexus-os/pkgs/container/rad-agent).
-It is not published on PyPI, and the container intentionally has no moving `latest` tag.
-Use the exact release version or immutable image digest. The container is best suited to
-verification and host-networked local operation; use the wheel for the simplest desktop setup.
-
-### Requirements
-
-- Python 3.12 or newer
-- [`uv`](https://docs.astral.sh/uv/)
-- A running OpenAI-compatible model server on the same computer
-
-Clone and install:
-
-```bash
-git clone https://github.com/sciencemaths-collab/rad-forge-nexus-os.git
-cd rad-forge-nexus-os
-uv sync --all-groups --locked
-```
-
-Start your local model server, then let RAD Agent detect it and generate private
-configuration:
-
-```bash
-uv run rad setup
-uv run rad models list
-uv run rad models test
-uv run rad doctor
-uv run rad serve
-```
-
-Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on the same computer.
-
-The default is explicitly **unqualified development mode**: local planning and human review
-only, with no runtime tool execution. Qualified mode requires an independently attested
-model binding:
-
-```bash
-uv run rad setup --mode qualified --attestation /path/to/current-attestation.json
-```
-
-Existing `nexus-*` commands and `NEXUS_AGENT_*` variables remain compatibility aliases.
-New integrations should use `rad` and `RAD_AGENT_*`.
-
-Release tags provide an attested Python wheel, source archive, checksums, evidence bundle, and
-multi-architecture OCI image. Operational upgrades and recovery are documented in
-**[Upgrade and rollback](docs/UPGRADE_AND_ROLLBACK.md)**.
-
-### Plugin quick start
-
-Always inspect a plugin before installing it. The inspection verifies its Ed25519 signature and
-shows its exact publisher, digest, compatibility, permissions, capabilities, runtime limits, and
-qualification binding without executing or installing payload code:
+RAD plugin packages use Ed25519 publisher signatures, exact permission review, compatibility
+checks, qualification binding, managed installation, audit events, side-by-side versions, and
+rollback. Inspect a package before installing it:
 
 ```bash
 rad plugins inspect ./example.radplug \
@@ -202,184 +154,62 @@ rad plugins doctor
 rad plugins list
 ```
 
-`--enable` is an explicit operator action and succeeds only when the installed package is eligible
-for the qualified zero-permission runtime. If activation readiness fails, RAD leaves the package
-installed but disabled. RAD does not currently operate a public plugin catalog; obtain packages,
-trust keys, and qualification evidence from a publisher through an independently authenticated
-channel.
+Qualified zero-permission `wasm-v1` plugins run in a fuel- and memory-bounded Wasmtime sandbox
+without host imports. Filesystem, network, secret, and external-action interfaces are not granted
+by this runtime. Packages, publisher keys, and qualification evidence currently come directly from
+their publishers; a public catalog is planned but not included in this release.
 
-### Usage
+See the [plugin package specification](docs/specifications/RAD_PLUGIN_PACKAGES.md) for the exact
+trust and execution contract.
 
-1. Log in with the local operator password.
-2. Enter a project identifier and describe the objective.
-3. Let the qualified model generate a structured candidate specification.
-4. Review its objective, constraints, inputs, risks, capabilities, and acceptance criteria.
-5. Approve the exact candidate digest or revise the request.
+## Current qualified capabilities
 
-Approval records the reviewed specification. It does not automatically publish, contact
-external users, or grant arbitrary tool access.
+- Warehouse allocation: bounded, deterministic single-SKU inventory allocation and evidence.
+- Financial decision support: bounded recommendations over operator-supplied snapshots; no trades.
+- PathWoven optimization: the five packaged continuous benchmark objectives.
+- vQPU local compute: CPU simulation and qualified Apple Metal float32 matrix multiplication on
+  the tested hardware/software binding.
+- Plugin runtime: signed, qualification-gated, zero-permission WebAssembly operations; no public
+  plugin is bundled with this release.
 
-In qualified mode, an approved candidate can now enter the governed reference runtime through
-the authenticated runtime API. The Phase 3A tool writes deterministic task artifacts only
-inside `.rad-agent-artifacts/` under the operator-approved workspace. It provides a real
-execution/evidence path without shell, network, publishing, deployment, or deletion access.
-See **[Governed reference tool execution](docs/specifications/RAD_GOVERNED_TOOL_EXECUTION.md)**.
+Cloud deployment, WMS/ERP writes, broker transactions, NVIDIA, Slurm, AWS Batch, and physical QPU
+execution require separately implemented and qualified adapters. The
+[product map](docs/PRODUCT_PLATFORM.md) identifies each present capability and integration boundary.
 
-## Model configuration
-
-RAD Agent supports local OpenAI-compatible endpoints such as a compatible Ollama, LM Studio,
-or self-hosted inference server. A minimal profile looks like this:
-
-```yaml
-schema_version: "1.0"
-selected: local_default
-profiles:
-  local_default:
-    type: ollama
-    base_url: http://127.0.0.1:11434/v1
-    model: your-qualified-model-id
-    adapter_version: "1.0"
-    timeout_seconds: 5
-```
-
-Use `type: lm_studio` for the conventional LM Studio endpoint on port 1234, or
-`type: local_openai` for another explicit loopback `/v1` server. `rad setup` identifies
-these automatically; `--provider` can make the choice explicit and rejects mismatches.
-
-`rad models test` performs model discovery only. A successful connection does not qualify
-the model or enable tool execution.
-
-Direct official cloud connections are also available with opaque credential references:
-
-```bash
-uv run rad setup --provider openai --model YOUR_MODEL \
-  --credential-ref env:OPENAI_API_KEY
-# or: --provider anthropic --credential-ref env:ANTHROPIC_API_KEY
-uv run rad models test
-```
-
-Cloud endpoints are fixed to the providers' official HTTPS hosts. See
-**[Cloud model connections](docs/specifications/RAD_CLOUD_MODEL_CONNECTIONS.md)** for the
-security, qualification, and opt-in live-test contract.
-
-If the local server requires a credential, use an opaque reference:
-
-```yaml
-credential: env:LOCAL_MODEL_KEY
-```
-
-The runtime resolves the value only for the transport call. It does not persist the resolved
-credential in configuration, session state, evidence, or browser storage.
-
-Model discovery reports availability only. Before reasoning is allowed, the exact
-provider, model, and adapter version must have current evidence permitting the requested
-use. See the [local model evaluation runbook](docs/runbooks/LOCAL_MODEL_EVALUATION.md).
-
-## Project configuration
-
-Projects declare their mode, goal, workspace, provider bindings, policy limits, and
-acceptance criteria. Versioned examples are available in [`examples/`](examples/).
-
-```yaml
-schema_version: "1.0"
-project_id: research_example
-name: Traceable research workflow
-mode: research
-goal: Produce an evidence-grounded synthesis of the supplied question.
-workspace:
-  root: ./workspace
-  read_only: false
-  network_allowlist: []
-providers:
-  reasoning:
-    adapter: local_openai
-    model: your-qualified-model-id
-policy:
-  max_attempts: 3
-  max_elapsed_seconds: 86400
-  max_cost_usd: 0
-  require_approval: [SENSITIVE, DESTRUCTIVE]
-acceptance:
-  - id: AC-SOURCES
-    description: Every material claim is linked to a recorded source.
-    verifier: citation_verification
-```
-
-Configuration is schema-validated and canonicalized before use. Literal credentials,
-unknown fields, unsafe YAML constructs, invalid endpoints, and incompatible bindings are
-rejected.
-
-## Architecture
+## Architecture and SDKs
 
 | Layer | Responsibility |
 |---|---|
-| Agent application | Conversation, clarification, candidate revisions, and human review |
-| Qualification layer | Determines which model uses are supported by verified evidence |
-| Runtime kernel | Task graphs, lifecycle transitions, checkpoints, retries, and recovery |
-| Policy and approval layer | Evaluates action attributes and enforces exact-scope approval |
-| Tool boundary | Validates typed inputs and outputs around every operation |
-| Evidence layer | Records outcomes and verifies acceptance without trusting model claims |
-| Provider adapters | Isolates models and local inference behind neutral interfaces |
+| Agent application | Goal capture, clarification, candidate revisions, review, and approval |
+| Qualification | Evidence-based authorization for exact model and capability bindings |
+| Runtime | Task graphs, state transitions, checkpoints, retries, and recovery |
+| Policy and approval | Effect classification and exact-scope human authorization |
+| Tool and plugin boundary | Typed inputs and outputs around bounded operations |
+| Evidence | Outcome recording and independent acceptance verification |
+| Provider adapters | Model integrations behind provider-neutral contracts |
 
-Detailed documents are available in [`docs/architecture/`](docs/architecture/) and
-[`docs/specifications/`](docs/specifications/).
-
-## Extending RAD Agent
-
-A domain-specific RAD Agent application normally supplies:
-
-1. A qualified reasoning-model profile.
-2. Typed tool descriptors and handlers.
-3. Policy rules for allowed, denied, and approval-gated effects.
-4. Capability evidence showing which operations are supported.
-5. Acceptance verifiers for the artifacts the workflow claims to produce.
-6. An application composition exposing only those registered capabilities.
-
-Core packages do not import vendor SDKs. Provider implementations belong behind adapters,
-and deterministic work should remain in deterministic code.
-
-## Security and operating boundary
-
-The included browser application binds only to loopback and is intended for local use.
-Do not expose it directly to the internet.
-
-Sensitive, destructive, costly, publishing, external-communication, and production
-actions require policy evaluation and human approval. Secrets must remain opaque
-references. Never commit password files, resolved credentials, private state directories,
-proprietary inputs, or private attestations.
-
-See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and
-[`docs/runbooks/STATUS.md`](docs/runbooks/STATUS.md) for precise qualification status.
-
-## SDKs and integration
-
-RAD Agent provides Python and TypeScript control surfaces for applications that need to
-create and inspect runs, query providers and capabilities, and retrieve or verify
-evidence. The embedding application supplies transport and authentication.
+RAD Agent includes Python and TypeScript SDK surfaces for embedding the control plane. Integrating
+applications supply transport, authentication, domain tools, policies, and verifiers.
 
 - [Python SDK](docs/components/PYTHON_SDK.md)
 - [TypeScript SDK](docs/components/TYPESCRIPT_SDK.md)
-- [CLI surface](docs/components/CLI_SURFACE.md)
-- [Agent API](docs/components/AGENT_APPLICATION_API.md)
+- [Authenticated Agent API](docs/components/AGENT_APPLICATION_API.md)
+- [Architecture](docs/architecture/ARCHITECTURE.md)
+- [Specifications](docs/specifications/)
 
-## Repository structure
+## Security
 
-| Path | Purpose |
-|---|---|
-| `src/nexus_os/` | Runtime kernel, Agent application, adapters, tools, and SDK |
-| `schemas/` | Machine-readable validation contracts |
-| `contracts/` | REST and MCP interface contracts |
-| `examples/` | Model and project configuration examples |
-| `docs/architecture/` | Architecture, trust, provider, and security models |
-| `docs/specifications/` | Normative behavioral specifications |
-| `docs/runbooks/` | Setup, operation, evaluation, and status guidance |
-| `docs/evidence/` | Component qualification records |
+The bundled application binds to loopback and is designed for operation on a trusted local system.
+Keep model servers private, use opaque secret references, review exact approvals, and protect local
+configuration, state, and evidence directories. See the [Security Policy](SECURITY.md) to report a
+vulnerability privately and the [Security Model](docs/architecture/SECURITY_MODEL.md) for design
+details.
 
 ## Contributing
 
-Contributions should preserve provider neutrality, strict validation, deterministic
-governance, deny-by-default access, bounded recovery, and evidence-derived claims. Read
-[`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change.
+Contributions are welcome across runtime engineering, adapters, domain contracts, testing,
+documentation, and security. Please read the [contribution guide](CONTRIBUTING.md) before opening a
+pull request.
 
 ## License
 

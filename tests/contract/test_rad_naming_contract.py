@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_PUBLIC_FILES = (
     ROOT / "README.md",
+    ROOT / "CONTRIBUTING.md",
+    ROOT / "SECURITY.md",
     ROOT / ".github/ISSUE_TEMPLATE/bug_report.yml",
     ROOT / "docs/architecture/ARCHITECTURE.md",
     ROOT / "docs/specifications/ACCEPTANCE_SPEC.md",
@@ -36,3 +38,21 @@ def test_primary_commands_and_deprecated_aliases_remain_installed() -> None:
     assert scripts["rad-model-eval"] == "nexus_os.local_model_cli:main"
     assert scripts["nexus-agent-serve"] == scripts["rad-agent-serve"]
     assert scripts["nexus-model-eval"] == scripts["rad-model-eval"]
+
+
+def test_primary_public_pages_exclude_internal_project_language() -> None:
+    internal_labels = (
+        "Phase 6",
+        "Phase 7",
+        "Phase 8",
+        "Phase 9",
+        "Phase 10",
+        "Phase 11",
+        "user asked",
+        "for the owner",
+        "industrial behemoth",
+    )
+    for name in ("README.md", "CONTRIBUTING.md", "SECURITY.md"):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        for label in internal_labels:
+            assert label.casefold() not in text.casefold(), f"{name}: {label}"
