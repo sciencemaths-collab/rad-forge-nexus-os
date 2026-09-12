@@ -1,4 +1,7 @@
-# Contributing to RAD Forge / NEXUS OS
+# Contributing to RAD Agent
+
+Thank you for helping improve RAD Agent. Contributions are welcome across the runtime, provider
+adapters, domain capabilities, SDKs, documentation, testing, and security.
 
 Contributions should preserve the runtime's provider-neutral, evidence-driven trust
 model. Specifications and machine-readable contracts are authoritative; provider output
@@ -6,7 +9,7 @@ and prompts are not.
 
 ## Development process
 
-1. Read [`AGENTS.md`](AGENTS.md) and the relevant files in `docs/specifications/`.
+1. Read the relevant files in `docs/specifications/`.
 2. Open an issue or focused pull request describing the boundary being changed.
 3. Add or update contract tests before changing behavior.
 4. Implement the smallest change that satisfies the accepted contract.
@@ -17,14 +20,16 @@ and prompts are not.
 ```bash
 uv sync --all-groups --locked
 npm ci --prefix sdk/typescript --ignore-scripts
-uv run python scripts/validate_contracts.py
-uv run ruff format --check .
-uv run ruff check .
-uv run mypy src scripts
-uv run pytest -q
-npm test --prefix sdk/typescript
-uv build
+mkdir -p artifacts/contributor-release-evidence
+uv run python scripts/release_evidence.py \
+  --root . \
+  --output artifacts/contributor-release-evidence
 ```
+
+This fail-fast command runs formatting, linting, strict typing, schema validation, dependency
+audits, unit, contract, integration and security tests, deterministic qualification, package and
+clean-wheel checks, browser acceptance, SDK tests, and the repository secret scan. Its generated
+evidence is local build output and should not be committed.
 
 ## Reporting errors
 

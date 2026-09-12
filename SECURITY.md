@@ -7,7 +7,7 @@ the latest maintained branch and are not backported unless a release notice stat
 
 ## Reporting a vulnerability
 
-Use GitHub's private vulnerability-reporting feature for the repository when available.
+Submit a [private security advisory](https://github.com/sciencemaths-collab/rad-forge-nexus-os/security/advisories/new).
 Avoid public issues, pull requests, discussions, or logs containing exploit details,
 credentials, personal data, or unresolved secret material.
 
@@ -27,6 +27,6 @@ Relevant reports include authentication or authorization bypasses, sandbox escap
 exposure, policy or approval bypasses, evidence-integrity failures, unsafe deserialization,
 injection, dependency compromise, and denial-of-service paths that violate documented bounds.
 
-Provider outages, unsupported live-provider behavior, social engineering, and findings that
-require already-compromised administrator access are generally outside scope unless they expose
-a separate vulnerability in NEXUS OS.
+Provider outages, unsupported provider behavior, social engineering, and findings that require
+already-compromised administrator access are generally outside scope unless they expose a separate
+vulnerability in RAD Agent or the RAD Forge Runtime.
