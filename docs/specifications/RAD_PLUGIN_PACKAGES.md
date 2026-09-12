@@ -7,7 +7,7 @@ Status: implemented local installer and lifecycle; no public marketplace catalog
 A `.radplug` is a bounded ZIP containing exactly three regular files:
 
 - `manifest.json`, following `schemas/plugin-manifest.schema.json`;
-- one payload whose filename, byte count, and SHA-256 digest match the manifest; and
+- one WebAssembly payload whose filename, byte count, and SHA-256 digest match the manifest; and
 - `signature.ed25519`, a 64-byte Ed25519 signature over canonical manifest JSON.
 
 The operator supplies a local trust store. RAD resolves `publisher_id` to a raw Ed25519 public
@@ -51,15 +51,24 @@ Uninstall requires a disabled plugin and targets only its managed version.
 
 Declared permissions are `workspace.read`, `workspace.write`, `network`, `secrets`, and
 `external.action`. Permission review records operator consent to installation; it does not grant
-runtime authority. Installation and enablement never import, execute, or `pip install` payloads.
-An enabled package reports `execution_authorized: false`.
+runtime authority. Installation and enablement never import or `pip install` payloads. An enabled
+package still reports `execution_authorized: false`; a qualified runtime route is also required.
 
-Executable activation requires a separately implemented adapter loader to revalidate the package,
-isolate its process, map declared permissions into policy, register exact capability manifests,
-verify qualification attestations semantically, and route through RAD Node. Until that loader is
-qualified, plugins are secure distributable artifacts and lifecycle records—not executable code.
+Executable activation is available for `wasm-v1` packages with zero host permissions. The loader
+revalidates managed payload integrity and a canonical, unexpired qualification attestation; denies
+all WebAssembly imports and WASI; applies fuel, linear-memory, and JSON I/O bounds; and exposes an
+approval-required, qualification-required, read-only capability for RAD Node routing. It cannot
+access the filesystem, network, environment, secrets, subprocesses, or external systems.
 
 There is no public marketplace catalog in this release. Publishers distribute `.radplug` files
 and public keys independently; operators control their trust stores. A future catalog must add
 signed index metadata, publisher onboarding/revocation, transparency, moderation, and update
 channels without weakening this installer contract.
+
+### `wasm-v1` ABI
+
+The module exports `memory`, `alloc(i32) -> i32`, and `handle(i32, i32) -> i64`. RAD writes a
+canonical `{"operation": ..., "payload": ...}` document at the address returned by `alloc`.
+`handle` returns `(output_pointer << 32) | output_length`; the referenced bytes must be a bounded
+UTF-8 JSON object. Missing exports, traps, fuel exhaustion, invalid pointers, excess memory,
+malformed JSON, duplicate keys, or host imports fail closed.

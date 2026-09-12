@@ -4,7 +4,7 @@
   "title": "RAD Plugin Package Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "plugin_id", "version", "publisher_id", "rad_version", "payload", "permissions", "capabilities", "qualification"],
+  "required": ["schema_version", "plugin_id", "version", "publisher_id", "rad_version", "payload", "permissions", "capabilities", "qualification", "runtime"],
   "properties": {
     "schema_version": {"const": "1.0"},
     "plugin_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
@@ -41,6 +41,19 @@
       "properties": {
         "required": {"type": "boolean"},
         "attestation_sha256": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "operations", "max_fuel", "max_memory_pages"],
+      "properties": {
+        "kind": {"const": "wasm-v1"},
+        "operations": {
+          "type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"}
+        },
+        "max_fuel": {"type": "integer", "minimum": 1000, "maximum": 100000000},
+        "max_memory_pages": {"type": "integer", "minimum": 1, "maximum": 256}
       }
     }
   }

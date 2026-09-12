@@ -14,6 +14,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 from cryptography.exceptions import InvalidSignature
@@ -118,12 +119,14 @@ class PluginStore:
         if not _compatible(self.rad_version, manifest["rad_version"]):
             raise PluginError("plugin is incompatible with this RAD version")
         expected_attestation = manifest["qualification"]["attestation_sha256"]
+        attestation_bytes: bytes | None = None
         if manifest["qualification"]["required"]:
             if qualification_attestation is None:
                 raise PluginError("plugin qualification attestation is required")
             observed = _file_digest(qualification_attestation, _MAX_PACKAGE)
             if observed != expected_attestation:
                 raise PluginError("plugin qualification attestation digest mismatch")
+            attestation_bytes = qualification_attestation.read_bytes()
         elif expected_attestation is not None or qualification_attestation is not None:
             raise PluginError("plugin qualification declaration is inconsistent")
         destination_dir = self._payloads / manifest["plugin_id"] / manifest["version"]
@@ -139,6 +142,15 @@ class PluginStore:
                 stream.flush()
                 os.fsync(stream.fileno())
             os.replace(temporary, destination)
+            if attestation_bytes is not None:
+                attestation_target = destination_dir / "qualification.json"
+                descriptor = os.open(
+                    attestation_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600
+                )
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(attestation_bytes)
+                    stream.flush()
+                    os.fsync(stream.fileno())
             canonical = _canonical(manifest).decode()
             self._db.execute("BEGIN IMMEDIATE")
             self._db.execute(
@@ -184,9 +196,10 @@ class PluginStore:
         if record.state != "DISABLED":
             raise PluginError("plugin must be disabled before uninstall")
         payload = Path(record.payload_path)
-        tombstone = payload.with_name(".uninstalling")
+        managed_dir = payload.parent
+        tombstone = managed_dir.with_name(managed_dir.name + ".uninstalling")
         try:
-            os.replace(payload, tombstone)
+            os.replace(managed_dir, tombstone)
         except OSError as exc:
             raise PluginError("plugin managed payload is unavailable") from exc
         self._db.execute("BEGIN IMMEDIATE")
@@ -196,12 +209,11 @@ class PluginStore:
             )
             self._event("UNINSTALL", plugin_id, version, record.package_digest, user, at)
             self._db.execute("COMMIT")
-            tombstone.unlink()
-            payload.parent.rmdir()
+            shutil.rmtree(tombstone)
         except (OSError, sqlite3.Error) as exc:
             if self._db.in_transaction:
                 self._db.execute("ROLLBACK")
-                os.replace(tombstone, payload)
+                os.replace(tombstone, managed_dir)
             raise PluginError("plugin uninstall failed") from exc
 
     def get(self, plugin_id: str, version: str) -> PluginRecord:
@@ -215,6 +227,17 @@ class PluginStore:
     def list(self) -> tuple[PluginRecord, ...]:
         rows = self._db.execute("SELECT * FROM plugins ORDER BY plugin_id, version").fetchall()
         return tuple(self._record(row) for row in rows)
+
+    def manifest(self, plugin_id: str, version: str) -> Mapping[str, Any]:
+        """Return the integrity-rechecked immutable manifest for an installed version."""
+        self.get(plugin_id, version)
+        row = self._db.execute(
+            "SELECT manifest_json FROM plugins WHERE plugin_id=? AND version=?",
+            (plugin_id, version),
+        ).fetchone()
+        if row is None:
+            raise PluginError("plugin version is not installed")
+        return MappingProxyType(json.loads(row[0]))
 
     def events(self) -> tuple[dict[str, Any], ...]:
         rows = self._db.execute("SELECT * FROM plugin_events ORDER BY sequence").fetchall()
@@ -345,6 +368,7 @@ def _manifest(value: object) -> None:
         "permissions",
         "capabilities",
         "qualification",
+        "runtime",
     }
     if not isinstance(value, dict) or set(value) != fields or value["schema_version"] != "1.0":
         raise PluginError("plugin manifest fields are invalid")
@@ -402,6 +426,23 @@ def _manifest(value: object) -> None:
         )
     ):
         raise PluginError("plugin qualification declaration is invalid")
+    runtime = value["runtime"]
+    if (
+        not isinstance(runtime, dict)
+        or set(runtime) != {"kind", "operations", "max_fuel", "max_memory_pages"}
+        or runtime["kind"] != "wasm-v1"
+        or not isinstance(runtime["operations"], list)
+        or not 1 <= len(runtime["operations"]) <= 32
+        or len(set(runtime["operations"])) != len(runtime["operations"])
+        or any(not _valid_id(item) for item in runtime["operations"])
+        or isinstance(runtime["max_fuel"], bool)
+        or not isinstance(runtime["max_fuel"], int)
+        or not 1_000 <= runtime["max_fuel"] <= 100_000_000
+        or isinstance(runtime["max_memory_pages"], bool)
+        or not isinstance(runtime["max_memory_pages"], int)
+        or not 1 <= runtime["max_memory_pages"] <= 256
+    ):
+        raise PluginError("plugin runtime declaration is invalid")
 
 
 def _trusted_key(path: Path, publisher_id: str) -> Ed25519PublicKey:

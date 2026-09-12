@@ -6,7 +6,7 @@ acceptance checks, and downloadable evidence. Presence in a repository is not av
 
 | Product | First installable outcome | Qualified today | Deliberately unavailable |
 |---|---|---|---|
-| RAD Agent / Forge Runtime | Plan, approve, execute bounded tools, verify, and audit | Local governed agent, typed capability contracts, and signed inert plugin lifecycle | Public marketplace catalog and autonomous plugin execution |
+| RAD Agent / Forge Runtime | Plan, approve, execute bounded tools, verify, and audit | Local governed agent, typed capabilities, signed plugin lifecycle, and no-host-import WebAssembly execution | Public marketplace and privileged plugin host interfaces |
 | RAD Compute Engine / vQPU | Route exact workloads to qualified compute | Local CPU quantum simulation; Apple Metal float32 matrix multiplication | NVIDIA, Slurm, AWS batch, and physical QPU execution |
 | RAD Optimization Engine / PathWoven | Solve bounded optimization contracts | Five packaged continuous benchmark objectives | General warehouse, routing, scheduling, discrete, and mixed-variable claims |
 | RAD Decision Engine / Financial | Produce reviewable capital recommendations | Operator-supplied bounded snapshots; no transactions | Broker execution and unqualified live market connectors |
@@ -17,7 +17,8 @@ acceptance checks, and downloadable evidence. Presence in a repository is not av
 The local installer now provides a signed package format, configured publisher identity,
 compatibility checks, exact permission review, install/enable/disable/uninstall lifecycle,
 qualification digest binding, side-by-side versions, audit events, and rollback. Packages remain
-inert; runtime loading and a public catalog require additional qualification.
+inert until explicitly enabled and qualified. Qualified zero-permission `wasm-v1` plugins can run
+through RAD Node; privileged host interfaces and a public catalog require additional qualification.
 
 Until those controls exist, integrations are installed as pinned Python distributions or source
 revisions, registered explicitly by an operator, and remain fail-closed when their exact

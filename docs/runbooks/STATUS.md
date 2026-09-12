@@ -1,5 +1,15 @@
 # Engineering Status
 
+## Phase 10 — Sandboxed plugin runtime
+
+- Enabled signed `wasm-v1` packages can expose one exact qualified RAD Node capability.
+- Canonical semantic attestations bind plugin, capability, versions, runtime, validity, and
+  benchmark digest; digest matching alone is insufficient.
+- No WASI or host imports are permitted; fuel, memory, input, output, pointer, JSON, and operation
+  bounds fail closed.
+- Filesystem, network, secrets, environment, subprocess, external actions, and public marketplace
+  distribution remain unavailable.
+
 ## Phase 9 — Signed plugin installer and lifecycle
 
 - Bounded `.radplug` packages use Ed25519 publisher signatures and SHA-256 payload binding.
