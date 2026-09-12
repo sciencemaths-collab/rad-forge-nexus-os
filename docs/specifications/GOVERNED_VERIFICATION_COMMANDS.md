@@ -7,6 +7,8 @@ Status: implemented for RAD Agent Phase 8D.
 - Unit, integration, security, and failure-test stages carry deterministic command arrays compiled
   by app-build mode; model output cannot select an executable or add arguments.
 - The bundled executor accepts only four exact `python -m pytest -q <test-directory>` forms.
+- Pytest is a runtime dependency because the clean installed-wheel environment executes those
+  commands with its own interpreter; verification never relies on undeclared developer tooling.
 - Each stage is `SENSITIVE` and requires human approval bound to the exact command payload.
 - Execution uses the installed Python interpreter directly without a shell and receives a new,
   credential-free environment.
