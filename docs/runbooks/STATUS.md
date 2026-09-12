@@ -1450,3 +1450,17 @@ test-command execution, and accessible local model qualification remain separate
 
 This enables reviewed local source creation and modification. Build/lint/test command execution
 and the live fresh-user qualification remain Phase 8D and 8E work.
+
+## RAD Agent Phase 8D governed verification commands (implemented locally)
+
+- App-build mode compiles exact unit, integration, security, and failure-test pytest commands into
+  the approved task graph; the model cannot choose commands.
+- Every verification stage is `SENSITIVE` and requires an exact-action human approval.
+- `workspace.run_python_verification` uses the installed interpreter without a shell, scrubs the
+  environment, bounds time and output, and records a downloadable result artifact.
+- An audit sandbox denies network calls, child processes, system commands, and writes outside the
+  approved workspace while redirecting temporary files inside it.
+- Nonzero exits fail closed and prevent later stages from running.
+
+This slice supports the four conventional Python/pytest test directories only. Other languages,
+arbitrary project scripts, builds, package installation, and deployment remain unavailable.
