@@ -1464,3 +1464,19 @@ and the live fresh-user qualification remain Phase 8D and 8E work.
 
 This slice supports the four conventional Python/pytest test directories only. Other languages,
 arbitrary project scripts, builds, package installation, and deployment remain unavailable.
+
+## RAD Agent Phase 8E fresh-user app-build acceptance (implemented locally)
+
+- The clean-wheel browser gate now covers a complete app-build journey through the installed
+  `rad` executable and public HTTP application in both Chromium and Firefox.
+- The journey reviews an app-build proposal, initializes a real project workspace, consumes the
+  verified inventory, applies one exact approved source change, and runs all four compiled pytest
+  stages behind separate approvals.
+- Acceptance requires verified completion, an intact evidence chain, the resulting source file,
+  a private rollback record, four test artifacts, and enabled evidence download.
+- The provider is a deterministic qualified loopback fixture, preserving repeatability and making
+  no claim about external model quality.
+
+Live Ollama/LM Studio acceptance: **NOT RUN** — neither service was reachable at
+`127.0.0.1:11434` or `127.0.0.1:1234` in the local qualification environment. This is an explicit
+external validation gap, not a packaged-app failure.
