@@ -59,6 +59,7 @@ from nexus_os.stores import SQLiteCheckpointStore
 from nexus_os.task_composition import ReasonedTaskCompositionStore
 from nexus_os.task_reasoning import QualifiedTaskReasoner
 from nexus_os.tools import ToolExecutor, ToolRegistry
+from nexus_os.verification_commands import register_verification_command_tool
 from nexus_os.workspace_tools import register_workspace_artifact_tool
 
 MODEL_CONFIG_ENV = "RAD_AGENT_MODEL_CONFIG"
@@ -324,6 +325,7 @@ def _create_reference_runtime(
     registry = ToolRegistry()
     register_controlled_editing_tool(registry)
     register_project_inspection_tool(registry)
+    register_verification_command_tool(registry)
     register_workspace_artifact_tool(registry)
     register_local_research_source_tool(registry)
     register_local_research_extraction_tool(registry)
@@ -331,6 +333,7 @@ def _create_reference_runtime(
         {
             "workspace.apply_text_changes",
             "workspace.inspect_project",
+            "workspace.run_python_verification",
             "research.extract_source_lines",
             "research.ingest_local_sources",
             "workspace.write_artifact",
@@ -383,6 +386,13 @@ def _create_reference_runtime(
     bindings["mode.research.source_extraction"] = "research.extract_source_lines"
     bindings["mode.app_build.specification"] = "workspace.inspect_project"
     bindings["mode.app_build.implementation"] = "workspace.apply_text_changes"
+    for kind in (
+        "mode.app_build.unit_test",
+        "mode.app_build.integration_test",
+        "mode.app_build.security_test",
+        "mode.app_build.failure_test",
+    ):
+        bindings[kind] = "workspace.run_python_verification"
     scheduler = GovernedScheduler(
         runtime=runtime,
         registry=registry,
