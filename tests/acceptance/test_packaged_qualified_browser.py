@@ -58,6 +58,49 @@ def task_proposal() -> dict[str, object]:
     }
 
 
+def app_proposal() -> dict[str, object]:
+    return {
+        "objective": "Build a small tested addition application in the approved workspace.",
+        "mode": "app_build",
+        "inputs": [],
+        "constraints": [
+            "Change only files in the approved workspace.",
+            "Run every configured verification stage.",
+        ],
+        "acceptance_criteria": [
+            {
+                "acceptance_id": "AC-APP-VERIFIED",
+                "statement": "The application change and all four test stages are evidenced.",
+                "verification_method": "runtime_task_evidence",
+            }
+        ],
+        "required_capabilities": ["app_build.planning"],
+        "risk_summary": {
+            "highest_effect": "SENSITIVE",
+            "reasons": ["Source editing and Python execution require exact approval."],
+        },
+        "unresolved_questions": [],
+        "review_ready": True,
+    }
+
+
+def app_task_proposal(messages: str) -> dict[str, object]:
+    artifact = {
+        **task_proposal(),
+        "title": "Qualified app-build task artifact",
+        "summary": "Perform the approved app-build stage using verified project context.",
+    }
+    if "mode.app_build.implementation" in messages:
+        artifact["file_changes"] = [
+            {
+                "path": "app.py",
+                "expected_sha256": None,
+                "content": "def add(left: int, right: int) -> int:\n    return left + right\n",
+            }
+        ]
+    return artifact
+
+
 class QualifiedProvider(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path != "/v1/models":
@@ -72,7 +115,12 @@ class QualifiedProvider(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         request = json.loads(self.rfile.read(length))
         messages = json.dumps(request.get("messages", []))
-        output = task_proposal() if "Approved task" in messages else proposal()
+        if "Approved task" in messages:
+            output = (
+                app_task_proposal(messages) if "mode.app_build." in messages else task_proposal()
+            )
+        else:
+            output = app_proposal() if "small tested addition" in messages else proposal()
         self._json(
             {
                 "id": "qualified-browser-completion",
@@ -302,6 +350,118 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
             )
             assert extractions_artifact["tool"] == "research.extract_source_lines"
             assert extractions_artifact["extractions"][0]["lines"][0]["text"]
+            diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
+    except Exception:
+        diagnostic.write_text(traceback.format_exc(), encoding="utf-8")
+        raise
+    finally:
+        if process is not None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+        if provider is not None:
+            provider.shutdown()
+            provider.server_close()
+        if provider_worker is not None:
+            provider_worker.join(timeout=5)
+            assert not provider_worker.is_alive()
+
+
+def test_packaged_app_build_edits_and_verifies_a_fresh_project(
+    page: Page, tmp_path: Path, browser_name: str
+) -> None:
+    diagnostic_root = Path("artifacts/app-build-browser-diagnostics")
+    diagnostic_root.mkdir(parents=True, exist_ok=True)
+    diagnostic = diagnostic_root / f"{browser_name}.log"
+    diagnostic.write_text("stage=start\n", encoding="utf-8")
+    provider: ThreadingHTTPServer | None = None
+    provider_worker: threading.Thread | None = None
+    process: subprocess.Popen[bytes] | None = None
+    log_root = Path("artifacts/app-build-browser")
+    log_root.mkdir(parents=True, exist_ok=True)
+    log_path = log_root / "server.log"
+    try:
+        provider = ThreadingHTTPServer(("127.0.0.1", 11434), QualifiedProvider)
+        provider_worker = threading.Thread(target=provider.serve_forever)
+        provider_worker.start()
+        executable = _install_wheel(tmp_path)
+        config = _write_configuration(tmp_path)
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        test_source = (
+            "from app import add\n\ndef test_addition() -> None:\n    assert add(2, 3) == 5\n"
+        )
+        for suite in ("unit", "integration", "security", "failure"):
+            suite_root = workspace / "tests" / suite
+            suite_root.mkdir(parents=True)
+            (suite_root / "test_app.py").write_text(test_source, encoding="utf-8")
+
+        port = _free_port()
+        with log_path.open("wb") as log:
+            process = subprocess.Popen(  # noqa: S603 - fixed installed RAD executable
+                (
+                    str(executable),
+                    "serve",
+                    "--config-dir",
+                    str(config),
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    str(port),
+                ),
+                cwd=tmp_path,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+            base_url = f"http://127.0.0.1:{port}"
+            _wait_for(base_url + "/healthz", process)
+            page.goto(base_url)
+            page.locator("#password").fill(PASSWORD)
+            page.locator("#login-form button").click()
+            page.locator("#project").fill("fresh_app_build")
+            page.locator("#objective").fill(
+                "Build a small tested addition application in the approved workspace."
+            )
+            page.locator("#goal-form button").click()
+            expect(page.locator("#review")).to_be_visible(timeout=15_000)
+            expect(page.locator("#candidate")).to_contain_text('"mode": "app_build"')
+            expect(page.locator("#candidate")).to_contain_text("AC-APP-VERIFIED")
+            page.locator("#approve").click()
+            expect(page.locator("#runtime-setup")).to_be_visible()
+            page.locator("#workspace-root").fill(str(workspace))
+            page.locator("#runtime-form button").click()
+            expect(page.locator("#auto-run")).to_be_enabled(timeout=15_000)
+
+            expected_approvals = (
+                "mode.app_build.implementation",
+                "mode.app_build.unit_test",
+                "mode.app_build.integration_test",
+                "mode.app_build.security_test",
+                "mode.app_build.failure_test",
+            )
+            for task_kind in expected_approvals:
+                page.locator("#auto-run").click()
+                expect(page.locator("#approval")).to_be_visible(timeout=30_000)
+                expect(page.locator("#preview")).to_contain_text(task_kind)
+                expect(page.locator("#approval-detail")).to_contain_text('"effect": "SENSITIVE"')
+                page.locator("#allow").click()
+                expect(page.locator("#approval")).to_be_hidden(timeout=30_000)
+
+            page.locator("#auto-run").click()
+            expect(page.locator("#completion-status")).to_have_text(
+                "Verification complete", timeout=30_000
+            )
+            expect(page.locator("#chain-status")).to_have_text("VERIFIED")
+            expect(page.locator("#completion-report")).to_contain_text('"passed": 1')
+            expect(page.locator("#download-evidence")).to_be_enabled()
+            assert (workspace / "app.py").read_text(encoding="utf-8").startswith("def add(")
+            rollback_files = tuple((workspace / ".rad-agent-artifacts" / "rollback").glob("*.json"))
+            assert len(rollback_files) == 1
+            test_artifacts = tuple((workspace / ".rad-agent-artifacts").glob("*-tests.json"))
+            assert len(test_artifacts) == 4
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")
