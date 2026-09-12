@@ -47,7 +47,8 @@ jobs:
           uv build --offline
           tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" --owner=0 --group=0 --numeric-owner \
             -czf dist/release-evidence.tar.gz artifacts/release-evidence
-          sha256sum dist/* | sort -k2 > dist/SHA256SUMS
+          (cd dist && sha256sum nexus_os-*.whl nexus_os-*.tar.gz release-evidence.tar.gz \
+            | sort -k2 > SHA256SUMS)
       - uses: actions/attest-build-provenance@v3
         with:
           subject-path: |

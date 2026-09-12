@@ -11,11 +11,12 @@
 ## Upgrade to Alpha 3
 
 ```bash
-gh release download v0.2.0a3 --repo sciencemaths-collab/rad-forge-nexus-os
-sha256sum --check SHA256SUMS --ignore-missing
-gh attestation verify nexus_os-0.2.0a3-py3-none-any.whl \
+mkdir -p dist
+gh release download v0.2.0a3 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
+sha256sum --check dist/SHA256SUMS --ignore-missing
+gh attestation verify dist/nexus_os-0.2.0a3-py3-none-any.whl \
   --repo sciencemaths-collab/rad-forge-nexus-os
-pipx install --force ./nexus_os-0.2.0a3-py3-none-any.whl
+pipx install --force ./dist/nexus_os-0.2.0a3-py3-none-any.whl
 rad doctor
 ```
 
