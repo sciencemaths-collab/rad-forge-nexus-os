@@ -8,19 +8,19 @@
 3. Download the target release, `SHA256SUMS`, and GitHub provenance attestation.
 4. Verify the checksum and attestation before installation.
 
-## Upgrade to Alpha 3
+## Upgrade to Alpha 4
 
 ```bash
 mkdir -p dist
-gh release download v0.2.0a9 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
+gh release download v0.2.0a10 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
 sha256sum --check dist/SHA256SUMS --ignore-missing
-gh attestation verify dist/nexus_os-0.2.0a9-py3-none-any.whl \
+gh attestation verify dist/nexus_os-0.2.0a10-py3-none-any.whl \
   --repo sciencemaths-collab/rad-forge-nexus-os
-pipx install --force ./dist/nexus_os-0.2.0a9-py3-none-any.whl
+pipx install --force ./dist/nexus_os-0.2.0a10-py3-none-any.whl
 rad doctor
 ```
 
-The Alpha 3 project configuration schema remains `1.0`. To validate and materialize a private,
+The Alpha 4 project configuration schema remains `1.0`. To validate and materialize a private,
 canonical copy without overwriting the source:
 
 ```bash

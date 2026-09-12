@@ -8,6 +8,7 @@ uv run python scripts/validate_contracts.py
 uv run ruff check .
 uv run mypy src
 uv run pytest
+uv run python scripts/release_evidence.py --root . --output /path/to/evidence-directory
 ```
 
 Before work, inspect status and overlapping user changes. Select the next pending
@@ -25,4 +26,3 @@ On failure, classify it. Repair only within configured attempt/time/budget bound
 Do not retry policy denial, invalid approval, or repeat deterministic failures
 without a changed input/implementation. Stop on destructive, costly, production,
 external-user, permission-escalation, or scope-changing actions.
-

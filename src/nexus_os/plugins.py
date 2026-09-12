@@ -50,6 +50,8 @@ class PluginRecord:
     installed_by: str
     payload_path: Path
     qualification_digest: str | None
+    runtime_kind: str
+    qualification_required: bool
 
     def public_dict(self) -> dict[str, Any]:
         return {
@@ -63,6 +65,17 @@ class PluginRecord:
             "installed_at": _timestamp(self.installed_at),
             "installed_by": self.installed_by,
             "qualification_digest": self.qualification_digest,
+            "runtime_kind": self.runtime_kind,
+            "qualification_required": self.qualification_required,
+            "activation_configured": (
+                self.state == "ENABLED"
+                and self.runtime_kind == "wasm-v1"
+                and not self.permissions
+                and self.qualification_required
+                and self.qualification_digest is not None
+            ),
+            # A durable lifecycle record cannot authorize execution by itself. The runtime must
+            # revalidate payload, module, and qualification state for the current instant.
             "execution_authorized": False,
         }
 
@@ -278,6 +291,8 @@ class PluginStore:
             row[8],
             payload,
             manifest["qualification"]["attestation_sha256"],
+            manifest["runtime"]["kind"],
+            manifest["qualification"]["required"],
         )
 
     def _state(
@@ -312,6 +327,31 @@ class PluginStore:
             "VALUES(?,?,?,?,?,?)",
             (_timestamp(at), actor, action, plugin_id, version, digest),
         )
+
+
+def inspect_plugin_package(package: Path, trust_store: Path) -> dict[str, Any]:
+    """Verify a package and return its bounded operator-review document without installing it."""
+    manifest, _, package_digest = _verify_package(package, trust_store)
+    permissions = list(manifest["permissions"])
+    qualification = dict(manifest["qualification"])
+    return {
+        "plugin_id": manifest["plugin_id"],
+        "version": manifest["version"],
+        "publisher_id": manifest["publisher_id"],
+        "package_digest": package_digest,
+        "rad_version": dict(manifest["rad_version"]),
+        "runtime": dict(manifest["runtime"]),
+        "permissions": permissions,
+        "capabilities": list(manifest["capabilities"]),
+        "qualification": qualification,
+        "install_state": "NOT_INSTALLED",
+        "activation_eligible": (
+            manifest["runtime"]["kind"] == "wasm-v1"
+            and not permissions
+            and qualification["required"]
+            and qualification["attestation_sha256"] is not None
+        ),
+    }
 
 
 def _verify_package(package: Path, trust_store: Path) -> tuple[dict[str, Any], bytes, str]:

@@ -8,7 +8,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from nexus_os.plugins import PluginError, PluginStore
+from nexus_os.plugins import PluginError, PluginStore, inspect_plugin_package
 
 NOW = datetime(2026, 9, 12, 15, tzinfo=UTC)
 
@@ -72,6 +72,16 @@ def test_install_is_verified_disabled_and_audited(tmp_path):
     assert record.public_dict()["execution_authorized"] is False
     assert store.events()[0]["action"] == "INSTALL"
     store.close()
+
+
+def test_inspect_verifies_signature_and_exposes_exact_review_without_installing(tmp_path):
+    plugin, trust = package(tmp_path)
+    review = inspect_plugin_package(plugin, trust)
+    assert review["plugin_id"] == "acme.warehouse"
+    assert review["permissions"] == ["workspace.read"]
+    assert review["install_state"] == "NOT_INSTALLED"
+    assert review["activation_eligible"] is False
+    assert review["package_digest"].startswith("sha256:")
 
 
 def test_enable_update_rollback_and_disabled_uninstall(tmp_path):

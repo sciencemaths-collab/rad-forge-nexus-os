@@ -5,23 +5,23 @@ This starts RAD Agent with a local Ollama or LM Studio model. It requires Python
 
 ## 1. Install
 
-RAD Agent is not published on PyPI. Download the signed Alpha 3 wheel, checksum file, and
-evidence archive from the [GitHub release](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases/tag/v0.2.0a9):
+RAD Agent is not published on PyPI. Download the signed Alpha 4 wheel, checksum file, and
+evidence archive from the [GitHub release](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases/tag/v0.2.0a10):
 
 ```bash
 mkdir -p dist
-gh release download v0.2.0a9 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
+gh release download v0.2.0a10 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
 sha256sum --check dist/SHA256SUMS --ignore-missing
-gh attestation verify dist/nexus_os-0.2.0a9-py3-none-any.whl \
+gh attestation verify dist/nexus_os-0.2.0a10-py3-none-any.whl \
   --repo sciencemaths-collab/rad-forge-nexus-os
-pipx install ./dist/nexus_os-0.2.0a9-py3-none-any.whl
+pipx install ./dist/nexus_os-0.2.0a10-py3-none-any.whl
 rad --version
 rad --help
 ```
 
 On macOS, run `shasum -a 256 -c dist/SHA256SUMS` from the directory containing `dist/`.
-Alpha 3's checksum entries include that directory prefix; later releases use portable
-base filenames.
+Checksum entries use portable base filenames. Run the checksum command from the directory shown
+above so the downloaded artifacts are verified before installation.
 
 ## 2. Configure and verify
 
@@ -58,8 +58,8 @@ version or, preferably, the verified manifest digest shown on the
 [package page](https://github.com/sciencemaths-collab/rad-forge-nexus-os/pkgs/container/rad-agent):
 
 ```bash
-docker pull ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a9
-docker run --rm ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a9 --version
+docker pull ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10
+docker run --rm ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10 --version
 ```
 
 The browser application and model endpoint are loopback-only. Running them from the image
@@ -70,13 +70,13 @@ in compatible Docker Desktop versions. Persist configuration and workspace data 
 mkdir -p rad-data
 docker run --rm -it --network host \
   -v "$PWD/rad-data:/workspace" \
-  ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a9 \
+  ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10 \
   setup --config-dir /workspace/.rad-agent \
   --provider ollama --base-url http://127.0.0.1:11434/v1 --model YOUR_MODEL_ID
 
 docker run --rm -it --network host \
   -v "$PWD/rad-data:/workspace" \
-  ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a9 \
+  ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a10 \
   serve --config-dir /workspace/.rad-agent
 ```
 

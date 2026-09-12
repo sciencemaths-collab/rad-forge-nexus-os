@@ -1,5 +1,7 @@
 # RAD Agent
 
+![RAD Agent applied across warehouse, software, finance, and manufacturing work](docs/assets/rad-agent-use-cases.jpg)
+
 **Reasoning, Action, and Decision for governed AI-assisted work.**
 
 **RAD Agent** stands for **Reasoning, Action, and Decision Agent**. It turns a natural-language objective into a structured, reviewable plan and carries approved work through a governed execution process.
@@ -8,6 +10,10 @@ The **RAD Forge Runtime** is the engine beneath the agent. It provides model qua
 
 The project is designed for work where an AI model should help reason and plan, but
 should not be trusted to decide its own permissions or declare its own success.
+
+**Release maturity:** Alpha 4. The runtime is extensively gated, but Beta promotion requires the
+complete evidence listed in **[Beta readiness](docs/BETA_READINESS.md)**; it is not inferred from
+feature count or branding.
 
 ## Why RAD Agent exists
 
@@ -115,9 +121,10 @@ For the complete walkthrough—including local setup, authenticated API examples
 credential references, SDK integration, provider porting, execution requirements, and
 troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
 
-Signed plugin packages can be verified, installed disabled, reviewed, enabled, rolled back, and
-uninstalled with `rad plugins`. Plugin enablement remains non-executable until a separately
-qualified runtime loader registers its capabilities. See
+Signed plugin packages can be inspected before installation, installed disabled, reviewed,
+enabled, diagnosed, rolled back, and uninstalled with `rad plugins`. Qualified zero-permission
+`wasm-v1` plugins execute in a fuel- and memory-bounded Wasmtime sandbox with no host imports;
+permissions such as filesystem, network, secrets, or external actions remain unavailable. See
 **[RAD Plugin Packages](docs/specifications/RAD_PLUGIN_PACKAGES.md)**.
 
 For concrete examples across operations, finance, software, research, education, manufacturing,
@@ -175,6 +182,31 @@ New integrations should use `rad` and `RAD_AGENT_*`.
 Release tags provide an attested Python wheel, source archive, checksums, evidence bundle, and
 multi-architecture OCI image. Operational upgrades and recovery are documented in
 **[Upgrade and rollback](docs/UPGRADE_AND_ROLLBACK.md)**.
+
+### Plugin quick start
+
+Always inspect a plugin before installing it. The inspection verifies its Ed25519 signature and
+shows its exact publisher, digest, compatibility, permissions, capabilities, runtime limits, and
+qualification binding without executing or installing payload code:
+
+```bash
+rad plugins inspect ./example.radplug \
+  --trust-store ./trusted-publishers.json
+
+rad plugins install ./example.radplug \
+  --trust-store ./trusted-publishers.json \
+  --qualification ./qualification.json \
+  --enable
+
+rad plugins doctor
+rad plugins list
+```
+
+`--enable` is an explicit operator action and succeeds only when the installed package is eligible
+for the qualified zero-permission runtime. If activation readiness fails, RAD leaves the package
+installed but disabled. RAD does not currently operate a public plugin catalog; obtain packages,
+trust keys, and qualification evidence from a publisher through an independently authenticated
+channel.
 
 ### Usage
 
