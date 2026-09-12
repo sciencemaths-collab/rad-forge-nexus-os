@@ -10,6 +10,7 @@ def test_alpha_3_versions_and_release_commands_are_aligned() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     scripts = project["scripts"]
     assert project["version"] == "0.2.0a3"
+    assert "pytest>=9.0.3,<10" in project["dependencies"]
     assert scripts["rad"] == "nexus_os.rad_cli:main"
     assert scripts["rad-config-migrate"] == "nexus_os.config_migration:main"
     assert '__version__ = "0.2.0a3"' in (ROOT / "src/nexus_os/__init__.py").read_text(
