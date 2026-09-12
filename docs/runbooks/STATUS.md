@@ -53,6 +53,7 @@ Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — N
 | M. Evidence ledger | TESTED | 151-test suite, atomic hash-chain append, restart, mutation/deletion/reorder detection pass |
 | N. Capability qualification | TESTED | 155-test suite, integrity-bound deterministic promotion and fail-closed rules pass |
 | Phase 1. Capability foundation | TESTED | Protocol 1.0 manifests, native-tool adaptation, immutable registration, safe discovery, qualification-bound deterministic routing, Python 3.14 suite lifecycle repair, 572 passing tests, and all 18 release-evidence gates pass |
+| Phase 2. RAD Node | TESTED | Stable identity, immutable capability bindings, integrity-linked lifecycle and leases, separated authenticated scopes, bounded execution/cancellation, crash abandonment, tamper-aware health, 582 passing tests, and all 18 release-evidence gates pass |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |

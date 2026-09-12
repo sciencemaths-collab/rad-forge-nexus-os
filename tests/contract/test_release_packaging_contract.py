@@ -7,7 +7,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_alpha_3_versions_and_release_commands_are_aligned() -> None:
-    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    project = manifest["project"]
     scripts = project["scripts"]
     assert project["version"] == "0.2.0a3"
     assert "pytest>=9.0.3,<10" in project["dependencies"]
@@ -18,6 +19,11 @@ def test_alpha_3_versions_and_release_commands_are_aligned() -> None:
     )
     typescript = (ROOT / "sdk/typescript/package.json").read_text(encoding="utf-8")
     assert '"version": "0.2.0-alpha.3"' in typescript
+    included = manifest["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    assert included["schemas/capability-manifest.schema.json"] == (
+        "nexus_os/schemas/capability-manifest.schema.json"
+    )
+    assert included["schemas/rad-node.schema.json"] == "nexus_os/schemas/rad-node.schema.json"
 
 
 def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> None:

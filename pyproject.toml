@@ -49,6 +49,8 @@ packages = ["src/nexus_os"]
 [tool.hatch.build.targets.wheel.force-include]
 "schemas/project.schema.json" = "nexus_os/schemas/project.schema.json"
 "schemas/task-graph.schema.json" = "nexus_os/schemas/task-graph.schema.json"
+"schemas/capability-manifest.schema.json" = "nexus_os/schemas/capability-manifest.schema.json"
+"schemas/rad-node.schema.json" = "nexus_os/schemas/rad-node.schema.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
