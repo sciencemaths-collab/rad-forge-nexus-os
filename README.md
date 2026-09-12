@@ -31,11 +31,19 @@ generated plan does not imply approval, and task completion does not imply verif
 | Scientific research | Structure questions, sources, calculations, claims, and citations | Provenance, contradiction tracking, deterministic analysis, and review |
 | Data analysis | Plan ingestion, quality checks, statistics, charts, and persistence | Reproducible stages, typed computation, and acceptance criteria |
 | Internal operations | Coordinate approved tools and repeatable workflows | Policy-scoped actions, durable checkpoints, and audit records |
+| Capital planning | Review bounded allocation recommendations without executing transactions | Current-data validation, exact-plan approval, baseline comparison, and downloadable evidence |
 | Domain-specific agents | Build controlled agents for a laboratory, company, or team | Provider-neutral models plus explicitly registered tools and verifiers |
 
 The included RAD Agent application supports governed planning and human review. Execution is
 enabled by registering real typed tools, policies, capabilities, and acceptance verifiers
 for the intended domain.
+
+Phase 6 includes the first product vertical, **RAD Capital Planning**. It turns an
+operator-supplied, time-bounded capital snapshot into an approval-gated recommendation through the
+qualified Financial Decision Engine and RAD Node. It verifies feasibility and baseline utility,
+denies transaction authority, and exports a digest-bound evidence dossier. See
+[`RAD_CAPITAL_PLANNING.md`](docs/specifications/RAD_CAPITAL_PLANNING.md) for its exact contract and
+current limitations.
 
 ## How it works
 
