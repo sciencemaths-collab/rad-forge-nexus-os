@@ -33,3 +33,27 @@ variable name nor its resolved value.
 run, anchor evidence UUIDs, and pass them through Component AJ before any Agent use is
 allowed. Never rename a passing evaluation manifest as qualification evidence or use
 it to bypass RAD Agent policy and approval.
+
+## Run against the official OpenAI cloud adapter
+
+Cloud evaluation is opt-in, pinned to the official endpoint, and requires an opaque
+environment reference. It uses the same fixed corpus and deterministic rubric:
+
+```bash
+uv run rad-model-eval \
+  --provider openai \
+  --base-url https://api.openai.com/v1 \
+  --model YOUR_EXACT_MODEL_ID \
+  --credential-ref env:OPENAI_API_KEY \
+  --corpus benchmarks/model-evaluation/reference-v1.json \
+  --corpus-digest sha256:b9fa09369641225025b78ef3bb73759443b8d9e22e532af7757fffd8c6c55972 \
+  --output openai-evaluation.json \
+  --run-id 40000000-0000-4000-8000-000000000001 \
+  --trace-id 44444444444444444444444444444444 \
+  --evaluated-at 2026-08-13T16:00:00Z \
+  --authorize-cloud
+```
+
+`--authorize-cloud` cannot be combined with `--authorize-loopback`. Arbitrary remote
+endpoints remain rejected. A passing report remains `NOT_QUALIFIED` until an independent
+evidence process attests the exact provider, model, and adapter binding.
