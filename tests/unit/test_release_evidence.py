@@ -28,6 +28,11 @@ def test_generator_records_all_passes_but_not_release_approval(tmp_path) -> None
     assert parsed["qualification_state"] == "AUTOMATED_GATES_PASS"
     assert (tmp_path / "out/sbom.cdx.json").is_file()
     assert (tmp_path / "out/build-provenance.json").is_file()
+    limitations = (tmp_path / "out/KNOWN_LIMITATIONS.md").read_text()
+    assert "deterministic and fake-provider evidence is not live-model evidence" in limitations
+    assert "remain Component AG" not in limitations
+    markdown = (tmp_path / "out/final-evidence-report.md").read_text()
+    assert "automated evidence cannot grant release authorization" in markdown
 
 
 def test_generator_stops_at_first_failed_gate_and_writes_blocked_report(tmp_path) -> None:
