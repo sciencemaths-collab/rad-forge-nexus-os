@@ -147,4 +147,6 @@ def test_reference_runtime_executes_one_approved_workspace_task_with_evidence(
     evidence = facade.evidence(SESSION)
     assert evidence["chain_status"] == "VERIFIED"
     assert str(evidence["head_hash"]).startswith("sha256:")
+    artifacts = facade.artifacts(SESSION)
+    assert artifacts["artifacts"][0]["name"] == "project-inventory.json"
     assert evidence["record_count"] == 1
