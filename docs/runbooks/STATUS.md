@@ -1,5 +1,13 @@
 # Engineering Status
 
+## Phase 8 — RAD Warehouse Operations
+
+- Strict bounded inventory/order snapshot and deterministic integer allocation engine implemented.
+- Exact one-use approval, qualified RAD Node routing, independent result verification, and
+  four-record tamper-evident evidence export implemented.
+- Formal 15-case deterministic qualification is a release gate.
+- WMS, ERP, AWS, network, credential, and external-write capabilities remain unavailable.
+
 ## Phase 7 — Alpha 2 packaging and release
 
 - Versioned Python and TypeScript packages identify RAD Agent Alpha 2.
@@ -58,6 +66,7 @@ Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — N
 | Phase 4. RAD Decision Engine | AUTOMATED GATES PASS | Financial Algorithm 0.2.0 / adapter 1.0.0, pinned 25-case qualification attestation, approval-required non-transactional capability, real-engine RAD Node acceptance, 602 passing tests, and all 18 release-evidence gates pass |
 | Phase 5. RAD Compute Engine | AUTOMATED GATES PASS | vQPU 0.5.0 / adapter 1.0.0, pinned 15-case local CPU qualification, approval-required execution, exact plan/result binding, 605 passing tests, all 18 release gates, and no QPU fallback |
 | Industrial pivot Phase 6. RAD Capital Planning | LOCAL QUALIFICATION IN PROGRESS | Current-source contract, exact approval, qualified Financial Algorithm routing through RAD Node, baseline/feasibility verification, non-executing dossier, and tamper-evident export; hosted CI and release pending |
+| Industrial pivot Phase 8. RAD Warehouse Operations | LOCAL QUALIFICATION IN PROGRESS | Bounded integer allocation, exact approval, qualified RAD Node routing, verified baseline comparison, non-executing dossier, and tamper-evident export; hosted CI and release pending |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |

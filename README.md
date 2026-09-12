@@ -32,6 +32,7 @@ generated plan does not imply approval, and task completion does not imply verif
 | Data analysis | Plan ingestion, quality checks, statistics, charts, and persistence | Reproducible stages, typed computation, and acceptance criteria |
 | Internal operations | Coordinate approved tools and repeatable workflows | Policy-scoped actions, durable checkpoints, and audit records |
 | Capital planning | Review bounded allocation recommendations without executing transactions | Current-data validation, exact-plan approval, baseline comparison, and downloadable evidence |
+| Warehouse operations | Allocate bounded inventory to priority orders without writing to a WMS | Integer feasibility, distance-cost comparison, exact-plan approval, shortages, and downloadable evidence |
 | Domain-specific agents | Build controlled agents for a laboratory, company, or team | Provider-neutral models plus explicitly registered tools and verifiers |
 
 The included RAD Agent application supports governed planning and human review. Execution is
@@ -50,6 +51,13 @@ Phase 7 adds qualified heterogeneous compute routing. A real Apple Metal GPU is 
 every request remains plan-bound, approval-gated, qualification-gated, local-only, and
 fallback-denied. HPC, cloud, and physical QPU targets remain fail-closed until separately tested
 on real infrastructure. See [`RAD_COMPUTE_ENGINE.md`](docs/components/RAD_COMPUTE_ENGINE.md).
+
+Phase 8 adds **RAD Warehouse Operations**, the first discrete operations kernel. It accepts a
+strict operator-supplied inventory/order snapshot, creates a digest-bound allocation plan,
+requires one-use human approval, routes only the qualified local warehouse engine, verifies the
+integer allocation and baseline travel cost, and exports a four-record tamper-evident dossier.
+It cannot write to a WMS or ERP. See
+[`RAD_WAREHOUSE_OPERATIONS.md`](docs/specifications/RAD_WAREHOUSE_OPERATIONS.md).
 
 ## How it works
 
