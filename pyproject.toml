@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexus-os"
-version = "0.2.0a7"
+version = "0.2.0a8"
 description = "Provider-neutral, evidence-driven autonomous work runtime"
 readme = "README.md"
 license = "MIT"
@@ -16,6 +16,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+  "cryptography>=50,<51",
   "jsonschema[format]>=4.23,<5",
   "pytest>=9.0.3,<10",
   "PyYAML>=6.0.2,<7",
@@ -54,6 +55,7 @@ packages = ["src/nexus_os"]
 "schemas/task-graph.schema.json" = "nexus_os/schemas/task-graph.schema.json"
 "schemas/capability-manifest.schema.json" = "nexus_os/schemas/capability-manifest.schema.json"
 "schemas/rad-node.schema.json" = "nexus_os/schemas/rad-node.schema.json"
+"schemas/plugin-manifest.schema.json" = "nexus_os/schemas/plugin-manifest.schema.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

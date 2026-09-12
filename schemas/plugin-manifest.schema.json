@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/plugin-manifest.schema.json",
+  "title": "RAD Plugin Package Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plugin_id", "version", "publisher_id", "rad_version", "payload", "permissions", "capabilities", "qualification"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "plugin_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "publisher_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+    "rad_version": {
+      "type": "object", "additionalProperties": false,
+      "required": ["minimum", "maximum_exclusive"],
+      "properties": {
+        "minimum": {"type": "string"},
+        "maximum_exclusive": {"type": "string"}
+      }
+    },
+    "payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["filename", "sha256", "size_bytes"],
+      "properties": {
+        "filename": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"},
+        "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 52428800}
+      }
+    },
+    "permissions": {
+      "type": "array", "uniqueItems": true,
+      "items": {"enum": ["workspace.read", "workspace.write", "network", "secrets", "external.action"]}
+    },
+    "capabilities": {
+      "type": "array", "maxItems": 64, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}@[0-9]+\\.[0-9]+\\.[0-9]+$"}
+    },
+    "qualification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required", "attestation_sha256"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "attestation_sha256": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

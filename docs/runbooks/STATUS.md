@@ -1,5 +1,14 @@
 # Engineering Status
 
+## Phase 9 — Signed plugin installer and lifecycle
+
+- Bounded `.radplug` packages use Ed25519 publisher signatures and SHA-256 payload binding.
+- Compatibility, exact permission approval, publisher trust, and qualification digest are checked.
+- Private atomic install, disabled-by-default state, list/enable/disable/uninstall, audit events,
+  side-by-side updates, and rollback selection are exposed through `rad plugins`.
+- Packages remain non-executable; runtime isolation/loading and a public marketplace catalog are
+  explicitly deferred and fail closed.
+
 ## Phase 8 — RAD Warehouse Operations
 
 - Strict bounded inventory/order snapshot and deterministic integer allocation engine implemented.

@@ -12,11 +12,11 @@
 
 ```bash
 mkdir -p dist
-gh release download v0.2.0a7 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
+gh release download v0.2.0a8 --repo sciencemaths-collab/rad-forge-nexus-os --dir dist
 sha256sum --check dist/SHA256SUMS --ignore-missing
-gh attestation verify dist/nexus_os-0.2.0a7-py3-none-any.whl \
+gh attestation verify dist/nexus_os-0.2.0a8-py3-none-any.whl \
   --repo sciencemaths-collab/rad-forge-nexus-os
-pipx install --force ./dist/nexus_os-0.2.0a7-py3-none-any.whl
+pipx install --force ./dist/nexus_os-0.2.0a8-py3-none-any.whl
 rad doctor
 ```
 
