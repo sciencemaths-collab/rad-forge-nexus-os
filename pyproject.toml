@@ -32,6 +32,7 @@ nexus-agent-serve = "nexus_os.agent_server_cli:main"
 
 [dependency-groups]
 dev = [
+  "vqpu-sdk @ git+https://github.com/sciencemaths-collab/vqpu.git@2d544057e5ae758572d62f592bbd230631c68d98",
   "financial-algorithms @ git+https://github.com/sciencemaths-collab/financial-algorithm.git@e12ffbe52dd7f5a4ad32d906c67b08870b2629da",
   "pytest>=9.0.3,<10",
   "pytest-cov>=6,<7",

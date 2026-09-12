@@ -56,6 +56,7 @@ Overall state: **TESTED RAD AGENT LOCAL SETUP AND PLANNING/REVIEW BASELINE — N
 | Phase 2. RAD Node | TESTED | Stable identity, immutable capability bindings, integrity-linked lifecycle and leases, separated authenticated scopes, bounded execution/cancellation, crash abandonment, tamper-aware health, 582 passing tests, and all 18 release-evidence gates pass |
 | Phase 3. RAD Optimization Engine | AUTOMATED GATES PASS | PathWoven-DCGO 0.2.0 / adapter 1.0.0, pinned 50-case qualification attestation, strict bounded data contract, real-engine RAD Node acceptance, 592 passing tests, and all 18 release-evidence gates pass |
 | Phase 4. RAD Decision Engine | AUTOMATED GATES PASS | Financial Algorithm 0.2.0 / adapter 1.0.0, pinned 25-case qualification attestation, approval-required non-transactional capability, real-engine RAD Node acceptance, 602 passing tests, and all 18 release-evidence gates pass |
+| Phase 5. RAD Compute Engine | AUTOMATED GATES PASS | vQPU 0.5.0 / adapter 1.0.0, pinned 15-case local CPU qualification, approval-required execution, exact plan/result binding, 605 passing tests, all 18 release gates, and no QPU fallback |
 | O. Observability | TESTED | 161-test suite, bounded/redacted correlated telemetry and export-failure isolation pass |
 | P. Provider adapter SDK | TESTED | 166-test suite, normalized async port/models, redaction, registry, and vendor-neutrality pass |
 | Q. Deterministic mock provider | TESTED | 173-test suite, scripted lifecycle/failure/cancel/resume and offline wheel smoke pass |
