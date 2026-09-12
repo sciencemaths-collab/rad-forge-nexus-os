@@ -1399,3 +1399,22 @@ still pending.
   workflows are unchanged.
 - Source and extraction digests are recomputed, writes are atomic and conflict-safe, and
   downloadable extraction provenance is validated independently.
+
+## RAD Agent Phase 8A real-project inspection (implemented locally)
+
+This first post-release execution slice replaces the app-build specification placeholder with
+one real governed workspace capability:
+
+- `workspace.inspect_project` creates a stable, sorted project inventory before later app-build
+  stages run.
+- Every included UTF-8 file is bound by relative path, byte size, SHA-256 digest, bounded preview,
+  and truncation state.
+- VCS metadata, dependencies, generated output, hidden state, secret-like names, binary files,
+  oversized files, and the agent artifact directory are excluded.
+- Symlinked content and projects exceeding file or byte budgets are rejected rather than followed.
+- The only write is an atomic `.rad-agent-artifacts/project-inventory.json` evidence artifact;
+  project source is never modified and no command or network request is executed.
+
+This is the first bounded step toward ordinary software-project execution. It does not yet give
+later reasoning stages access to inventory contents, edit source files, execute tests, or remove
+the exact-model qualification requirement.
