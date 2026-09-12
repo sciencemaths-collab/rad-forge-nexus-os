@@ -120,6 +120,9 @@ uninstalled with `rad plugins`. Plugin enablement remains non-executable until a
 qualified runtime loader registers its capabilities. See
 **[RAD Plugin Packages](docs/specifications/RAD_PLUGIN_PACKAGES.md)**.
 
+For concrete examples across operations, finance, software, research, education, manufacturing,
+and cloud planning, see **[What People Can Do With RAD](docs/RAD_FOR_EVERYONE.md)**.
+
 ## Local quick start
 
 For the shortest installed-user path, see the **[five-minute quick start](docs/QUICKSTART_5_MINUTES.md)**.

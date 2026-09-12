@@ -13,7 +13,7 @@ from nexus_os.plugins import PluginError, PluginStore
 NOW = datetime(2026, 9, 12, 15, tzinfo=UTC)
 
 
-def package(tmp_path, *, permissions=None, qualification=None, payload=b"wheel-bytes"):
+def package(tmp_path, *, permissions=None, qualification=None, payload=b"wasm-bytes"):
     private = Ed25519PrivateKey.generate()
     public = private.public_key().public_bytes(
         serialization.Encoding.Raw, serialization.PublicFormat.Raw
@@ -34,13 +34,19 @@ def package(tmp_path, *, permissions=None, qualification=None, payload=b"wheel-b
         "publisher_id": "acme.plugins",
         "rad_version": {"minimum": "0.2.0", "maximum_exclusive": "0.3.0"},
         "payload": {
-            "filename": "acme_warehouse-1.2.3-py3-none-any.whl",
+            "filename": "acme_warehouse-1.2.3.wasm",
             "sha256": "sha256:" + hashlib.sha256(payload).hexdigest(),
             "size_bytes": len(payload),
         },
-        "permissions": permissions or ["workspace.read"],
+        "permissions": ["workspace.read"] if permissions is None else permissions,
         "capabilities": ["acme.warehouse.allocate@1.0.0"],
         "qualification": qualification or {"required": False, "attestation_sha256": None},
+        "runtime": {
+            "kind": "wasm-v1",
+            "operations": ["warehouse.allocate"],
+            "max_fuel": 100_000,
+            "max_memory_pages": 4,
+        },
     }
     canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
     plugin = tmp_path / "plugin.radplug"
@@ -62,7 +68,7 @@ def test_install_is_verified_disabled_and_audited(tmp_path):
         installed_at=NOW,
     )
     assert record.state == "DISABLED"
-    assert record.payload_path.read_bytes() == b"wheel-bytes"
+    assert record.payload_path.read_bytes() == b"wasm-bytes"
     assert record.public_dict()["execution_authorized"] is False
     assert store.events()[0]["action"] == "INSTALL"
     store.close()

@@ -14,7 +14,7 @@ def test_tampered_payload_is_rejected_without_state(tmp_path):
         signature = archive.read("signature.ed25519")
     with zipfile.ZipFile(plugin, "w") as archive:
         archive.writestr("manifest.json", manifest)
-        archive.writestr("acme_warehouse-1.2.3-py3-none-any.whl", b"tampered")
+        archive.writestr("acme_warehouse-1.2.3.wasm", b"tampered")
         archive.writestr("signature.ed25519", signature)
     store = PluginStore(tmp_path / "state", rad_version="0.2.0a8")
     with pytest.raises(PluginError, match="payload integrity"):

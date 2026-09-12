@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/plugin-qualification.schema.json",
+  "title": "RAD WebAssembly Plugin Qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plugin_id", "plugin_version", "capability_id", "capability_version", "runtime_kind", "outcome", "evaluated_at", "expires_at", "benchmark_digest", "limitations", "attestation_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "plugin_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+    "plugin_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}$"},
+    "capability_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "runtime_kind": {"const": "wasm-v1"},
+    "outcome": {"const": "QUALIFIED"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "benchmark_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "limitations": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256}},
+    "attestation_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}
