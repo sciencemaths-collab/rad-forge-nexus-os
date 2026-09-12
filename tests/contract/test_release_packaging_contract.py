@@ -10,11 +10,11 @@ def test_alpha_versions_and_release_commands_are_aligned() -> None:
     manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = manifest["project"]
     scripts = project["scripts"]
-    assert project["version"] == "0.2.0a7"
+    assert project["version"] == "0.2.0a8"
     assert "pytest>=9.0.3,<10" in project["dependencies"]
     assert scripts["rad"] == "nexus_os.rad_cli:main"
     assert scripts["rad-config-migrate"] == "nexus_os.config_migration:main"
-    assert '__version__ = "0.2.0a7"' in (ROOT / "src/nexus_os/__init__.py").read_text(
+    assert '__version__ = "0.2.0a8"' in (ROOT / "src/nexus_os/__init__.py").read_text(
         encoding="utf-8"
     )
     typescript = (ROOT / "sdk/typescript/package.json").read_text(encoding="utf-8")
@@ -24,6 +24,9 @@ def test_alpha_versions_and_release_commands_are_aligned() -> None:
         "nexus_os/schemas/capability-manifest.schema.json"
     )
     assert included["schemas/rad-node.schema.json"] == "nexus_os/schemas/rad-node.schema.json"
+    assert included["schemas/plugin-manifest.schema.json"] == (
+        "nexus_os/schemas/plugin-manifest.schema.json"
+    )
 
 
 def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> None:
@@ -31,8 +34,8 @@ def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> Non
     dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
     assert "@sha256:" in dockerfile
     assert "USER 10001:10001" in dockerfile
-    assert "pip install --no-cache-dir /tmp/nexus_os-0.2.0a7-py3-none-any.whl" in dockerfile
-    assert "!dist/nexus_os-0.2.0a7-py3-none-any.whl" in dockerignore
+    assert "pip install --no-cache-dir /tmp/nexus_os-0.2.0a8-py3-none-any.whl" in dockerfile
+    assert "!dist/nexus_os-0.2.0a8-py3-none-any.whl" in dockerignore
     assert 'ENTRYPOINT ["rad"]' in dockerfile
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "docker run --rm rad-agent:ci --version" in workflow
@@ -43,11 +46,11 @@ def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> Non
 def test_quickstart_uses_real_release_channels_and_documents_container_boundary() -> None:
     quickstart = (ROOT / "docs/QUICKSTART_5_MINUTES.md").read_text(encoding="utf-8")
     assert "pipx install nexus-os==" not in quickstart
-    assert "gh release download v0.2.0a7" in quickstart
+    assert "gh release download v0.2.0a8" in quickstart
     assert "--dir dist" in quickstart
     assert "sha256sum --check dist/SHA256SUMS" in quickstart
-    assert "gh attestation verify dist/nexus_os-0.2.0a7-py3-none-any.whl" in quickstart
-    assert "ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a7" in quickstart
+    assert "gh attestation verify dist/nexus_os-0.2.0a8-py3-none-any.whl" in quickstart
+    assert "ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a8" in quickstart
     assert "--network host" in quickstart
     assert "without a moving `latest` tag" in quickstart
 

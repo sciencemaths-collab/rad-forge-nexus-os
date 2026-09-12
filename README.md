@@ -93,6 +93,7 @@ evaluate acceptance criteria. Evidence records what actually occurred.
 - Tamper-evident evidence chains and acceptance verification
 - Python and TypeScript SDK surfaces
 - Local browser interface for login, goal entry, review, and approval
+- Signed, compatibility-checked plugin installation with explicit permission review and lifecycle
 
 ## Ways to use RAD Agent
 
@@ -113,6 +114,11 @@ execution is not enabled merely by adding an API key.
 For the complete walkthrough—including local setup, authenticated API examples, safe
 credential references, SDK integration, provider porting, execution requirements, and
 troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
+
+Signed plugin packages can be verified, installed disabled, reviewed, enabled, rolled back, and
+uninstalled with `rad plugins`. Plugin enablement remains non-executable until a separately
+qualified runtime loader registers its capabilities. See
+**[RAD Plugin Packages](docs/specifications/RAD_PLUGIN_PACKAGES.md)**.
 
 ## Local quick start
 

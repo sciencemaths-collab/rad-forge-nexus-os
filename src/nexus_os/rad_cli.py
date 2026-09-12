@@ -13,6 +13,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -23,6 +24,7 @@ from nexus_os import __version__
 from nexus_os.agent_model_config import AgentModelConfigError, load_agent_model_config
 from nexus_os.agent_server_cli import run as run_server
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
+from nexus_os.plugins import PluginError, PluginStore
 from nexus_os.secrets import SecretReference, SecretResolver, secret_scope
 
 _DEFAULT_ENDPOINTS = (
@@ -90,6 +92,22 @@ def parser() -> argparse.ArgumentParser:
     serve.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     serve.add_argument("--host", choices=("127.0.0.1", "::1"), default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8765)
+
+    plugins = commands.add_parser("plugins", help="Manage signed RAD plugin packages")
+    plugin_commands = plugins.add_subparsers(dest="plugins_command", required=True)
+    plugin_list = plugin_commands.add_parser("list", help="List installed plugins")
+    plugin_list.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    install = plugin_commands.add_parser("install", help="Verify and install a plugin disabled")
+    install.add_argument("package", type=Path)
+    install.add_argument("--trust-store", type=Path, required=True)
+    install.add_argument("--qualification", type=Path)
+    install.add_argument("--approve-permission", action="append", default=[])
+    install.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
+    for action in ("enable", "disable", "uninstall"):
+        command = plugin_commands.add_parser(action, help=f"{action.title()} an installed plugin")
+        command.add_argument("plugin_id")
+        command.add_argument("version")
+        command.add_argument("--config-dir", type=Path, default=Path(".rad-agent"))
     return result
 
 
@@ -369,6 +387,42 @@ def serve_local(values: argparse.Namespace) -> int:
     )
 
 
+def plugins_local(values: argparse.Namespace) -> dict[str, Any]:
+    """Run one local plugin lifecycle command without loading plugin code."""
+    store = PluginStore(values.config_dir.resolve() / "plugins", rad_version=__version__)
+    now = datetime.now(UTC)
+    try:
+        if values.plugins_command == "list":
+            return {"plugins": [item.public_dict() for item in store.list()]}
+        if values.plugins_command == "install":
+            record = store.install(
+                values.package.resolve(),
+                values.trust_store.resolve(),
+                approved_permissions=values.approve_permission,
+                installed_by="local.operator",
+                installed_at=now,
+                qualification_attestation=(
+                    None if values.qualification is None else values.qualification.resolve()
+                ),
+            )
+        elif values.plugins_command == "enable":
+            record = store.enable(values.plugin_id, values.version, actor="local.operator", at=now)
+        elif values.plugins_command == "disable":
+            record = store.disable(values.plugin_id, values.version, actor="local.operator", at=now)
+        elif values.plugins_command == "uninstall":
+            store.uninstall(values.plugin_id, values.version, actor="local.operator", at=now)
+            return {
+                "plugin_id": values.plugin_id,
+                "version": values.version,
+                "state": "UNINSTALLED",
+            }
+        else:
+            raise PluginError("unsupported plugin command")
+        return record.public_dict()
+    finally:
+        store.close()
+
+
 def run(
     arguments: Sequence[str] | None = None,
     *,
@@ -398,8 +452,11 @@ def run(
             return 0 if connected else 2
         if values.command == "serve":
             return serve_local(values)
+        if values.command == "plugins":
+            _emit(plugins_local(values))
+            return 0
         raise RadCliError("unsupported RAD command")
-    except (RadCliError, AgentModelConfigError) as exc:
+    except (RadCliError, AgentModelConfigError, PluginError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
