@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from nexus_os.project_inspection import inspect_project, register_project_inspection_tool
+from nexus_os.domain import ActionEffect, TaskDefinition, TaskId
+from nexus_os.project_inspection import (
+    ProjectInventoryContext,
+    inspect_project,
+    register_project_inspection_tool,
+)
 from nexus_os.tools import ToolError, ToolRegistry
 
 
@@ -63,3 +68,56 @@ def test_rejects_symlinked_content(tmp_path: Path) -> None:
                 {"workspace_root": str(tmp_path), "expected_artifact": "inventory.json"}
             )
         )
+
+
+def _design_task(root: Path) -> TaskDefinition:
+    return TaskDefinition(
+        TaskId("design"),
+        "mode.app_build.design",
+        (),
+        ActionEffect.WORKSPACE_WRITE,
+        60,
+        1,
+        0,
+        {"workspace_root": str(root), "expected_artifact": "architecture.md"},
+    )
+
+
+def test_context_revalidates_inventory_before_returning_bounded_source(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+    asyncio.run(
+        inspect_project({"workspace_root": str(tmp_path), "expected_artifact": "specification.md"})
+    )
+    context = ProjectInventoryContext().context_for(_design_task(tmp_path))
+    assert context is not None
+    assert context["inventory_file_count"] == 1
+    assert context["files"][0]["path"] == "app.py"
+    assert str(tmp_path) not in json.dumps(context)
+
+
+def test_context_rejects_source_drift_before_model_use(tmp_path: Path) -> None:
+    source = tmp_path / "app.py"
+    source.write_text("value = 1\n", encoding="utf-8")
+    asyncio.run(
+        inspect_project({"workspace_root": str(tmp_path), "expected_artifact": "specification.md"})
+    )
+    source.write_text("value = 2\n", encoding="utf-8")
+    with pytest.raises(ToolError, match="changed"):
+        ProjectInventoryContext().context_for(_design_task(tmp_path))
+
+
+def test_context_rejects_parent_replaced_by_symlink(tmp_path: Path) -> None:
+    source_dir = tmp_path / "src"
+    source_dir.mkdir()
+    (source_dir / "app.py").write_text("value = 1\n", encoding="utf-8")
+    asyncio.run(
+        inspect_project({"workspace_root": str(tmp_path), "expected_artifact": "specification.md"})
+    )
+    outside = tmp_path.parent / "phase8b-outside"
+    outside.mkdir(exist_ok=True)
+    (outside / "app.py").write_text("value = 1\n", encoding="utf-8")
+    (source_dir / "app.py").unlink()
+    source_dir.rmdir()
+    source_dir.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ToolError, match="unsafe"):
+        ProjectInventoryContext().context_for(_design_task(tmp_path))

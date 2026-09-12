@@ -1418,3 +1418,21 @@ one real governed workspace capability:
 This is the first bounded step toward ordinary software-project execution. It does not yet give
 later reasoning stages access to inventory contents, edit source files, execute tests, or remove
 the exact-model qualification requirement.
+
+## RAD Agent Phase 8B verified project context (implemented locally)
+
+Later app-build stages now receive bounded source context from the Phase 8A inventory:
+
+- A provider-neutral `TaskContextProvider` boundary keeps the core reasoner independent of local
+  filesystem policy.
+- The bundled application supplies `ProjectInventoryContext`, while other compositions may omit
+  context or provide their own validated implementation.
+- Before each later model request, every inventoried source is rechecked for path safety, regular
+  file status, byte size, SHA-256 digest, UTF-8 preview, ordering, and uniqueness.
+- Missing, changed, symlinked, duplicated, malformed, or oversized context fails before the model
+  is called.
+- The prompt receives at most 48 KiB of deterministic, relative-path-only context and explicitly
+  records whether the full inventory fit.
+
+This closes project understanding for bounded source inventories. Controlled patch application,
+test-command execution, and accessible local model qualification remain separate later slices.

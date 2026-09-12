@@ -38,7 +38,7 @@ from nexus_os.model_registry import (
 from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.policy import PolicyEngine, PolicyRules
-from nexus_os.project_inspection import register_project_inspection_tool
+from nexus_os.project_inspection import ProjectInventoryContext, register_project_inspection_tool
 from nexus_os.providers import AgentAdapter
 from nexus_os.research_tools import (
     register_local_research_extraction_tool,
@@ -186,6 +186,7 @@ def create_local_application(
         provider_id=selected_profile.provider_type,
         model_id=model_id,
         adapter_version=selected_profile.adapter_version,
+        context_provider=ProjectInventoryContext(),
     )
     runtime_api = (
         _create_reference_runtime(state_dir, sessions, ids, task_reasoner)

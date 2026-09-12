@@ -6,11 +6,12 @@ import hashlib
 import json
 import os
 import re
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from nexus_os.domain import ActionEffect
+from nexus_os.domain import ActionEffect, TaskDefinition
 from nexus_os.secrets import redact
 from nexus_os.tools import ToolDescriptor, ToolError, ToolRegistry
 
@@ -32,6 +33,125 @@ _MAX_FILE_BYTES = 256 * 1024
 _MAX_TOTAL_BYTES = 20 * 1024 * 1024
 _MAX_PREVIEW_BYTES = 8 * 1024
 _MAX_OUTPUT_BYTES = 4 * 1024 * 1024
+_MAX_CONTEXT_BYTES = 48 * 1024
+
+
+class ProjectInventoryContext:
+    """Revalidate and bound the Phase 8A inventory before model reasoning."""
+
+    def context_for(self, task: TaskDefinition) -> Mapping[str, Any] | None:
+        if task.kind == "mode.app_build.specification" or not task.kind.startswith(
+            "mode.app_build."
+        ):
+            return None
+        root_value = task.input.get("workspace_root")
+        if not isinstance(root_value, str):
+            raise ToolError("project context workspace is invalid")
+        root = Path(root_value).resolve()
+        artifact_root = root / ".rad-agent-artifacts"
+        inventory = artifact_root / _INVENTORY_ARTIFACT
+        if (
+            not root.is_dir()
+            or root.is_symlink()
+            or artifact_root.is_symlink()
+            or artifact_root.resolve().parent != root
+            or inventory.is_symlink()
+        ):
+            raise ToolError("project context boundary is unsafe")
+        try:
+            raw = inventory.read_bytes()
+        except OSError as exc:
+            raise ToolError("verified project inventory is unavailable") from exc
+        if not 1 <= len(raw) <= _MAX_OUTPUT_BYTES:
+            raise ToolError("verified project inventory is invalid")
+        try:
+            document = json.loads(raw)
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise ToolError("verified project inventory is invalid") from exc
+        if (
+            not isinstance(document, dict)
+            or document.get("schema_version") != "1.0"
+            or document.get("tool") != "workspace.inspect_project"
+            or not isinstance(document.get("files"), list)
+            or document.get("file_count") != len(document["files"])
+        ):
+            raise ToolError("verified project inventory is invalid")
+
+        verified: list[dict[str, Any]] = []
+        for item in document["files"]:
+            verified.append(_verify_inventory_item(root, item))
+        if [item["path"] for item in verified] != sorted(item["path"] for item in verified):
+            raise ToolError("verified project inventory order is invalid")
+        if len({item["path"] for item in verified}) != len(verified):
+            raise ToolError("verified project inventory contains duplicate paths")
+
+        selected: list[dict[str, Any]] = []
+        context: dict[str, Any] = {
+            "schema_version": "1.0",
+            "inventory_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+            "files": selected,
+            "inventory_file_count": len(verified),
+            "context_truncated": False,
+        }
+        for item in verified:
+            selected.append(item)
+            if len(_canonical_bytes(context)) > _MAX_CONTEXT_BYTES:
+                selected.pop()
+                context["context_truncated"] = True
+                break
+        if len(_canonical_bytes(context)) > _MAX_CONTEXT_BYTES:
+            raise ToolError("verified project context exceeds its prompt budget")
+        return context
+
+
+def _verify_inventory_item(root: Path, item: object) -> dict[str, Any]:
+    expected = {"path", "bytes", "sha256", "preview", "preview_truncated"}
+    if not isinstance(item, dict) or set(item) != expected:
+        raise ToolError("verified project inventory file record is invalid")
+    relative_value = item.get("path")
+    if (
+        not isinstance(relative_value, str)
+        or not _ARTIFACT.fullmatch(relative_value)
+        or relative_value.startswith("/")
+        or ".." in Path(relative_value).parts
+    ):
+        raise ToolError("verified project inventory path is invalid")
+    source = root / relative_value
+    resolved_source = source.resolve()
+    if (
+        source.is_symlink()
+        or resolved_source != source.absolute()
+        or root not in resolved_source.parents
+        or not source.is_file()
+    ):
+        raise ToolError("verified project source is missing or unsafe")
+    try:
+        body = source.read_bytes()
+    except OSError as exc:
+        raise ToolError("verified project source could not be read") from exc
+    digest = "sha256:" + hashlib.sha256(body).hexdigest()
+    try:
+        preview = body[:_MAX_PREVIEW_BYTES].decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ToolError("verified project source encoding changed") from exc
+    if (
+        item.get("bytes") != len(body)
+        or item.get("sha256") != digest
+        or item.get("preview") != preview
+        or item.get("preview_truncated") is not (len(body) > _MAX_PREVIEW_BYTES)
+    ):
+        raise ToolError("verified project source changed after inspection")
+    return {
+        "path": relative_value,
+        "bytes": len(body),
+        "sha256": digest,
+        "preview": preview,
+        "preview_truncated": len(body) > _MAX_PREVIEW_BYTES,
+    }
+
+
+def _canonical_bytes(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
 
 
 def register_project_inspection_tool(registry: ToolRegistry) -> None:
