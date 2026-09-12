@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radforge.dev/schemas/rad-node.schema.json",
+  "title": "RAD Node Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "node_id", "state", "revision", "capabilities", "active_leases", "event_head"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "node_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{2,63}$"},
+    "state": {"enum": ["STOPPED", "STARTING", "READY", "DRAINING", "DEGRADED"]},
+    "revision": {"type": "integer", "minimum": 0},
+    "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{2,127}@[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"}},
+    "active_leases": {"type": "integer", "minimum": 0},
+    "event_head": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}
