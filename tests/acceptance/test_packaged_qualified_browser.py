@@ -460,8 +460,14 @@ def test_packaged_app_build_edits_and_verifies_a_fresh_project(
             assert (workspace / "app.py").read_text(encoding="utf-8").startswith("def add(")
             rollback_files = tuple((workspace / ".rad-agent-artifacts" / "rollback").glob("*.json"))
             assert len(rollback_files) == 1
-            test_artifacts = tuple((workspace / ".rad-agent-artifacts").glob("*-tests.json"))
-            assert len(test_artifacts) == 4
+            artifact_root = workspace / ".rad-agent-artifacts"
+            for name in (
+                "unit-tests.json",
+                "integration-tests.json",
+                "security-tests.json",
+                "failure-tests.json",
+            ):
+                assert (artifact_root / name).is_file()
             diagnostic.write_text("stage=verified-completion\n", encoding="utf-8")
     except Exception:
         diagnostic.write_text(traceback.format_exc(), encoding="utf-8")
