@@ -42,6 +42,12 @@ _APP_BUILD_STAGES = (
     _Stage("failure_test", "mode.app_build.failure_test", "failure-tests.json", 900, False),
     _Stage("evidence_report", "mode.app_build.evidence", "evidence-report.json", 300, False),
 )
+_APP_VERIFICATION_COMMANDS = {
+    "unit_test": ["python", "-m", "pytest", "-q", "tests/unit"],
+    "integration_test": ["python", "-m", "pytest", "-q", "tests/integration"],
+    "security_test": ["python", "-m", "pytest", "-q", "tests/security"],
+    "failure_test": ["python", "-m", "pytest", "-q", "tests/failure"],
+}
 
 _RESEARCH_STAGES = (
     _Stage("protocol", "mode.research.protocol", "protocol.json", 300, True),
@@ -109,6 +115,8 @@ class AppBuildMode:
                 task_input.update(project_name=name, goal=goal)
             if stage.task_id in {"contract_test", "evidence_report"}:
                 task_input["acceptance"] = acceptance
+            if stage.task_id in _APP_VERIFICATION_COMMANDS:
+                task_input["verification_command"] = _APP_VERIFICATION_COMMANDS[stage.task_id]
             tasks.append(
                 TaskDefinition(
                     task_id=task_id,
@@ -117,6 +125,7 @@ class AppBuildMode:
                     effect=(
                         ActionEffect.SENSITIVE
                         if stage.task_id == "implementation"
+                        or stage.task_id in _APP_VERIFICATION_COMMANDS
                         else ActionEffect.WORKSPACE_WRITE
                     ),
                     timeout_seconds=stage.timeout_seconds,
