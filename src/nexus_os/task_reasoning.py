@@ -48,6 +48,10 @@ class TaskModelUseAuthorizer(Protocol):
     ) -> object: ...
 
 
+class TaskContextProvider(Protocol):
+    def context_for(self, task: TaskDefinition) -> Mapping[str, Any] | None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class ReasonedTaskArtifact:
     title: str
@@ -110,6 +114,7 @@ class QualifiedTaskReasoner:
         model_id: str,
         adapter_version: str,
         timeout_seconds: int = 60,
+        context_provider: TaskContextProvider | None = None,
     ) -> None:
         if (
             not isinstance(timeout_seconds, int)
@@ -123,6 +128,7 @@ class QualifiedTaskReasoner:
         self._model_id = model_id
         self._adapter_version = adapter_version
         self._timeout = timeout_seconds
+        self._context_provider = context_provider
 
     async def propose(
         self,
@@ -175,6 +181,17 @@ class QualifiedTaskReasoner:
         prompt = "Approved task:\n" + json.dumps(
             task_document, sort_keys=True, separators=(",", ":"), ensure_ascii=True
         )
+        if self._context_provider is not None:
+            try:
+                context = self._context_provider.context_for(task)
+            except Exception as exc:
+                raise TaskReasoningError("verified task context is unavailable") from exc
+            if context is not None:
+                if redact(context) != context:
+                    raise TaskReasoningError("task context contains secret-like material")
+                prompt += "\nVerified project context:\n" + json.dumps(
+                    context, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+                )
         prompt += (
             "\nPrevious response failed validation. Return a corrected object."
             if repair
