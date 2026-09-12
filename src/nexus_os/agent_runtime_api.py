@@ -495,6 +495,15 @@ def _valid_download_provenance(document: dict[str, object]) -> bool:
             and isinstance(document.get("files"), list)
             and bool(document["files"])
         )
+    if tool == "workspace.run_python_verification":
+        return (
+            document.get("schema_version") == "1.0"
+            and isinstance(document.get("command"), list)
+            and isinstance(document.get("exit_code"), int)
+            and isinstance(document.get("passed"), bool)
+            and isinstance(document.get("output"), str)
+            and isinstance(document.get("output_truncated"), bool)
+        )
     if tool == "research.extract_source_lines":
         return _valid_research_extractions(document)
     if tool != "research.ingest_local_sources" or document.get("schema_version") != "1.0":
