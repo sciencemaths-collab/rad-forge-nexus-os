@@ -35,6 +35,12 @@ jobs:
         run: uv run python scripts/release_evidence.py --output artifacts/release-evidence
       - name: Build release container
         run: docker build --tag rad-agent:ci .
+      - name: Smoke test release container
+        run: |
+          docker run --rm rad-agent:ci --version
+          docker run --rm rad-agent:ci --help
+          docker run --rm --entrypoint python rad-agent:ci -c \
+            'import os, nexus_os; assert os.getuid() == 10001; assert nexus_os.__version__ == "0.2.0a6"'
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
