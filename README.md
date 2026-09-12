@@ -96,6 +96,13 @@ troubleshooting—read **[Using RAD Agent](docs/USING_RAD_AGENT.md)**.
 
 For the shortest installed-user path, see the **[five-minute quick start](docs/QUICKSTART_5_MINUTES.md)**.
 
+RAD Agent is currently distributed through signed
+[GitHub releases](https://github.com/sciencemaths-collab/rad-forge-nexus-os/releases) and the
+versioned [`rad-agent` container](https://github.com/sciencemaths-collab/rad-forge-nexus-os/pkgs/container/rad-agent).
+It is not published on PyPI, and the container intentionally has no moving `latest` tag.
+Use the exact release version or immutable image digest. The container is best suited to
+verification and host-networked local operation; use the wheel for the simplest desktop setup.
+
 ### Requirements
 
 - Python 3.12 or newer

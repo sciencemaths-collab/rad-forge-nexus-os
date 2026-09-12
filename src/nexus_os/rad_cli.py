@@ -19,6 +19,7 @@ from urllib.parse import urlsplit
 
 import yaml
 
+from nexus_os import __version__
 from nexus_os.agent_model_config import AgentModelConfigError, load_agent_model_config
 from nexus_os.agent_server_cli import run as run_server
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
@@ -55,6 +56,7 @@ def parser() -> argparse.ArgumentParser:
         prog="rad",
         description="Configure, diagnose, and run RAD Agent locally",
     )
+    result.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = result.add_subparsers(dest="command", required=True)
 
     setup = commands.add_parser("setup", help="Create local RAD Agent configuration")

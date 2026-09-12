@@ -164,7 +164,8 @@ def test_development_authorization_is_visibly_unqualified_and_proposal_only(
 
 
 @pytest.mark.parametrize(
-    "arguments", [[], ["setup", "--help"], ["doctor", "--help"], ["serve", "--help"]]
+    "arguments",
+    [[], ["--version"], ["setup", "--help"], ["doctor", "--help"], ["serve", "--help"]],
 )
 def test_help_surfaces_do_not_require_a_control_client(arguments) -> None:
     with pytest.raises(SystemExit) as raised:

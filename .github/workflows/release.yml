@@ -60,15 +60,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push pinned RAD Agent image
+      - name: Build and push candidate RAD Agent image
         id: image
         env:
           IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/rad-agent
-          IMAGE: ghcr.io/${{ github.repository_owner }}/rad-agent:${{ github.ref_name }}
+          CANDIDATE_IMAGE: ghcr.io/${{ github.repository_owner }}/rad-agent:candidate-${{ github.sha }}
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
-            --provenance=mode=max --sbom=true --tag "${IMAGE}" --push .
-          digest="$(docker buildx imagetools inspect "${IMAGE}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+            --provenance=mode=max --sbom=true --tag "${CANDIDATE_IMAGE}" --push .
+          digest="$(docker buildx imagetools inspect "${CANDIDATE_IMAGE}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
           echo "subject=${IMAGE_REPOSITORY}" >> "${GITHUB_OUTPUT}"
           echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
       - uses: actions/attest-build-provenance@v3
@@ -76,7 +76,16 @@ jobs:
           subject-name: ${{ steps.image.outputs.subject }}
           subject-digest: ${{ steps.image.outputs.digest }}
           push-to-registry: true
+      - name: Promote attested image digest to release tag
+        env:
+          IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/rad-agent
+          IMAGE: ghcr.io/${{ github.repository_owner }}/rad-agent:${{ github.ref_name }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          docker buildx imagetools create --tag "${IMAGE}" "${IMAGE_REPOSITORY}@${DIGEST}"
+          promoted="$(docker buildx imagetools inspect "${IMAGE}" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          test "${promoted}" = "${DIGEST}"
       - name: Publish immutable GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" dist/* --verify-tag --generate-notes
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --verify-tag --generate-notes --prerelease
