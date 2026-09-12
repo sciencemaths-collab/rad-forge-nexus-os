@@ -1,4 +1,5 @@
 import asyncio
+import json
 from datetime import timedelta
 
 import pytest
@@ -138,7 +139,11 @@ def test_reference_runtime_executes_one_approved_workspace_task_with_evidence(
         )
     )
     assert ticked["outcome"] == "SUCCEEDED"
-    assert (workspace / ".rad-agent-artifacts/specification.md").is_file()
+    inventory = workspace / ".rad-agent-artifacts/project-inventory.json"
+    assert inventory.is_file()
+    assert json.loads(inventory.read_text(encoding="utf-8"))["tool"] == (
+        "workspace.inspect_project"
+    )
     evidence = facade.evidence(SESSION)
     assert evidence["chain_status"] == "VERIFIED"
     assert str(evidence["head_hash"]).startswith("sha256:")
