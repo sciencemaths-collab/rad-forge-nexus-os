@@ -11,7 +11,8 @@ Status: implemented for RAD Agent Phase 8D.
   commands with its own interpreter; verification never relies on undeclared developer tooling.
 - Each stage is `SENSITIVE` and requires human approval bound to the exact command payload.
 - Execution uses the installed Python interpreter directly without a shell and receives a new,
-  credential-free environment.
+  credential-free environment. Python isolated mode is retained, with only the approved workspace
+  root added for normal project imports.
 - A Python audit boundary denies network operations, child processes, system commands, and writes
   outside the approved workspace. Temporary files are redirected inside the workspace.
 - Each run has a 150-second timeout and a 128-KiB combined-output limit.
