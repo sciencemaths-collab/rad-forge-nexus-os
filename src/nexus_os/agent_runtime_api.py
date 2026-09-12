@@ -445,7 +445,9 @@ def _artifact_file(task_input: Mapping[str, object]) -> tuple[Path, bytes] | Non
         return None
     root = Path(root_value).resolve()
     artifact_root = root / ".rad-agent-artifacts"
-    target = artifact_root / artifact_value
+    target = artifact_root / (
+        "project-inventory.json" if artifact_value == "specification.md" else artifact_value
+    )
     try:
         artifact_root_resolved = artifact_root.resolve()
         target_resolved = target.resolve()
@@ -477,6 +479,21 @@ def _valid_download_provenance(document: dict[str, object]) -> bool:
     if tool == "workspace.write_artifact":
         return document.get("schema_version") == "1.0" and isinstance(
             document.get("task_input"), dict
+        )
+    if tool == "workspace.inspect_project":
+        files = document.get("files")
+        return (
+            document.get("schema_version") == "1.0"
+            and isinstance(files, list)
+            and document.get("file_count") == len(files)
+        )
+    if tool == "workspace.apply_text_changes":
+        return (
+            document.get("schema_version") == "1.0"
+            and _sha256(document.get("reasoned_artifact_digest"))
+            and isinstance(document.get("rollback_path"), str)
+            and isinstance(document.get("files"), list)
+            and bool(document["files"])
         )
     if tool == "research.extract_source_lines":
         return _valid_research_extractions(document)

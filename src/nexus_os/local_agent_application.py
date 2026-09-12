@@ -26,6 +26,7 @@ from nexus_os.anthropic_adapter import AnthropicAdapter
 from nexus_os.approval import ApprovalStore
 from nexus_os.attempt_store import AttemptStore
 from nexus_os.cloud_http_transport import AnthropicHTTPTransport, OpenAIHTTPTransport
+from nexus_os.controlled_editing import register_controlled_editing_tool
 from nexus_os.evidence import EvidenceLedger
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
@@ -321,12 +322,14 @@ def _create_reference_runtime(
     runtime = RuntimeOrchestrator(checkpoints)
     approvals = ApprovalStore(state_dir / "runtime-approvals.sqlite")
     registry = ToolRegistry()
+    register_controlled_editing_tool(registry)
     register_project_inspection_tool(registry)
     register_workspace_artifact_tool(registry)
     register_local_research_source_tool(registry)
     register_local_research_extraction_tool(registry)
     allowed = frozenset(
         {
+            "workspace.apply_text_changes",
             "workspace.inspect_project",
             "research.extract_source_lines",
             "research.ingest_local_sources",
@@ -379,6 +382,7 @@ def _create_reference_runtime(
     bindings["mode.research.source_acquisition"] = "research.ingest_local_sources"
     bindings["mode.research.source_extraction"] = "research.extract_source_lines"
     bindings["mode.app_build.specification"] = "workspace.inspect_project"
+    bindings["mode.app_build.implementation"] = "workspace.apply_text_changes"
     scheduler = GovernedScheduler(
         runtime=runtime,
         registry=registry,

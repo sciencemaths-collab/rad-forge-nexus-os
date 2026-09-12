@@ -1436,3 +1436,17 @@ Later app-build stages now receive bounded source context from the Phase 8A inve
 
 This closes project understanding for bounded source inventories. Controlled patch application,
 test-command execution, and accessible local model qualification remain separate later slices.
+
+## RAD Agent Phase 8C controlled source editing (implemented locally)
+
+- App-build implementation is now a `SENSITIVE`, exact-action approval gate.
+- Qualified task reasoning accepts a backward-compatible `file_changes` structure with bounded
+  complete replacements, expected source digests, and explicit new-file markers.
+- `workspace.apply_text_changes` rejects traversal, hidden/secret paths, secret-like content,
+  symlinks, stale digests, duplicates, binaries, and oversized changes before mutation.
+- Successful changes use atomic file replacement, preserve private rollback content, and emit a
+  downloadable implementation summary with final digests.
+- The tool cannot delete files, execute commands, access the network, deploy, or publish.
+
+This enables reviewed local source creation and modification. Build/lint/test command execution
+and the live fresh-user qualification remain Phase 8D and 8E work.

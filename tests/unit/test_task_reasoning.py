@@ -96,6 +96,27 @@ def test_verified_context_is_included_without_changing_the_provider_contract(tmp
     assert '"path":"app.py"' in prompt
 
 
+def test_implementation_accepts_only_digest_bound_file_changes(tmp_path) -> None:
+    implementation = TaskDefinition(
+        TaskId("implementation"),
+        "mode.app_build.implementation",
+        (),
+        ActionEffect.SENSITIVE,
+        60,
+        1,
+        0,
+        {"workspace_root": str(tmp_path), "expected_artifact": "implementation"},
+    )
+    proposed = {
+        **output(),
+        "file_changes": [{"path": "app.py", "expected_sha256": None, "content": "value = 1\n"}],
+    }
+    controller, adapter = reasoner(tmp_path, [json.dumps(proposed)])
+    result = asyncio.run(controller.propose(implementation, run_id=RUN, trace_id=TRACE, at=NOW))
+    assert result.file_changes[0][0] == "app.py"
+    assert "Do not delete files" in adapter.tasks[0].input["prompt"]
+
+
 def test_unqualified_model_is_not_called_for_task_reasoning(tmp_path) -> None:
     controller, adapter = reasoner(tmp_path, [json.dumps(output())], qualified=False)
     with pytest.raises(TaskReasoningError, match="qualification"):

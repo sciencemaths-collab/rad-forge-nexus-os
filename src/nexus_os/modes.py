@@ -114,7 +114,11 @@ class AppBuildMode:
                     task_id=task_id,
                     kind=stage.kind,
                     depends_on=() if previous is None else (previous,),
-                    effect=ActionEffect.WORKSPACE_WRITE,
+                    effect=(
+                        ActionEffect.SENSITIVE
+                        if stage.task_id == "implementation"
+                        else ActionEffect.WORKSPACE_WRITE
+                    ),
                     timeout_seconds=stage.timeout_seconds,
                     max_attempts=max_attempts if stage.retryable else 1,
                     backoff_seconds=1.0 if stage.retryable else 0.0,
