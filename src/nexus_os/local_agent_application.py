@@ -38,6 +38,7 @@ from nexus_os.model_registry import (
 from nexus_os.openai_adapter import OpenAIAdapter
 from nexus_os.operator_auth import OperatorAuthenticator
 from nexus_os.policy import PolicyEngine, PolicyRules
+from nexus_os.project_inspection import register_project_inspection_tool
 from nexus_os.providers import AgentAdapter
 from nexus_os.research_tools import (
     register_local_research_extraction_tool,
@@ -319,11 +320,13 @@ def _create_reference_runtime(
     runtime = RuntimeOrchestrator(checkpoints)
     approvals = ApprovalStore(state_dir / "runtime-approvals.sqlite")
     registry = ToolRegistry()
+    register_project_inspection_tool(registry)
     register_workspace_artifact_tool(registry)
     register_local_research_source_tool(registry)
     register_local_research_extraction_tool(registry)
     allowed = frozenset(
         {
+            "workspace.inspect_project",
             "research.extract_source_lines",
             "research.ingest_local_sources",
             "workspace.write_artifact",
@@ -374,6 +377,7 @@ def _create_reference_runtime(
     }
     bindings["mode.research.source_acquisition"] = "research.ingest_local_sources"
     bindings["mode.research.source_extraction"] = "research.extract_source_lines"
+    bindings["mode.app_build.specification"] = "workspace.inspect_project"
     scheduler = GovernedScheduler(
         runtime=runtime,
         registry=registry,
