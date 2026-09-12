@@ -54,7 +54,7 @@ def task(effect: ActionEffect = ActionEffect.WORKSPACE_WRITE) -> TaskDefinition:
     )
 
 
-def reasoner(tmp_path, outputs, *, qualified=True):  # type: ignore[no-untyped-def]
+def reasoner(tmp_path, outputs, *, qualified=True, context_provider=None):  # type: ignore[no-untyped-def]
     registry = ModelQualificationRegistry(tmp_path / "models.sqlite")
     if qualified:
         registry.register(attestation(), registered_at=REGISTERED_AT, registered_by="tester")
@@ -66,6 +66,7 @@ def reasoner(tmp_path, outputs, *, qualified=True):  # type: ignore[no-untyped-d
             provider_id="local_openai",
             model_id="reference-model",
             adapter_version="1.0",
+            context_provider=context_provider,
         ),
         adapter,
     )
@@ -80,6 +81,19 @@ def test_qualified_task_proposal_is_strict_digest_bound_and_side_effect_free(tmp
     assert adapter.tasks[0].run_id == RUN
     assert adapter.tasks[0].task_id == TaskId("specification")
     assert "do not call tools" in adapter.tasks[0].input["system"]
+
+
+def test_verified_context_is_included_without_changing_the_provider_contract(tmp_path) -> None:
+    class Context:
+        def context_for(self, selected):  # type: ignore[no-untyped-def]
+            assert selected == task()
+            return {"schema_version": "1.0", "files": [{"path": "app.py"}]}
+
+    controller, adapter = reasoner(tmp_path, [json.dumps(output())], context_provider=Context())
+    asyncio.run(controller.propose(task(), run_id=RUN, trace_id=TRACE, at=NOW))
+    prompt = adapter.tasks[0].input["prompt"]
+    assert "Verified project context" in prompt
+    assert '"path":"app.py"' in prompt
 
 
 def test_unqualified_model_is_not_called_for_task_reasoning(tmp_path) -> None:
