@@ -2,7 +2,9 @@ import asyncio
 import io
 import json
 import stat
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 from nexus_os.cli import ExitCode
 from nexus_os.local_model_cli import run_local_model_cli
@@ -37,6 +39,32 @@ def transport():
     suite = load_benchmark_suite(CORPUS, expected_digest=ANCHOR.read_text().strip())
     outputs = [json.dumps(dict(case.expected_output)) for case in suite.cases]
     return ScriptedTransport(outputs)
+
+
+class CloudTransport:
+    def __init__(self) -> None:
+        suite = load_benchmark_suite(CORPUS, expected_digest=ANCHOR.read_text().strip())
+        self.outputs = [json.dumps(dict(case.expected_output)) for case in suite.cases]
+
+    async def health(self, api_key: str) -> bool:
+        return api_key == "fixture-value"
+
+    async def create(self, request: Mapping[str, object], api_key: str) -> Mapping[str, Any]:
+        assert request["store"] is False
+        assert api_key == "fixture-value"
+        output = self.outputs.pop(0)
+        return {
+            "id": f"resp_fixture_{len(self.outputs)}",
+            "status": "completed",
+            "output_text": output,
+            "usage": {"input_tokens": 1, "output_tokens": 1},
+        }
+
+    async def retrieve(self, response_id: str, api_key: str) -> Mapping[str, Any]:
+        raise AssertionError("completed evaluation responses must not be retrieved")
+
+    async def cancel_response(self, response_id: str, api_key: str) -> Mapping[str, Any]:
+        raise AssertionError("completed evaluation responses must not be cancelled")
 
 
 def invoke(args: list[str], *, environment=None):  # type: ignore[no-untyped-def]
@@ -87,3 +115,36 @@ def test_same_inputs_produce_same_manifest_digest(tmp_path: Path) -> None:
         json.loads(first.read_text())["manifest_digest"]
         == json.loads(second.read_text())["manifest_digest"]
     )
+
+
+def test_explicit_openai_cloud_evaluation_uses_official_adapter(tmp_path: Path) -> None:
+    output = tmp_path / "cloud-evaluation.json"
+    args = arguments(output)
+    args[1] = "https://api.openai.com/v1"
+    args[-1] = "--authorize-cloud"
+    args.extend(["--provider", "openai", "--credential-ref", "env:OPENAI_API_KEY"])
+    stdout, stderr = io.StringIO(), io.StringIO()
+    code = asyncio.run(
+        run_local_model_cli(
+            args,
+            stdout=stdout,
+            stderr=stderr,
+            environment={"OPENAI_API_KEY": "fixture-value"},
+            cloud_transport=CloudTransport(),
+        )
+    )
+    assert code == ExitCode.SUCCESS
+    assert stderr.getvalue() == ""
+    manifest = json.loads(output.read_text())
+    assert manifest["provider_id"] == "openai"
+    assert manifest["model_id"] == "reference-model"
+    assert set(manifest["report"]["category_results"].values()) == {"PASS"}
+    assert "OPENAI_API_KEY" not in output.read_text()
+
+
+def test_openai_cloud_evaluation_rejects_arbitrary_endpoint(tmp_path: Path) -> None:
+    args = arguments(tmp_path / "rejected.json")
+    args[1] = "https://example.com/v1"
+    args[-1] = "--authorize-cloud"
+    args.extend(["--provider", "openai", "--credential-ref", "env:OPENAI_API_KEY"])
+    assert invoke(args, environment={"OPENAI_API_KEY": "fixture-value"})[0] == ExitCode.VALIDATION

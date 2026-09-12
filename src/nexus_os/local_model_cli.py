@@ -17,10 +17,13 @@ from urllib.parse import urlsplit
 from uuid import UUID
 
 from nexus_os.cli import ExitCode
+from nexus_os.cloud_http_transport import OpenAIHTTPTransport
 from nexus_os.domain import RunId, TraceId
 from nexus_os.local_openai_adapter import LocalOpenAIAdapter, LocalOpenAITransport
 from nexus_os.loopback_http_transport import LoopbackHTTPTransport
 from nexus_os.model_evaluation import ModelEvaluationRunner, load_benchmark_suite
+from nexus_os.openai_adapter import OpenAIAdapter, OpenAITransport
+from nexus_os.providers import AgentAdapter
 from nexus_os.sandbox import WorkspaceSandbox
 from nexus_os.secrets import SecretReference, SecretResolver
 
@@ -41,6 +44,7 @@ class _Parser(argparse.ArgumentParser):
 def _parser() -> argparse.ArgumentParser:
     parser = _Parser(prog="rad-model-eval")
     parser.add_argument("--base-url", required=True)
+    parser.add_argument("--provider", choices=("local_openai", "openai"), default="local_openai")
     parser.add_argument("--model", required=True)
     parser.add_argument("--corpus", required=True)
     parser.add_argument("--corpus-digest", required=True)
@@ -50,6 +54,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--evaluated-at", required=True)
     parser.add_argument("--credential-ref")
     parser.add_argument("--authorize-loopback", action="store_true")
+    parser.add_argument("--authorize-cloud", action="store_true")
     return parser
 
 
@@ -60,12 +65,25 @@ async def run_local_model_cli(
     stderr: TextIO,
     environment: Mapping[str, str] | None = None,
     transport_factory: TransportFactory | None = None,
+    cloud_transport: OpenAITransport | None = None,
 ) -> int:
     try:
         values = _parser().parse_args(list(arguments))
-        if values.authorize_loopback is not True:
-            raise LocalModelCLIError("explicit loopback authorization is required")
-        host = _pinned_host(values.base_url)
+        cloud = values.provider == "openai"
+        adapter: AgentAdapter
+        if cloud:
+            if values.authorize_cloud is not True or values.authorize_loopback:
+                raise LocalModelCLIError("explicit cloud authorization is required")
+            if values.base_url != "https://api.openai.com/v1":
+                raise LocalModelCLIError("OpenAI evaluation requires the official endpoint")
+            if values.credential_ref is None:
+                raise LocalModelCLIError(
+                    "OpenAI evaluation requires an opaque credential reference"
+                )
+        else:
+            if values.authorize_loopback is not True or values.authorize_cloud:
+                raise LocalModelCLIError("explicit loopback authorization is required")
+            host = _pinned_host(values.base_url)
         run_id = RunId.parse(str(UUID(values.run_id)))
         trace_id = TraceId(values.trace_id)
         evaluated_at = _utc_timestamp(values.evaluated_at)
@@ -73,19 +91,27 @@ async def run_local_model_cli(
             raise LocalModelCLIError("corpus digest is invalid")
         suite = load_benchmark_suite(values.corpus, expected_digest=values.corpus_digest)
         resolver = _resolver(values.credential_ref, environment or {})
-        sandbox = WorkspaceSandbox(Path.cwd(), network_hosts=(host,))
-        transport = (
-            transport_factory(sandbox)
-            if transport_factory is not None
-            else LoopbackHTTPTransport(sandbox=sandbox)
-        )
-        adapter = LocalOpenAIAdapter(
-            base_url=values.base_url,
-            model=values.model,
-            credential=values.credential_ref,
-            resolver=resolver,
-            transport=transport,
-        )
+        if cloud:
+            adapter = OpenAIAdapter(
+                model=values.model,
+                credential=values.credential_ref,
+                resolver=resolver,
+                transport=cloud_transport or OpenAIHTTPTransport(timeout_seconds=300),
+            )
+        else:
+            sandbox = WorkspaceSandbox(Path.cwd(), network_hosts=(host,))
+            transport = (
+                transport_factory(sandbox)
+                if transport_factory is not None
+                else LoopbackHTTPTransport(sandbox=sandbox)
+            )
+            adapter = LocalOpenAIAdapter(
+                base_url=values.base_url,
+                model=values.model,
+                credential=values.credential_ref,
+                resolver=resolver,
+                transport=transport,
+            )
         report = await ModelEvaluationRunner(suite).run(
             adapter, run_id=run_id, trace_id=trace_id, evaluated_at=evaluated_at
         )
@@ -94,6 +120,7 @@ async def run_local_model_cli(
             trace_id=trace_id,
             model_id=values.model,
             base_url=values.base_url,
+            provider_id=values.provider,
             report=report.canonical(),
         )
         output = _write_new(Path(values.output), manifest)
@@ -132,12 +159,13 @@ def _manifest(
     model_id: str,
     base_url: str,
     report: Mapping[str, Any],
+    provider_id: str = "local_openai",
 ) -> dict[str, Any]:
     unsigned = {
         "schema_version": "1.0",
         "run_id": str(run_id),
         "trace_id": str(trace_id),
-        "provider_id": "local_openai",
+        "provider_id": provider_id,
         "adapter_version": "1.0",
         "model_id": model_id,
         "endpoint_digest": _sha256(base_url.encode()),

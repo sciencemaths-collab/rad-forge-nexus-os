@@ -167,13 +167,13 @@ def _wait_for(url: str, process: subprocess.Popen[bytes]) -> None:
     raise AssertionError("packaged RAD Agent server did not become healthy")
 
 
-def _write_configuration(root: Path) -> Path:
+def _write_configuration(root: Path, provider_port: int) -> Path:
     config = root / "config"
     config.mkdir(mode=0o700)
     model_config = config / "models.yaml"
     model_config.write_text(
         "schema_version: '1.0'\nselected: local\nprofiles:\n  local:\n"
-        "    type: local_openai\n    base_url: http://127.0.0.1:11434/v1\n"
+        f"    type: local_openai\n    base_url: http://127.0.0.1:{provider_port}/v1\n"
         "    model: reference-model\n    adapter_version: '1.0'\n",
         encoding="utf-8",
     )
@@ -247,13 +247,13 @@ def test_packaged_qualified_provider_completes_verified_browser_journey(
     log_root.mkdir(parents=True, exist_ok=True)
     log_path = log_root / "server.log"
     try:
-        provider = ThreadingHTTPServer(("127.0.0.1", 11434), QualifiedProvider)
+        provider = ThreadingHTTPServer(("127.0.0.1", 0), QualifiedProvider)
         provider_worker = threading.Thread(target=provider.serve_forever)
         provider_worker.start()
         diagnostic.write_text("stage=provider-started\n", encoding="utf-8")
         executable = _install_wheel(tmp_path)
         diagnostic.write_text("stage=wheel-installed\n", encoding="utf-8")
-        config = _write_configuration(tmp_path)
+        config = _write_configuration(tmp_path, provider.server_port)
         diagnostic.write_text("stage=qualification-configured\n", encoding="utf-8")
         workspace = tmp_path / "workspace"
         workspace.mkdir()
@@ -384,11 +384,11 @@ def test_packaged_app_build_edits_and_verifies_a_fresh_project(
     log_root.mkdir(parents=True, exist_ok=True)
     log_path = log_root / "server.log"
     try:
-        provider = ThreadingHTTPServer(("127.0.0.1", 11434), QualifiedProvider)
+        provider = ThreadingHTTPServer(("127.0.0.1", 0), QualifiedProvider)
         provider_worker = threading.Thread(target=provider.serve_forever)
         provider_worker.start()
         executable = _install_wheel(tmp_path)
-        config = _write_configuration(tmp_path)
+        config = _write_configuration(tmp_path, provider.server_port)
         workspace = tmp_path / "workspace"
         workspace.mkdir()
         test_source = (

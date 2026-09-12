@@ -1480,3 +1480,27 @@ arbitrary project scripts, builds, package installation, and deployment remain u
 Live Ollama/LM Studio acceptance: **NOT RUN** — neither service was reachable at
 `127.0.0.1:11434` or `127.0.0.1:1234` in the local qualification environment. This is an explicit
 external validation gap, not a packaged-app failure.
+
+## OpenAI cloud model evaluation path
+
+- `rad-model-eval` now supports an explicit `--provider openai --authorize-cloud` path through
+  the existing official-host-only Responses adapter.
+- Cloud evaluation requires an opaque credential reference, rejects arbitrary remote endpoints
+  and mixed authorization flags, and preserves `NOT_QUALIFIED` output semantics.
+- Deterministic regression coverage verifies exact provider binding, fixed-host enforcement,
+  complete category evaluation, and credential/reference exclusion from evidence.
+- On 2026-09-12, authenticated discovery passed for exact model `gpt-5.6-sol` with adapter `1.0`.
+  The anchored 14-case evaluation reached the official endpoint but every case failed at the
+  provider boundary because the account returned `insufficient_quota` / `credit_balance_exhausted`.
+  The model remains unqualified and no live-model app execution is claimed.
+- Local Ollama discovery passed for exact model `qwen3:4b` with adapter `1.0`. The anchored
+  14-case evaluation produced one pass, seven bounded timeouts, and six exact-rubric mismatches:
+  schema conformance was `LIMITED` and the other six categories were `FAIL`. The output remains
+  `NOT_QUALIFIED`, and no attestation or execution permission was derived from it.
+- The packaged deterministic qualified fixture separately passed the complete fresh app-build
+  workflow in Chromium and Firefox, including approval-gated source editing, four governed test
+  stages, verified evidence, rollback material, and result-download checks. This is fake-provider
+  acceptance evidence, not live-model evidence.
+- The packaged-provider fixture now binds an operating-system-assigned loopback port instead of
+  fixed port 11434. Two immediate consecutive Chromium/Firefox runs passed, removing confirmed
+  `EADDRINUSE` rerun failures without changing any acceptance assertion.
