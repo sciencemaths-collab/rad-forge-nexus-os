@@ -45,6 +45,12 @@ denies transaction authority, and exports a digest-bound evidence dossier. See
 [`RAD_CAPITAL_PLANNING.md`](docs/specifications/RAD_CAPITAL_PLANNING.md) for its exact contract and
 current limitations.
 
+Phase 7 adds qualified heterogeneous compute routing. A real Apple Metal GPU is available as
+`rad.compute.apple_gpu@0.6.0` for bounded float32 matrix multiplication through vQPU and MLX;
+every request remains plan-bound, approval-gated, qualification-gated, local-only, and
+fallback-denied. HPC, cloud, and physical QPU targets remain fail-closed until separately tested
+on real infrastructure. See [`RAD_COMPUTE_ENGINE.md`](docs/components/RAD_COMPUTE_ENGINE.md).
+
 ## How it works
 
 ```text

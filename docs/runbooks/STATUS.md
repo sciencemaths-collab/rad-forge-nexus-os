@@ -1532,3 +1532,21 @@ external validation gap, not a packaged-app failure.
   `schema_conformance: LIMITED`. Report digest:
   `sha256:f61d913e80c79c8384819b2ebc904fb0143d22d42a27c9670aca940ea5500987`.
   Qualification is `NOT_QUALIFIED`; no live-model workflow execution or attestation is claimed.
+
+## Phase 7 — qualified heterogeneous compute routing
+
+- vQPU 0.6.0 and RAD adapter 1.0.0 now expose exact capability `rad.compute.apple_gpu` for
+  bounded float32 matrix multiplication through backend `apple.metal.mlx` and MLX 0.32.2.
+- A formal real-device run passed 15/15 cases across three matrix sizes and five seeds with
+  `simulated=false`, deterministic output-byte replay, NumPy reference verification, zero
+  observed maximum absolute error, no network use, zero external cost, and no fallback.
+- RAD independently pins and verifies the complete qualification report, then revalidates the
+  result identity, plan binding, bounds, finite values, numerical threshold, output bytes, and
+  canonical result digest before acceptance.
+- Real local integration crosses vQPU execution, the RAD adapter, qualification-aware routing,
+  approval-compatible capability metadata, and RAD Node lease/evidence handling.
+- The exact vQPU source revision is `4a320689ddbcf14cbadc78d56c67550c45c24567`; the report digest
+  is `sha256:c5a0c47229bf5c9217f00bb5e3d7ef0808e3498c78a1ef454c80795d685c7f68`.
+- HPC, cloud, and physical QPU targets were not present on this machine. They are deliberately
+  inventoried as unqualified and unroutable; no simulation or CPU fallback is accepted as
+  evidence for those targets.

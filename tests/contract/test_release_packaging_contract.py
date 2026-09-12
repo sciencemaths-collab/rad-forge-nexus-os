@@ -6,15 +6,15 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_alpha_3_versions_and_release_commands_are_aligned() -> None:
+def test_alpha_versions_and_release_commands_are_aligned() -> None:
     manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = manifest["project"]
     scripts = project["scripts"]
-    assert project["version"] == "0.2.0a4"
+    assert project["version"] == "0.2.0a5"
     assert "pytest>=9.0.3,<10" in project["dependencies"]
     assert scripts["rad"] == "nexus_os.rad_cli:main"
     assert scripts["rad-config-migrate"] == "nexus_os.config_migration:main"
-    assert '__version__ = "0.2.0a4"' in (ROOT / "src/nexus_os/__init__.py").read_text(
+    assert '__version__ = "0.2.0a5"' in (ROOT / "src/nexus_os/__init__.py").read_text(
         encoding="utf-8"
     )
     typescript = (ROOT / "sdk/typescript/package.json").read_text(encoding="utf-8")
@@ -31,19 +31,19 @@ def test_container_is_pinned_non_root_and_installs_only_the_built_wheel() -> Non
     dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
     assert "@sha256:" in dockerfile
     assert "USER 10001:10001" in dockerfile
-    assert "pip install --no-cache-dir /tmp/nexus_os-0.2.0a4-py3-none-any.whl" in dockerfile
-    assert "!dist/nexus_os-0.2.0a4-py3-none-any.whl" in dockerignore
+    assert "pip install --no-cache-dir /tmp/nexus_os-0.2.0a5-py3-none-any.whl" in dockerfile
+    assert "!dist/nexus_os-0.2.0a5-py3-none-any.whl" in dockerignore
     assert 'ENTRYPOINT ["rad"]' in dockerfile
 
 
 def test_quickstart_uses_real_release_channels_and_documents_container_boundary() -> None:
     quickstart = (ROOT / "docs/QUICKSTART_5_MINUTES.md").read_text(encoding="utf-8")
     assert "pipx install nexus-os==" not in quickstart
-    assert "gh release download v0.2.0a4" in quickstart
+    assert "gh release download v0.2.0a5" in quickstart
     assert "--dir dist" in quickstart
     assert "sha256sum --check dist/SHA256SUMS" in quickstart
-    assert "gh attestation verify dist/nexus_os-0.2.0a4-py3-none-any.whl" in quickstart
-    assert "ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a4" in quickstart
+    assert "gh attestation verify dist/nexus_os-0.2.0a5-py3-none-any.whl" in quickstart
+    assert "ghcr.io/sciencemaths-collab/rad-agent:v0.2.0a5" in quickstart
     assert "--network host" in quickstart
     assert "without a moving `latest` tag" in quickstart
 
