@@ -53,7 +53,12 @@ def test_app_build_compiles_required_fail_fast_sequence(tmp_path: Path) -> None:
         "failure_test",
         "evidence_report",
     )
-    assert all(task.effect is ActionEffect.WORKSPACE_WRITE for task in result.graph.tasks)
+    assert all(
+        task.effect is ActionEffect.WORKSPACE_WRITE
+        for task in result.graph.tasks
+        if str(task.task_id) != "implementation"
+    )
+    assert result.graph.tasks[3].effect is ActionEffect.SENSITIVE
     assert result.graph.tasks[2].max_attempts == 1
     assert result.graph.tasks[3].max_attempts == 3
     assert result.graph.tasks[-1].acceptance_ids == ("APP_TESTED",)
